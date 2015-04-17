@@ -1,0 +1,39 @@
+{
+  "name": "ec.datamanager.js",
+  "version": "0.2.0",
+  "description": "JavaScript SDK for ec.datamanager. By entrecode.",
+  "main": "index.js",
+  "directories": {
+    "example": "example",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "mocha test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/entrecode/ec.datamanager.js"
+  },
+  "keywords": [
+    "sdk",
+    "javascript",
+    "node",
+    "web",
+    "datamanager",
+    "hypermedia",
+    "rest",
+    "client"
+  ],
+  "author": "entrecode GmbH",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/entrecode/ec.datamanager.js/issues"
+  },
+  "homepage": "https://github.com/entrecode/ec.datamanager.js",
+  "devDependencies": {
+    "mocha": "^2.2.4"
+  },
+  "dependencies": {
+    "axios": "^0.5.4"
+  }
+}
