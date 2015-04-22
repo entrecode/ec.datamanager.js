@@ -14,13 +14,16 @@ var axiosMock = function(axiosOptions) { // translates axios call to supertest c
       if (result.error) {
         throw result.error;
       }
-      return result.body;
+      return axiosOptions.transformResponse[0](JSON.stringify(result.body));
     });
 };
 
 axiosMock.interceptors = { // stub for setting interceptor (does nothing)
   response: {
-    use: function() {}
+    use: function(a, b) {
+      a({data:null});
+      b();
+    }
   }
 };
 
