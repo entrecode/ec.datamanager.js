@@ -1,5 +1,10 @@
+'use strict';
+
+/* This file is an example node.js script that uses the SDK. */
+
+
 var DataManager = require('../index.js'); // in your own project, just use require('ec.datamanager.js')
-var q     = require('q');
+
 var dataManager = new DataManager({
   url: 'https://datamanager.entrecode.de/api/f84710b8/',
   accessToken: 'e63dca99-6a56-43a5-8864-1a63ee8565e7'
@@ -15,23 +20,19 @@ dataManager.model('to-do-item').entries()
   });
 
 
-var entry = dataManager.model('to-do-item').entry('m1yUQlm2')
-    .then(function(entry) {
-    entry.done = false;
-    return entry;
-  /*  var promise =  q.defer();//(entry);
-    promise.save = function() {
-      console.log('saving');
-    };
-    return promise;*/
-  });
-/*
-  entry.save()
-  .then(function(succ) {
+dataManager.model('to-do-item').entry('m1yUQlm2')
+  .then(function(entry) {
+    entry.value.done = false;
+    return entry.save();
+  }).then(function(succ) {
     console.log('saved');
-  })
-  .fail(function(error) {
+  }, function(error) {
     console.error(error); // error updating entry
   });
-*/
 
+
+
+var api = require('../lib/api.js');
+
+api.get('google.com', {accept:'none'});
+api.post('google.com', {accept:'none'}, 'body');
