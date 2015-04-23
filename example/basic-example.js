@@ -31,8 +31,10 @@ dataManager.model('to-do-item').entry('m1yUQlm2')
   });
 
 
-
-var api = require('../lib/api.js');
-
-api.get('google.com', {accept:'none'});
-api.post('google.com', {accept:'none'}, 'body');
+dataManager.modelList()
+  .then(function(modelList) {
+    console.log('list of models:')
+    console.log(modelList) // array of model id strings
+  }, function(error) { // you don't need to use catch(…)
+    console.error(error); // error deleting entry
+  });

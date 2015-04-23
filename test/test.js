@@ -69,13 +69,24 @@ describe('DataManager SDK', function() {
     });
   });
 
-  describe('model functions', function() {
-   before(function() {
-     dataManager = new DataManager({
-       url: '/api/f84710b8/',
-       accessToken: 'test'
-     });
-   })
+  describe('model/entry functions', function() {
+    before(function() {
+      dataManager = new DataManager({
+        url: '/api/f84710b8/',
+        accessToken: 'test'
+      });
+    });
+    describe('list models', function() {
+      it('api called with correct arguments', function(done) {
+        dataManager.modelList();
+        expect(api.get).to.have.been.calledWith('/api/f84710b8/', {Authorization: "Bearer test"});
+        done();
+      });
+      it('api responds correctly', function() { // check that correct result is output (from mock)
+        return expect(dataManager.modelList())
+          .to.eventually.have.all.keys('to-do-item', 'user');
+      });
+    });
     describe('get entries', function() {
       it('api called with correct arguments', function(done) { // check that API connector is correctly called
         dataManager.model('to-do-item').entries();
