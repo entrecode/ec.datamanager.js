@@ -163,5 +163,16 @@ describe('DataManager SDK', function() {
           .to.eventually.have.deep.property('value.todo-text', 'my new item');
       });
     });
+    describe('register new anonymous user', function() {
+      it('api called with correct arguments', function(done) { // check that API connector is correctly called
+        dataManager.register();
+        expect(api.post).to.have.been.calledWith('/api/f84710b8/user');
+        done();
+      });
+      it('api responds correctly', function() { // check that correct result is output (from mock)
+        return expect(dataManager.register())
+          .to.eventually.have.deep.property('value.temporaryToken');
+      });
+    });
   });
 });
