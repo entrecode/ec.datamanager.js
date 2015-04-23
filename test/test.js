@@ -1,10 +1,10 @@
 'use strict';
 
-var chai           = require('chai') // main testing lib
+var chai = require('chai') // main testing lib
   , chaiAsPromised = require('chai-as-promised')
-  , sinon          = require('sinon') // for spies
-  , sinonChai      = require('sinon-chai') // chai assertions for sinon spies
-  , expect         = chai.expect
+  , sinon = require('sinon') // for spies
+  , sinonChai = require('sinon-chai') // chai assertions for sinon spies
+  , expect = chai.expect
   ;
 
 chai.use(chaiAsPromised);
@@ -122,6 +122,67 @@ describe('DataManager SDK', function() {
       it('api responds correctly', function() { // check that correct result is output (from mock)
         return expect(dataManager.model('to-do-item').entries())
           .to.eventually.have.deep.property('0.value.id', 'm1yUQlm2');
+      });
+      describe('with options', function() {
+        it('size and page', function(done) {
+          dataManager.model('to-do-item').entries({
+            size: 5,
+            page: 3
+          });
+          expect(api.get).to.have.been.calledWith('/api/f84710b8/to-do-item', {Authorization: "Bearer test"}, {
+            size: 5,
+            page: 3
+          });
+          done();
+        });
+        it('sort', function(done) {
+          dataManager.model('to-do-item').entries({
+            sort: [
+              'propertyAsc',
+              '-propertyDesc',
+              '+propertyExplAsc'
+            ]
+          });
+          expect(api.get).to.have.been.calledWith('/api/f84710b8/to-do-item', {Authorization: "Bearer test"}, {sort: 'propertyAsc,-propertyDesc,+propertyExplAsc'});
+          done();
+        });
+        it('filter', function(done) {
+          dataManager.model('to-do-item').entries({
+            filter: {
+              key1: {
+                exact: 'key1exact'
+              },
+              key2: {
+                search: 'key2search'
+              },
+              key3: {
+                from: 3,
+                to: 5
+              },
+              key4: {
+                any: [
+                  'either',
+                  'or'
+                ]
+              },
+              key5: {
+                all: [
+                  'this',
+                  'and_this'
+                ]
+              }
+            }
+          });
+          expect(api.get).to.have.been.calledWith('/api/f84710b8/to-do-item', {Authorization: "Bearer test"}, {
+            key1: 'key1exact',
+            'key2~': 'key2search',
+            key3From: 3,
+            key3To: 5,
+            key4: 'either,or',
+            key5: 'this+and_this'
+          });
+          done();
+        });
       });
     });
     describe('get entry', function() {
