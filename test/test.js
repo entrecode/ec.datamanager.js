@@ -62,17 +62,17 @@ describe('DataManager SDK', function() {
       }).to.throw(Error);
       done();
     });
-    it.skip('retrieves accessToken if not sent', function(done) {
+    it('retrieves accessToken if not sent', function() {
       var instance = new DataManager({
-        url: 'https://datamanager.entrecode.de/api/0123/'
+        url: '/api/f84710b8/'
       });
       expect(instance).to.have.property('accessToken');
-      done();
+      return expect(instance.accessToken).to.eventually.match(/^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i);
     });
   });
 
   describe('model/entry functions', function() {
-    before(function() {
+    beforeEach(function() {
       dataManager = new DataManager({
         url: '/api/f84710b8/',
         accessToken: 'test'
@@ -163,6 +163,25 @@ describe('DataManager SDK', function() {
           .to.eventually.have.deep.property('value.todo-text', 'my new item');
       });
     });
+    describe('delete entry', function() {
+      it('after getting entry', function(done) { // check that API connector is correctly called
+        dataManager.model('to-do-item').entry('my7fmeXh').then(function(entry) {
+          return entry.delete();
+        }).then(function() {
+          process.nextTick(function() {
+            expect(api.delete).to.have.been.calledWith('/api/f84710b8/to-do-item?id=my7fmeXh', {Authorization: "Bearer test"});
+            done();
+          });
+        }, function(error) {
+          done(error);
+        });
+      });
+      it('directly', function(done) { // check that API connector is correctly called
+        dataManager.model('to-do-item').deleteEntry('my7fmeXh');
+        expect(api.delete).to.have.been.calledWith('/api/f84710b8/to-do-item?id=my7fmeXh', {Authorization: "Bearer test"});
+        done();
+      });
+    });
     describe('register new anonymous user', function() {
       it('api called with correct arguments', function(done) { // check that API connector is correctly called
         dataManager.register();
@@ -172,6 +191,40 @@ describe('DataManager SDK', function() {
       it('api responds correctly', function() { // check that correct result is output (from mock)
         return expect(dataManager.register())
           .to.eventually.have.deep.property('value.temporaryToken');
+      });
+    });
+    describe('get and set data manager token', function() {
+      it('reading out token', function(done) {
+        var token = dataManager.accessToken;
+        expect(token).to.equal('test');
+        done();
+      });
+      it('setting token', function(done) {
+        dataManager.accessToken = 'newToken';
+        dataManager.model('to-do-item').entry('my7fmeXh');
+        expect(api.get).to.have.been.calledWith('/api/f84710b8/to-do-item', {Authorization: "Bearer newToken"}, {id: 'my7fmeXh'});
+        done();
+      });
+      it('getting new token and saving it', function() {
+        return dataManager.register().then(function(user) {
+          dataManager.accessToken = user.value.temporaryToken;
+          dataManager.model('to-do-item').entry('my7fmeXh');
+          return expect(api.get).to.have.been.calledWith('/api/f84710b8/to-do-item', {Authorization: "Bearer " + user.value.temporaryToken}, {id: 'my7fmeXh'});
+        });
+      });
+    });
+    describe('dataManager.user() shorthand', function() {
+      it('api called with correct arguments', function(done) { // check that API connector is correctly called
+        dataManager.user('my7fmeXh').then(function(user) {
+          return user.save();
+        }).then(function() {
+          process.nextTick(function() {
+            expect(api.put).to.have.been.calledWith('/api/f84710b8/user?id=my7fmeXh', {Authorization: "Bearer test"});
+            done();
+          });
+        }, function(error) {
+          done(error);
+        });
       });
     });
   });
