@@ -25,6 +25,8 @@ describe('DataManager SDK', function() {
     DataManager = require('../lib/DataManager.js') // DM Class
     sinon.spy(api, 'get'); // registers a spy for api.get(…)
     sinon.spy(api, 'put'); // registers a spy for api.put(…)
+    sinon.spy(api, 'post'); // registers a spy for api.post(…)
+    sinon.spy(api, 'delete'); // registers a spy for api.delete(…)
 
   });
   describe('datamanager constructor', function() {
@@ -134,7 +136,6 @@ describe('DataManager SDK', function() {
       });
     });
     describe('save entry', function() {
-      this.timeout(5000);
       it('api called with correct arguments', function(done) { // check that API connector is correctly called
         var theEntry;
         dataManager.model('to-do-item').entry('my7fmeXh').then(function(entry) {
@@ -148,6 +149,18 @@ describe('DataManager SDK', function() {
         }, function(error) {
           done(error);
         });
+      });
+    });
+    describe('create entry', function() {
+      var object = {'todo-text': 'my new item', done: false};
+      it('api called with correct arguments', function(done) { // check that API connector is correctly called
+        dataManager.model('to-do-item').createEntry(object);
+        expect(api.post).to.have.been.calledWith('/api/f84710b8/to-do-item', {Authorization: "Bearer test"}, {}, object);
+        done();
+      });
+      it('api responds correctly', function() { // check that correct result is output (from mock)
+        return expect(dataManager.model('to-do-item').createEntry(object))
+          .to.eventually.have.deep.property('value.todo-text', 'my new item');
       });
     });
   });
