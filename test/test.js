@@ -87,6 +87,30 @@ describe('DataManager SDK', function() {
           .to.eventually.have.all.keys('to-do-item', 'user');
       });
     });
+    describe('get schema', function() {
+      describe('default (get)', function() {
+        it('api called with correct arguments', function(done) {
+          dataManager.model('to-do-item').getSchema();
+          expect(api.get).to.have.been.calledWith('/api/schema/f84710b8/to-do-item');
+          done();
+        });
+        it('api responds correctly', function() { // check that correct result is output (from mock)
+          return expect(dataManager.model('to-do-item').getSchema())
+            .to.eventually.have.property('id', 'https://datamanager.entrecode.de/api/schema/f84710b8/to-do-item');
+        });
+      });
+      describe('post', function() {
+        it('api called with correct arguments', function(done) {
+          dataManager.model('to-do-item').getSchema('post');
+          expect(api.get).to.have.been.calledWith('/api/schema/f84710b8/to-do-item', {}, {template: 'post'});
+          done();
+        });
+        it('api responds correctly', function() { // check that correct result is output (from mock)
+          return expect(dataManager.model('to-do-item').getSchema('post'))
+            .to.eventually.have.property('id', 'https://datamanager.entrecode.de/api/schema/f84710b8/to-do-item?template=post');
+        });
+      });
+    });
     describe('get entries', function() {
       it('api called with correct arguments', function(done) { // check that API connector is correctly called
         dataManager.model('to-do-item').entries();

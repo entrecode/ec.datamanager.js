@@ -6,9 +6,9 @@ var es6Promise = require('es6-promise') // use the same promise lib as axios
   ;
 
 var axiosMock = function(axiosOptions) { // translates axios call to supertest call
-  return request(appcmsMock.express)[axiosOptions.method]('/datamanager'+axiosOptions.url)
+  var req = request(appcmsMock.express)[axiosOptions.method]('/datamanager'+axiosOptions.url)
     .query(axiosOptions.params)
-    .set(axiosOptions.headers)
+    .set(axiosOptions.headers || {})
     .send(axiosOptions.data)
     .then(function(result) {
       if (result.error) {
@@ -16,6 +16,7 @@ var axiosMock = function(axiosOptions) { // translates axios call to supertest c
       }
       return axiosOptions.transformResponse[0](JSON.stringify(result.body));
     });
+  return req;
 };
 
 axiosMock.interceptors = { // stub for setting interceptor (does nothing)
