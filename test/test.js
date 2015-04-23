@@ -112,6 +112,12 @@ describe('DataManager SDK', function() {
             .to.eventually.have.property('id', 'https://datamanager.entrecode.de/api/schema/f84710b8/to-do-item?template=post');
         });
       });
+      it('fail if unknown method', function(done) {
+        expect(function() {
+          dataManager.model('to-do-item').getSchema('patch');
+        }).to.throw(Error);
+        done();
+      })
     });
     describe('get entries', function() {
       it('api called with correct arguments', function(done) { // check that API connector is correctly called
