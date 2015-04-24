@@ -62,7 +62,7 @@ describe('DataManager SDK', function() {
       }).to.throw(Error);
       done();
     });
-    it('retrieves accessToken if not sent', function() {
+    it.only('retrieves accessToken if not sent', function() {
       var instance = new DataManager({
         url: '/api/f84710b8/'
       });
