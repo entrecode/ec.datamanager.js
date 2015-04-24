@@ -5,44 +5,51 @@
 
 var DataManager = require('../index.js'); // in your own project, just use require('ec.datamanager.js')
 
+
+/* Constructor */
 var dataManager = new DataManager({
-  url: 'https://datamanager.entrecode.de/api/f84710b8/',
-//  accessToken: 'e63dca99-6a56-43a5-8864-1a63ee8565e7'
+  url: 'https://datamanager.entrecode.de/api/f84710b8/'
+//,  accessToken: 'e63dca99-6a56-43a5-8864-1a63ee8565e7' // if accessToken is omitted, a POST to the users model is done and a new token is retrieved and used
 });
 
-dataManager.modelList().then(function(modelList) {
+
+/* simple list of models */
+dataManager.modelList()
+.then(function(modelList) {
   console.log('list of models:')
-  console.log(modelList) // array of model id strings
+  console.log(modelList) // models
 }, function(error) { // you don't need to use catch(…)
   console.error(error); // error deleting entry
 });
-/*
-// get entries
-dataManager.model('to-do-item').entries()
-  .then(function(entries) {
-    console.log(entries); // success!
-  })
-  .catch(function(error) {
-    console.error(error); // error getting entries
-  });
 
+/* get entries */
+dataManager.model('to-do-item').entries() // optionally, you can send request options as parameter for entries()
+.then(function(entries) {
+  console.log(entries); // success!
+})
+.catch(function(error) {
+  console.error(error); // error getting entries
+});
 
-dataManager.model('to-do-item').entry('m1yUQlm2')
+var myOwnEntryID;
+/* create new entry */
+dataManager.model('to-do-item').createEntry({
+  'todo-text': 'should be done',
+  done: false
+})
+.then(function(entry) {
+  myOwnEntryID = entry.value.id;
+})
+/* get single entry by id */
+.then(function() {
+  dataManager.model('to-do-item').entry(myOwnEntryID)
+/* alter and save (put) entry */
   .then(function(entry) {
     entry.value.done = false;
     return entry.save();
-  }).then(function(succ) {
+  }).then(function() {
     console.log('saved');
   }, function(error) {
     console.error(error); // error updating entry
   });
-
-
-dataManager.modelList()
-  .then(function(modelList) {
-    console.log('list of models:')
-    console.log(modelList) // array of model id strings
-  }, function(error) { // you don't need to use catch(…)
-    console.error(error); // error deleting entry
-  });
-*/
+});
