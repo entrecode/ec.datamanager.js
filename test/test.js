@@ -1,10 +1,10 @@
 'use strict';
 
-var chai = require('chai') // main testing lib
+var chai           = require('chai') // main testing lib
   , chaiAsPromised = require('chai-as-promised')
-  , sinon = require('sinon') // for spies
-  , sinonChai = require('sinon-chai') // chai assertions for sinon spies
-  , expect = chai.expect
+  , sinon          = require('sinon') // for spies
+  , sinonChai      = require('sinon-chai') // chai assertions for sinon spies
+  , expect         = chai.expect
   ;
 
 chai.use(chaiAsPromised);
@@ -62,12 +62,23 @@ describe('DataManager SDK', function() {
       }).to.throw(Error);
       done();
     });
-    it.only('retrieves accessToken if not sent', function() {
+    it('retrieves accessToken if not sent', function() {
       var instance = new DataManager({
         url: '/api/f84710b8/'
       });
       expect(instance).to.have.property('accessToken');
       return expect(instance.accessToken).to.eventually.match(/^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i);
+    });
+    it('waits until accessToken is retrieved for further calls', function(done) {
+      dataManager = new DataManager({
+        url: '/api/f84710b8'
+      });
+      dataManager.model('to-do-item').entries().then(function() {
+        process.nextTick(function() {
+          expect(api.get).to.have.been.calledWith('/api/f84710b8/to-do-item', {Authorization: 'Bearer 044d843f-80db-433e-bc25-6a132823a80f'});
+          done();
+        });
+      }, done);
     });
   });
 
@@ -80,9 +91,12 @@ describe('DataManager SDK', function() {
     });
     describe('list models', function() {
       it('api called with correct arguments', function(done) {
-        dataManager.modelList();
-        expect(api.get).to.have.been.calledWith('/api/f84710b8/', {Authorization: "Bearer test"});
-        done();
+        dataManager.modelList().then(function() {
+          process.nextTick(function() {
+            expect(api.get).to.have.been.calledWith('/api/f84710b8/', {Authorization: "Bearer test"});
+            done();
+          });
+        }, done)
       });
       it('api responds correctly', function() { // check that correct result is output (from mock)
         return expect(dataManager.modelList())
@@ -92,9 +106,12 @@ describe('DataManager SDK', function() {
     describe('get schema', function() {
       describe('default (get)', function() {
         it('api called with correct arguments', function(done) {
-          dataManager.model('to-do-item').getSchema();
-          expect(api.get).to.have.been.calledWith('/api/schema/f84710b8/to-do-item');
-          done();
+          dataManager.model('to-do-item').getSchema().then(function() {
+            process.nextTick(function() {
+              expect(api.get).to.have.been.calledWith('/api/schema/f84710b8/to-do-item');
+              done();
+            });
+          }, done);
         });
         it('api responds correctly', function() { // check that correct result is output (from mock)
           return expect(dataManager.model('to-do-item').getSchema())
@@ -103,9 +120,12 @@ describe('DataManager SDK', function() {
       });
       describe('post', function() {
         it('api called with correct arguments', function(done) {
-          dataManager.model('to-do-item').getSchema('post');
-          expect(api.get).to.have.been.calledWith('/api/schema/f84710b8/to-do-item', {}, {template: 'post'});
-          done();
+          dataManager.model('to-do-item').getSchema('post').then(function() {
+            process.nextTick(function() {
+              expect(api.get).to.have.been.calledWith('/api/schema/f84710b8/to-do-item', {}, {template: 'post'});
+              done();
+            });
+          }, done);
         });
         it('api responds correctly', function() { // check that correct result is output (from mock)
           return expect(dataManager.model('to-do-item').getSchema('post'))
@@ -121,9 +141,12 @@ describe('DataManager SDK', function() {
     });
     describe('get entries', function() {
       it('api called with correct arguments', function(done) { // check that API connector is correctly called
-        dataManager.model('to-do-item').entries();
-        expect(api.get).to.have.been.calledWith('/api/f84710b8/to-do-item', {Authorization: "Bearer test"});
-        done();
+        dataManager.model('to-do-item').entries().then(function() {
+          process.nextTick(function() {
+            expect(api.get).to.have.been.calledWith('/api/f84710b8/to-do-item', {Authorization: "Bearer test"});
+            done();
+          });
+        }, done);
       });
       it('api responds correctly', function() { // check that correct result is output (from mock)
         return expect(dataManager.model('to-do-item').entries())
@@ -134,12 +157,15 @@ describe('DataManager SDK', function() {
           dataManager.model('to-do-item').entries({
             size: 5,
             page: 3
-          });
-          expect(api.get).to.have.been.calledWith('/api/f84710b8/to-do-item', {Authorization: "Bearer test"}, {
-            size: 5,
-            page: 3
-          });
-          done();
+          }).then(function() {
+            process.nextTick(function() {
+              expect(api.get).to.have.been.calledWith('/api/f84710b8/to-do-item', {Authorization: "Bearer test"}, {
+                size: 5,
+                page: 3
+              });
+              done();
+            });
+          }, done);
         });
         it('sort', function(done) {
           dataManager.model('to-do-item').entries({
@@ -148,9 +174,12 @@ describe('DataManager SDK', function() {
               '-propertyDesc',
               '+propertyExplAsc'
             ]
-          });
-          expect(api.get).to.have.been.calledWith('/api/f84710b8/to-do-item', {Authorization: "Bearer test"}, {sort: 'propertyAsc,-propertyDesc,+propertyExplAsc'});
-          done();
+          }).then(function() {
+            process.nextTick(function() {
+              expect(api.get).to.have.been.calledWith('/api/f84710b8/to-do-item', {Authorization: "Bearer test"}, {sort: 'propertyAsc,-propertyDesc,+propertyExplAsc'});
+              done();
+            });
+          }, done);
         });
         it('filter', function(done) {
           dataManager.model('to-do-item').entries({
@@ -178,24 +207,30 @@ describe('DataManager SDK', function() {
                 ]
               }
             }
-          });
-          expect(api.get).to.have.been.calledWith('/api/f84710b8/to-do-item', {Authorization: "Bearer test"}, {
-            key1: 'key1exact',
-            'key2~': 'key2search',
-            key3From: 3,
-            key3To: 5,
-            key4: 'either,or',
-            key5: 'this+and_this'
-          });
-          done();
+          }).then(function() {
+            process.nextTick(function() {
+              expect(api.get).to.have.been.calledWith('/api/f84710b8/to-do-item', {Authorization: "Bearer test"}, {
+                key1: 'key1exact',
+                'key2~': 'key2search',
+                key3From: 3,
+                key3To: 5,
+                key4: 'either,or',
+                key5: 'this+and_this'
+              });
+              done();
+            });
+          }, done);
         });
       });
     });
     describe('get entry', function() {
       it('api called with correct arguments', function(done) { // check that API connector is correctly called
-        dataManager.model('to-do-item').entry('my7fmeXh');
-        expect(api.get).to.have.been.calledWith('/api/f84710b8/to-do-item', {Authorization: "Bearer test"}, {id: 'my7fmeXh'});
-        done();
+        dataManager.model('to-do-item').entry('my7fmeXh').then(function() {
+          process.nextTick(function() {
+            expect(api.get).to.have.been.calledWith('/api/f84710b8/to-do-item', {Authorization: "Bearer test"}, {id: 'my7fmeXh'});
+            done();
+          });
+        }, done);
       });
       it('api responds correctly', function() { // check that correct result is output (from mock)
         return expect(dataManager.model('to-do-item').entry('my7fmeXh'))
@@ -213,17 +248,18 @@ describe('DataManager SDK', function() {
             expect(api.put).to.have.been.calledWith('/api/f84710b8/to-do-item?id=my7fmeXh', {Authorization: "Bearer test"}, null, theEntry.value);
             done();
           });
-        }, function(error) {
-          done(error);
-        });
+        }, done);
       });
     });
     describe('create entry', function() {
       var object = {'todo-text': 'my new item', done: false};
       it('api called with correct arguments', function(done) { // check that API connector is correctly called
-        dataManager.model('to-do-item').createEntry(object);
-        expect(api.post).to.have.been.calledWith('/api/f84710b8/to-do-item', {Authorization: "Bearer test"}, {}, object);
-        done();
+        dataManager.model('to-do-item').createEntry(object).then(function() {
+          process.nextTick(function() {
+            expect(api.post).to.have.been.calledWith('/api/f84710b8/to-do-item', {Authorization: "Bearer test"}, {}, object);
+            done();
+          });
+        }, done);
       });
       it('api responds correctly', function() { // check that correct result is output (from mock)
         return expect(dataManager.model('to-do-item').createEntry(object))
@@ -239,9 +275,7 @@ describe('DataManager SDK', function() {
             expect(api.delete).to.have.been.calledWith('/api/f84710b8/to-do-item?id=my7fmeXh', {Authorization: "Bearer test"});
             done();
           });
-        }, function(error) {
-          done(error);
-        });
+        }, done);
       });
       it('directly', function(done) { // check that API connector is correctly called
         dataManager.model('to-do-item').deleteEntry('my7fmeXh');
@@ -251,9 +285,12 @@ describe('DataManager SDK', function() {
     });
     describe('register new anonymous user', function() {
       it('api called with correct arguments', function(done) { // check that API connector is correctly called
-        dataManager.register();
-        expect(api.post).to.have.been.calledWith('/api/f84710b8/user');
-        done();
+        dataManager.register().then(function() {
+          process.nextTick(function() {
+            expect(api.post).to.have.been.calledWith('/api/f84710b8/user');
+            done();
+          });
+        }, done);
       });
       it('api responds correctly', function() { // check that correct result is output (from mock)
         return expect(dataManager.register())
@@ -268,15 +305,22 @@ describe('DataManager SDK', function() {
       });
       it('setting token', function(done) {
         dataManager.accessToken = 'newToken';
-        dataManager.model('to-do-item').entry('my7fmeXh');
-        expect(api.get).to.have.been.calledWith('/api/f84710b8/to-do-item', {Authorization: "Bearer newToken"}, {id: 'my7fmeXh'});
-        done();
+        dataManager.model('to-do-item').entry('my7fmeXh').then(function() {
+          process.nextTick(function() {
+            expect(api.get).to.have.been.calledWith('/api/f84710b8/to-do-item', {Authorization: "Bearer newToken"}, {id: 'my7fmeXh'});
+            done();
+          });
+        }, done);
       });
-      it('getting new token and saving it', function() {
+      it('getting new token and saving it', function(done) {
         return dataManager.register().then(function(user) {
           dataManager.accessToken = user.value.temporaryToken;
-          dataManager.model('to-do-item').entry('my7fmeXh');
-          return expect(api.get).to.have.been.calledWith('/api/f84710b8/to-do-item', {Authorization: "Bearer " + user.value.temporaryToken}, {id: 'my7fmeXh'});
+          dataManager.model('to-do-item').entry('my7fmeXh').then(function() {
+            process.nextTick(function() {
+              expect(api.get).to.have.been.calledWith('/api/f84710b8/to-do-item', {Authorization: "Bearer " + user.value.temporaryToken}, {id: 'my7fmeXh'});
+              done();
+            });
+          }, done);
         });
       });
     });
@@ -289,9 +333,7 @@ describe('DataManager SDK', function() {
             expect(api.put).to.have.been.calledWith('/api/f84710b8/user?id=my7fmeXh', {Authorization: "Bearer test"});
             done();
           });
-        }, function(error) {
-          done(error);
-        });
+        }, done);
       });
     });
   });
