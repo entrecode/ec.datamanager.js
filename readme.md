@@ -168,6 +168,43 @@ dataManager.user('a78fb8') // dataManager.user(id) is shorthand for dataManager.
 });
 ```
 
+### Assets
+The SDK can help you getting asset files, and image assets in the right sizes.
+
+```
+dataManager.asset('46092f02-7441-4759-b6ff-8f3831d3da4b').getFileURL()
+.then(function(url) {
+    console.log(url)
+), function(error) {
+    console.error(error); // error getting asset file
+}
+```
+
+For image Assets, the following helper is available:
+
+```
+dataManager.asset('46092f02-7441-4759-b6ff-8f3831d3da4b').getImageURL(500)
+.then(function(url) {
+    console.log(url)
+), function(error) {
+    console.error(error); // error getting asset file
+}
+```
+
+`getImageURL` expects a pixel value. The largest edge of the returned image will be at least this value pixels in size, if available.
+
+You can also request a thumbnail:
+```
+dataManager.asset('46092f02-7441-4759-b6ff-8f3831d3da4b').getImageThumbURL(100)
+.then(function(url) {
+    console.log(url)
+), function(error) {
+    console.error(error); // error getting asset file
+}
+```
+The returned image will be a square-cropped variant with at least 100 pixels (pixel value can be set as with `getImageURL`). 
+
+
 # Documentation
 
 ## class DataManager
@@ -202,6 +239,10 @@ var dataManager = new DataManager({
 ```
 
 ### DataManager Instance Methods
+
+#### `asset(identifier)`
+
+returns an Asset object as Promise. `identifier` (String) is required.
 
 #### `model(identifier)`
 
@@ -242,6 +283,40 @@ dataManager.register()
 ### DataManager Instance Properties
 
 `accessToken` - Access Token for user, or `null` if not set
+
+## Asset object
+
+### Connecting an Asset
+
+```
+var myAsset = asset('8c3b7b55-531f-4a03-b584-09fdef59cb0c');
+```
+returns Asset Object which is a promise.
+
+### Asset Instance Methods
+
+#### getFileURL([locale])
+
+returns a file. Optionally, a specific `locale` can be requested.
+The promise is getting rejected if no file is found.
+
+#### getImageURL([size, locale])
+
+returns an image file. `size` is optional and states the size in pixels the largest edge should have at least.
+Note that the image may still be smaller if the original image is smaller than `size`. If `size` is omitted, the largest size (i.e. the original image) is returned.
+Optionally, a specific `locale` can be requested.
+The promise is getting rejected if no file is found.
+The following sizes are being returned: 256, 512, 1024, 2048, 4096
+Example: The source image has a largest edge of 3000 pixels. `getImageURL(1000)` will return the 1024px version. `getImageURL(4096)` will return the original file with 3000 pixels.
+
+#### getImageThumbURL(size[, locale])
+
+returns an image thumbnail (square cropped). `size` is required and states the size in pixels the thumbnail square edge should have at least.
+Note that the image may still be smaller if the original image is smaller than `size`.
+Optionally, a specific `locale` can be requested.
+The promise is getting rejected if no file is found.
+The following sizes are being returned: 50, 100, 200, 400
+
 
 ## Model object
 
