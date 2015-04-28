@@ -32,20 +32,20 @@ describe('DataManager SDK', function() {
   describe('datamanager constructor', function() {
     it('returns DataManager instance', function(done) {
       var instance = new DataManager({
-        url: 'test',
+        url: 'https://datamanager.entrecode.de/beef123',
         accessToken: 'test'
       });
       expect(instance).to.be.instanceOf(DataManager);
-      expect(instance).to.have.property('url', 'test/');
+      expect(instance).to.have.property('url', 'https://datamanager.entrecode.de/beef123/');
       expect(instance).to.have.property('accessToken', 'test');
       done();
     });
     it('interpolates URL from given id', function(done) {
       var instance = new DataManager({
-        id: 'test',
+        id: 'beefabc',
         accessToken: 'test'
       });
-      expect(instance).to.have.property('url', 'https://datamanager.entrecode.de/api/test/');
+      expect(instance).to.have.property('url', 'https://datamanager.entrecode.de/api/beefabc/');
       done();
     });
     it('extracts ID from given url', function(done) {
@@ -59,6 +59,24 @@ describe('DataManager SDK', function() {
     it('fails if neither url nor id is given', function(done) {
       expect(function() {
         new DataManager({})
+      }).to.throw(Error);
+      done();
+    });
+    it('fails if illegal url is given', function(done) {
+      expect(function() {
+        new DataManager({
+          url: 'https://anything.entrecode.de',
+          accessToken: 'test'
+        })
+      }).to.throw(Error);
+      done();
+    });
+    it('fails if illegal id is given', function(done) {
+      expect(function() {
+        new DataManager({
+          id: 'noBeef',
+          accessToken: 'test'
+        })
       }).to.throw(Error);
       done();
     });
@@ -152,6 +170,10 @@ describe('DataManager SDK', function() {
         return expect(dataManager.model('to-do-item').entries())
           .to.eventually.have.deep.property('0.value.id', 'm1yUQlm2');
       });
+      it('fail if model not found', function() {
+        return expect(dataManager.model('not-found').entries())
+          .to.be.rejected;
+      });
       describe('with options', function() {
         it('size and page', function(done) {
           dataManager.model('to-do-item').entries({
@@ -235,6 +257,14 @@ describe('DataManager SDK', function() {
       it('api responds correctly', function() { // check that correct result is output (from mock)
         return expect(dataManager.model('to-do-item').entry('my7fmeXh'))
           .to.eventually.have.deep.property('value.id', 'my7fmeXh');
+      });
+      it('fail if model not found', function() {
+        return expect(dataManager.model('not-found').entry('noentry'))
+          .to.be.rejected;
+      });
+      it('fail if entry not found', function() {
+        return expect(dataManager.model('to-do-item').entry('noentry'))
+          .to.be.rejected;
       });
     });
     describe('save entry', function() {
