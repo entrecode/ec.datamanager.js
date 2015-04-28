@@ -194,6 +194,7 @@ dataManager.asset('46092f02-7441-4759-b6ff-8f3831d3da4b').getImageURL(500)
 `getImageURL` expects a pixel value. The largest edge of the returned image will be at least this value pixels in size, if available.
 
 You can also request a thumbnail:
+
 ```
 dataManager.asset('46092f02-7441-4759-b6ff-8f3831d3da4b').getImageThumbURL(100)
 .then(function(url) {
@@ -202,7 +203,7 @@ dataManager.asset('46092f02-7441-4759-b6ff-8f3831d3da4b').getImageThumbURL(100)
     console.error(error); // error getting asset file
 }
 ```
-The returned image will be a square-cropped variant with at least 100 pixels (pixel value can be set as with `getImageURL`). 
+The returned image will be a square-cropped variant with (in this example) at least 100 pixels (pixel value can be set as with `getImageURL`). Available sizes are 50, 100, 200 and 400 px.
 
 
 # Documentation
