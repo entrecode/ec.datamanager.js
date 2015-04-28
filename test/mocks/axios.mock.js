@@ -14,6 +14,9 @@ var axiosMock = function(axiosOptions) { // translates axios call to supertest c
       if (result.error) {
         throw result.error;
       }
+      if (result.status === 302) {
+        return es6Promise.Promise.reject(result);
+      }
       return axiosOptions.transformResponse[0](JSON.stringify(result.body));
     });
   return req;
