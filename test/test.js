@@ -422,7 +422,7 @@ describe('DataManager SDK', function() {
             });
           }, done);
       });
-      it('normalize size parameter', function(done) { // check that API connector is correctly called
+      it('normalize size parameter to 400', function(done) { // check that API connector is correctly called
         dataManager.asset('asset-file-redirect').getImageThumbURL(256)
           .then(function() {
             process.nextTick(function() {
@@ -431,6 +431,34 @@ describe('DataManager SDK', function() {
             });
           }, done);
       });
+      it('normalize size parameter to 200', function(done) { // check that API connector is correctly called
+        dataManager.asset('asset-file-redirect').getImageThumbURL(128)
+          .then(function() {
+            process.nextTick(function() {
+              expect(api.get).to.have.been.calledWith('/asset-file-redirect', null, {size: 200, nocrop: false});
+              done();
+            });
+          }, done);
+      });
+      it('normalize size parameter to 100', function(done) { // check that API connector is correctly called
+        dataManager.asset('asset-file-redirect').getImageThumbURL(64)
+          .then(function() {
+            process.nextTick(function() {
+              expect(api.get).to.have.been.calledWith('/asset-file-redirect', null, {size: 100, nocrop: false});
+              done();
+            });
+          }, done);
+      });
+      it('normalize size parameter to 50', function(done) { // check that API connector is correctly called
+        dataManager.asset('asset-file-redirect').getImageThumbURL(32)
+          .then(function() {
+            process.nextTick(function() {
+              expect(api.get).to.have.been.calledWith('/asset-file-redirect', null, {size: 50, nocrop: false});
+              done();
+            });
+          }, done);
+      });
+
       it('upper limit for size parameter', function(done) { // check that API connector is correctly called
         dataManager.asset('asset-file-redirect').getImageThumbURL(512)
           .then(function() {
