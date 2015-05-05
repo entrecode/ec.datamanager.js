@@ -8,10 +8,12 @@ module.exports = function(grunt) {
   grunt.initConfig({
     run: {
       mockserver: {
-        options: {
-          wait: true
+        start: {
+          exec: 'cd node_modules/ec.appcms-mock.js/ && ./run-server.sh start'
         },
-        exec: 'nohup node ./node_modules/ec.appcms-mock.js/server.js &'
+        stop: {
+          exec: 'cd node_modules/ec.appcms-mock.js/ && ./run-server.sh stop'
+        }
       },
       browserify: {
         exec: 'browserify -r ./index.js:ec.datamanager.js -o ./build/datamanager.js'
@@ -24,7 +26,8 @@ module.exports = function(grunt) {
 
 
   // Default task(s).
-  grunt.registerTask('mockserver', ['run:mockserver']);
+  grunt.registerTask('mockserver', ['run:mockserver:start']);
+  grunt.registerTask('mockserver-stop', 'run:mockserver:stop');
   grunt.registerTask('build', ['run:browserify', 'run:uglify']);
 
 };
