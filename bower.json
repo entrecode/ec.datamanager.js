@@ -1,0 +1,31 @@
+{
+  "name": "ec.datamanager.js",
+  "main": "build/datamanager.js",
+  "version": "0.2.0",
+  "authors": [
+    "Ruben Deyhle <deyhle@entrecode.de>"
+  ],
+  "description": "JavaScript SDK for ec.datamanager. By entrecode.",
+  "keywords": [
+    "sdk",
+    "javascript",
+    "web",
+    "datamanager",
+    "hypermedia",
+    "rest",
+    "client"
+  ],
+  "license": "ISC",
+  "homepage": "https://github.com/entrecode/ec.datamanager.js",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "lib",
+    "example",
+    "index.js",
+    "Gruntfile.js",
+    "karma.conf.js"
+  ]
+}
