@@ -24,6 +24,8 @@
     "test",
     "lib",
     "example",
-    "index.js"
+    "index.js",
+    "Gruntfile.js",
+    "karma.conf.js"
   ]
 }

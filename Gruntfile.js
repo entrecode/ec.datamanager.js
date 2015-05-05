@@ -3,6 +3,8 @@
 module.exports = function(grunt) {
 
   grunt.loadNpmTasks('grunt-run');
+  grunt.loadNpmTasks('grunt-mocha-test');
+  grunt.loadNpmTasks('grunt-karma');
 
   // Project configuration.
   grunt.initConfig({
@@ -24,6 +26,16 @@ module.exports = function(grunt) {
       coverage: {
         exec: 'istanbul cover _mocha -- --recursive -R spec '
       }
+    },
+    mochaTest: {
+      test: {
+        src: ['test/*.js']
+      }
+    },
+    karma: {
+      test: {
+        configFile: 'karma.conf.js'
+      }
     }
   });
 
@@ -31,6 +43,8 @@ module.exports = function(grunt) {
   // Default task(s).
   grunt.registerTask('mockserver', ['run:mockserver:start']);
   grunt.registerTask('mockserver-stop', 'run:mockserver:stop');
+  grunt.registerTask('test-backend', 'mochaTest');
+  grunt.registerTask('test-frontend', ['mockserver', 'karma:test', 'mockserver-stop']);
   grunt.registerTask('build', ['run:browserify', 'run:uglify']);
 
 };

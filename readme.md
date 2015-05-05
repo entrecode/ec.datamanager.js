@@ -8,10 +8,16 @@ The SDK is fully promise-based.
 
 ## Installation
 
-In node.js with [npm](http://npmjs.org):
+With [npm](http://npmjs.org) (for backend or frontend usage):
 
 ```
-npm install ec.datamanager
+npm install git+ssh://git@stash.entrecode.de:7999/cms/ec.datamanager.js.git
+```
+
+With [bower](http://bower.io/) (for frontend usage in the Browser):
+
+```
+bower install git+ssh://git@stash.entrecode.de:7999/cms/ec.datamanager.js.git
 ```
 
 ## Usage
@@ -25,6 +31,13 @@ Loading the module in node.js:
 var DataManager = require('ec.datamanager.js');
 
 ```
+
+Loading the minified module in the Browser:
+
+```
+<script src="bower_components/ec.datamanager.js/build/datamanager.js"></script>
+```
+(if you did not install using bower, the first part of the path may be different)
 
 ### Initialization
 
@@ -399,8 +412,46 @@ Note that `save()` also returns a promise.
 
 # Tests & Coverage
 
+Running backend Tests with mocha:
+
+```
+mocha
+```
+
+Alternative, using [grunt](http://gruntjs.com/):
+
+```
+grunt test-backend
+```
+
+Running backend tests with coverage:
+
 ```
 istanbul cover _mocha -- -R spec
 ```
 
+Alternative, using [grunt](http://gruntjs.com/):
+
+```
+grunt run:coverage
+```
+
 Test coverage is 100%.
+
+
+Running frontend Tests with karma:
+
+```
+grunt test-frontend
+```
+
+The task will run a mocked server at port 7472. Make sure it is available.
+
+# Build
+
+Should not be necessary. A new build for frontend usage (minified) can be triggered with
+
+```
+grunt build
+```
+
