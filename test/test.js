@@ -546,4 +546,18 @@ describe('DataManager SDK', function() {
       });
     });
   }
+  
+  describe('replaceLastOccurrence', function() {
+    it('replaces correctly', function(done) {
+      var result = dataManager.__helpers.replaceLastOccurrence('abcabcabc', 'ab', 'x');
+      expect(result).to.equal('abcabcxc');
+      done();
+    });
+    it('does not replace if not found', function(done) {
+      var result = dataManager.__helpers.replaceLastOccurrence('abcabcabc', 'x', 'y');
+      expect(result).to.equal('abcabcabc');
+      done();
+    });
+  });
+  
 });

@@ -20,6 +20,9 @@ module.exports = function(grunt) {
       },
       uglify: {
         exec: 'uglifyjs ./build/datamanager.js -m -c -o ./build/datamanager.js'
+      },
+      coverage: {
+        exec: 'istanbul cover _mocha -- --recursive -R spec '
       }
     }
   });
