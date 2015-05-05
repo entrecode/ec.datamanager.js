@@ -11,14 +11,16 @@ The SDK is fully promise-based.
 With [npm](http://npmjs.org) (for backend or frontend usage):
 
 ```
-npm install git+ssh://git@stash.entrecode.de:7999/cms/ec.datamanager.js.git
+npm install git+ssh://git@stash.entrecode.de:7999/cms/ec.datamanager.js.git#develop
 ```
 
 With [bower](http://bower.io/) (for frontend usage in the Browser):
 
 ```
-bower install git+ssh://git@stash.entrecode.de:7999/cms/ec.datamanager.js.git
+bower install git+ssh://git@stash.entrecode.de:7999/cms/ec.datamanager.js.git#develop
 ```
+
+The bower module only includes the minified build (and no tests etc.).
 
 ## Usage
 
@@ -412,6 +414,8 @@ Note that `save()` also returns a promise.
 
 # Tests & Coverage
 
+Before running tests, you need to `npm install` the dev dependency modules.
+
 Running backend Tests with mocha:
 
 ```
@@ -455,3 +459,4 @@ Should not be necessary. A new build for frontend usage (minified) can be trigge
 grunt build
 ```
 
+(`npm install` is needed before for installing dev dependency modules)
