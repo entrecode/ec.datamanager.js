@@ -10,14 +10,14 @@ The SDK is fully promise-based.
 
 With [npm](http://npmjs.org) (for backend or frontend usage):
 
-```
-npm install git+ssh://git@stash.entrecode.de:7999/cms/ec.datamanager.js.git#develop
+```sh
+npm install ec.datamanager
 ```
 
 With [bower](http://bower.io/) (for frontend usage in the Browser):
 
-```
-bower install git+ssh://git@stash.entrecode.de:7999/cms/ec.datamanager.js.git#develop
+```sh
+bower install ec.datamanager
 ```
 
 The bower module only includes the minified build (and no tests etc.).
@@ -29,14 +29,14 @@ Also see `./example/basic-example.js` for a running usage example.
 
 Loading the module in node.js:
 
-```
+```js
 var DataManager = require('ec.datamanager.js');
 
 ```
 
 Loading the minified module in the Browser:
 
-```
+```js
 <script src="bower_components/ec.datamanager.js/build/datamanager.js"></script>
 ```
 (if you did not install using bower, the first part of the path may be different)
@@ -47,7 +47,7 @@ You need to connect to your Data Manager API using the `DataManager(options)` co
 
 Initializing dataManager with existing token:
 
-```
+```js
 var dataManager = new DataManager({
     url: 'https://datamanager.entrecode.de/api/abcdef',
     accessToken: '8c3b7b55-531f-4a03-b584-09fdef59cb0c'
@@ -56,7 +56,7 @@ var dataManager = new DataManager({
 
 Initialization without token (will be generated):
 
-```
+```js
 var dataManager = new DataManager({
     url: 'https://datamanager.entrecode.de/api/abcdef'
 });
@@ -64,7 +64,7 @@ var dataManager = new DataManager({
 
 Alternative:
 
-```
+```js
 var dataManager = new DataManager({
     id: 'abcdef'
 });
@@ -72,7 +72,7 @@ var dataManager = new DataManager({
 
 ### Get Entries
 
-```
+```js
 dataManager.model('myModel').entries({size: 100, sort: ['property' , '-date'])
 .then(function(entries) {
    console.log(entries); // success!
@@ -85,7 +85,7 @@ You can also use `entry(entryID)` for a single Entry, identified by its id.
 
 ### Create Entry
 
-```
+```js
 dataManager.model('myModel').createEntry({})
 .fail(function(error) {
    console.error(error); // error creating entry
@@ -95,7 +95,7 @@ dataManager.model('myModel').createEntry({})
 ### Delete Entry
 The `delete()` function is an instance method of `Entry`. Just return `entry.delete()` in your entry promise handler:
 
-```
+```js
 dataManager.model('myModel').entry('f328af3') // entry('f328af3') is shorthand for entries({id: 'f328af3'})
 .then(function(entry) {
    return entry.delete();
@@ -111,7 +111,7 @@ dataManager.model('myModel').entry('f328af3') // entry('f328af3') is shorthand f
 ### Update Entry
 Works similar to `delete()`:
 
-```
+```js
 dataManager.model('myModel').entry('f328af3')
 .then(function(entry) {
    entry.key1 = 'new value for key1';
@@ -126,7 +126,7 @@ dataManager.model('myModel').entry('f328af3')
 ### Model List
 Retrieves all models of a Data Manager:
 
-```
+```js
 dataManager.modelList()
 .then(function(modelList) {
    console.log(modelList) // object with model id properties
@@ -137,7 +137,7 @@ dataManager.modelList()
 
 ### Get JSON Schema
 
-```
+```js
 dataManager.model('myModel').getSchema()
 .then(function(myModelSchema) {
    console.log(myModelSchema)
@@ -153,7 +153,7 @@ dataManager.model('myModel').getSchema('PUT')
 
 ### User Management
 
-```
+```js
 // post user (automatically called if no token is sent with dataManager initialization)
 dataManager.register()
 .then(function(token) {
@@ -166,13 +166,13 @@ dataManager.register()
 
 The `accessToken` is a property of the DataManager instance:
 
-```
+```js
 dataManager.accessToken; // returns currently saved token for user authentication
 ```
 
 Full example for updating a user entry:
 
-```
+```js
 dataManager.user('a78fb8') // dataManager.user(id) is shorthand for dataManager.model('user').entry(id) 
 .then(function(user) {
    user.email = 'new@adress.com';
@@ -186,7 +186,7 @@ dataManager.user('a78fb8') // dataManager.user(id) is shorthand for dataManager.
 ### Assets
 The SDK can help you getting asset files, and image assets in the right sizes.
 
-```
+```js
 dataManager.asset('46092f02-7441-4759-b6ff-8f3831d3da4b').getFileURL()
 .then(function(url) {
     console.log(url)
@@ -197,7 +197,7 @@ dataManager.asset('46092f02-7441-4759-b6ff-8f3831d3da4b').getFileURL()
 
 For image Assets, the following helper is available:
 
-```
+```js
 dataManager.asset('46092f02-7441-4759-b6ff-8f3831d3da4b').getImageURL(500)
 .then(function(url) {
     console.log(url)
@@ -210,7 +210,7 @@ dataManager.asset('46092f02-7441-4759-b6ff-8f3831d3da4b').getImageURL(500)
 
 You can also request a thumbnail:
 
-```
+```js
 dataManager.asset('46092f02-7441-4759-b6ff-8f3831d3da4b').getImageThumbURL(100)
 .then(function(url) {
     console.log(url)
@@ -236,7 +236,7 @@ returns new DataManager Object
 
 Example:
 
-```
+```js
 // initializing dataManager with existing token
 var dataManager = new DataManager({
     url: 'https://datamanager.entrecode.de/api/abcdef',
@@ -270,7 +270,7 @@ returns available Models as object.
 
 Example:
 
-```
+```js
 // list models
 dataManager.modelList()
 .then(function(modelList) {
@@ -285,7 +285,7 @@ POSTs to `user` model for creating a new anonymous user account. Returns `token`
 
 Example:
 
-```
+```js
 // post user (automatically called if no token is sent with dataManager initialization)
 dataManager.register()
 .then(function(token) {
@@ -304,7 +304,7 @@ dataManager.register()
 
 ### Connecting an Asset
 
-```
+```js
 var myAsset = asset('8c3b7b55-531f-4a03-b584-09fdef59cb0c');
 ```
 returns Asset Object which is a promise.
@@ -338,7 +338,7 @@ The following sizes are being returned: 50, 100, 200, 400
 
 ### Connecting a Model
 
-```
+```js
 var myModel = dataManager.model('myModel');
 ```
 returns Model Object which is a promise.
@@ -364,7 +364,7 @@ Valid keys are:
 
 Example:
 
-```
+```js
 // get entries
 dataManager.model('myModel').entries({size: 100, sort: ['property' , '-date'])
 .then(function(entries) {
@@ -401,7 +401,7 @@ saves the entry
 
 Example:
 
-```
+```js
 // update entry
 dataManager.model('myModel').entry('f328af3')
 .then(function(entry) {
@@ -418,25 +418,25 @@ Before running tests, you need to `npm install` the dev dependency modules.
 
 Running backend Tests with mocha:
 
-```
+```sh
 mocha
 ```
 
 Alternative, using [grunt](http://gruntjs.com/):
 
-```
+```sh
 grunt test-backend
 ```
 
 Running backend tests with coverage:
 
-```
+```sh
 istanbul cover _mocha -- -R spec
 ```
 
 Alternative, using [grunt](http://gruntjs.com/):
 
-```
+```sh
 grunt run:coverage
 ```
 
@@ -445,7 +445,7 @@ Test coverage is 100%.
 
 Running frontend Tests with karma:
 
-```
+```sh
 grunt test-frontend
 ```
 
@@ -455,8 +455,14 @@ The task will run a mocked server at port 7472. Make sure it is available.
 
 Should not be necessary. A new build for frontend usage (minified) can be triggered with
 
-```
+```sh
 grunt build
 ```
 
 (`npm install` is needed before for installing dev dependency modules)
+
+
+# Changelog
+
+### 0.2.0
+- initial public release
