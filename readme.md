@@ -394,6 +394,11 @@ retrieve JSON Schema. `method` is 'GET' by default. Other possible values: 'PUT'
 
 ## Entry Object
 
+### Entry properties
+
+#### values
+The properties of the Entry are available at entry.values.
+
 ### Entry Instance Methods
 
 #### save()
@@ -405,8 +410,8 @@ Example:
 // update entry
 dataManager.model('myModel').entry('f328af3')
 .then(function(entry) {
-   entry.key1 = 'new value for key1';
-   entry.key2 = 2;
+   entry.values.key1 = 'new value for key1';
+   entry.values.key2 = 2;
    return entry.save()
 });
 ```
@@ -463,6 +468,9 @@ grunt build
 
 
 # Changelog
+
+### 0.2.1
+- bugfix release
 
 ### 0.2.0
 - initial public release
