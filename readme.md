@@ -39,6 +39,9 @@ Loading the minified module in the Browser:
 ```js
 <script src="bower_components/ec.datamanager.js/build/datamanager.js"></script>
 ```
+
+`DataManager` is then globally available.
+
 (if you did not install using bower, the first part of the path may be different)
 
 ### Initialization
@@ -231,7 +234,7 @@ The returned image will be a square-cropped variant with (in this example) at le
 returns new DataManager Object
 
 
-`options` contains following keys: `url`, `accessToken`, `id`. All are optional, but either `url` or `id` have to be set. When omitting `accessToken`, a new token will be requested, saved and used.
+`options` contains following keys: `url`, `accessToken`, `id`, `readonly`. All are optional, but either `url` or `id` have to be set. When omitting `accessToken`, a new token will be requested, saved and used. If you set `readonly` to `true`, no token will be received. Depending on the Data Manager Settings you will then not be able to modify entries.
 
 
 Example:
@@ -246,6 +249,12 @@ var dataManager = new DataManager({
 // Initialization without token (will be generated)
 var dataManager = new DataManager({
     url: 'https://datamanager.entrecode.de/api/abcdef'
+});
+
+// Initialization without token in read only mode (no token will be created)
+var dataManager = new DataManager({
+    url: 'https://datamanager.entrecode.de/api/abcdef',
+    readonly: true
 });
 
 // Alternative
@@ -468,6 +477,10 @@ grunt build
 
 
 # Changelog
+
+### 0.2.2
+- added readonly flag to disable automatic obtaining of access token
+- bugfix: usage in the browser now works as expected (no `require('DataManager');` needed)
 
 ### 0.2.1
 - bugfix release

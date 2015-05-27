@@ -18,7 +18,7 @@ module.exports = function(grunt) {
         }
       },
       browserify: {
-        exec: 'browserify -r ./index.js:ec.datamanager.js -o ./build/datamanager.js'
+        exec: 'browserify -r ./index.js:ec.datamanager.js -s DataManager -o ./build/datamanager.js'
       },
       uglify: {
         exec: 'uglifyjs ./build/datamanager.js -m -c -o ./build/datamanager.js'
