@@ -21,8 +21,7 @@ if (typeof process !== 'undefined') {
   // We are in the browser. Karma already knows chai etc.
 
   serverRoot = 'http://localhost:7472/api/datamanager';
-  
-  DataManager = require('ec.datamanager.js'); // DM Class
+
 }
 
 describe('basic check of testing library', function() {
