@@ -102,6 +102,14 @@ describe('DataManager SDK', function() {
       expect(instance).to.have.property('accessToken');
       return expect(instance.accessToken).to.eventually.match(/^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i);
     });
+    it('readOnly mode of data manager has no accessToken', function(done) {
+      var instance = new DataManager({
+        url: serverRoot + '/api/f84710b8/',
+        readonly: true
+      });
+      expect(instance).to.have.property('readonly', true);
+      done();
+    });
     if (isNodeJS) {
       it('waits until accessToken is retrieved for further calls', function(done) {
         dataManager = new DataManager({
