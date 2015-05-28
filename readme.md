@@ -78,7 +78,7 @@ var dataManager = new DataManager({
 ```js
 dataManager.model('myModel').entries({size: 100, sort: ['property' , '-date'])
 .then(function(entries) {
-   console.log(entries); // success!
+   console.log(entries); // success! array of Entries
 })
 .catch(function(error) {
    console.error(error); // error getting entries
@@ -186,7 +186,19 @@ dataManager.user('a78fb8') // dataManager.user(id) is shorthand for dataManager.
 });
 ```
 
-### Assets
+### Get Assets
+
+```js
+dataManager.assets()
+.then(function(assets) {
+  console.log(assets); // array with assets
+})
+.fail(function(error){
+  console.error(error); // error getting asset list
+});
+```
+
+### Get Asset
 The SDK can help you getting asset files, and image assets in the right sizes.
 
 ```js
@@ -223,6 +235,38 @@ dataManager.asset('46092f02-7441-4759-b6ff-8f3831d3da4b').getImageThumbURL(100)
 ```
 The returned image will be a square-cropped variant with (in this example) at least 100 pixels (pixel value can be set as with `getImageURL`). Available sizes are 50, 100, 200 and 400 px.
 
+
+### Create Asset
+
+```js
+dataManager.createAsset(formData)
+.then(function(assets){
+  console.log(assets); // object with asset id properties
+})
+.fail(function(error){
+  console.error(error); // error creating asset
+});
+```
+
+For node.js acceptable inputs are:
+
+* Readable Stream (`fs.createReadStream(…)`)
+* A path string to a local file (`path/to/file`)
+
+For browsers acceptable inputs are:
+
+* [FormData](https://developer.mozilla.org/de/docs/Web/API/FormData)
+
+### Delete Asset
+```js
+dataManager.asset('46092f02-7441-4759-b6ff-8f3831d3da4b').delete()
+.then(function(){
+  console.log('success!'); // successfully deleted asset
+});
+.fail(function(error){
+  console.log(error); // error deleting asset
+});
+```
 
 # Documentation
 
