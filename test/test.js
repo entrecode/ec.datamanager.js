@@ -13,7 +13,7 @@ if (typeof process !== 'undefined') {
 
   chai.use(chaiAsPromised);
   chai.use(sinonChai);
-  
+
   serverRoot = '';
 
 } else {
@@ -417,7 +417,7 @@ describe('DataManager SDK', function() {
   });
 
   if (isNodeJS) {
-    describe('asset functions', function() {
+    describe('asset helper functions', function() {
       beforeEach(function() {
         dataManager = new DataManager({
           url: serverRoot + '/api/f84710b8/',
@@ -426,7 +426,7 @@ describe('DataManager SDK', function() {
       });
       describe('getFileURL()', function() {
         it('api called with correct arguments', function(done) { // check that API connector is correctly called
-          dataManager.asset('asset-file-redirect').getFileURL()
+          dataManager.getFileURL('asset-file-redirect')
             .then(function() {
               process.nextTick(function() {
                 expect(api.get).to.have.been.calledWith('/asset-file-redirect');
@@ -435,7 +435,7 @@ describe('DataManager SDK', function() {
             }, done);
         });
         it('locale parameter', function(done) { // check that API connector is correctly called
-          dataManager.asset('asset-file-redirect').getFileURL('hu-HU')
+          dataManager.getFileURL('asset-file-redirect', 'hu-HU')
             .then(function() {
               process.nextTick(function() {
                 expect(api.get).to.have.been.calledWith('/asset-file-redirect', {'Accept-Language': 'hu-HU'});
@@ -446,7 +446,7 @@ describe('DataManager SDK', function() {
       });
       describe('getImageURL()', function() {
         it('api called with correct arguments', function(done) { // check that API connector is correctly called
-          dataManager.asset('asset-file-redirect').getImageURL()
+          dataManager.getImageURL('asset-file-redirect')
             .then(function() {
               process.nextTick(function() {
                 expect(api.get).to.have.been.calledWith('/asset-file-redirect');
@@ -455,7 +455,7 @@ describe('DataManager SDK', function() {
             }, done);
         });
         it('locale parameter', function(done) { // check that API connector is correctly called
-          dataManager.asset('asset-file-redirect').getImageURL(null, 'hu-HU')
+          dataManager.getImageURL('asset-file-redirect', null, 'hu-HU')
             .then(function() {
               process.nextTick(function() {
                 expect(api.get).to.have.been.calledWith('/asset-file-redirect', {'Accept-Language': 'hu-HU'});
@@ -464,7 +464,7 @@ describe('DataManager SDK', function() {
             }, done);
         });
         it('size parameter', function(done) { // check that API connector is correctly called
-          dataManager.asset('asset-file-redirect').getImageURL(500)
+          dataManager.getImageURL('asset-file-redirect', 500)
             .then(function() {
               process.nextTick(function() {
                 expect(api.get).to.have.been.calledWith('/asset-file-redirect', null, {size: 500, nocrop: true});
@@ -475,7 +475,7 @@ describe('DataManager SDK', function() {
       });
       describe('getImageThumbURL()', function() {
         it('api called with correct arguments', function(done) { // check that API connector is correctly called
-          dataManager.asset('asset-file-redirect').getImageThumbURL()
+          dataManager.getImageThumbURL('asset-file-redirect')
             .then(function() {
               process.nextTick(function() {
                 expect(api.get).to.have.been.calledWith('/asset-file-redirect', null, {size: 400, nocrop: false});
@@ -484,7 +484,7 @@ describe('DataManager SDK', function() {
             }, done);
         });
         it('locale parameter', function(done) { // check that API connector is correctly called
-          dataManager.asset('asset-file-redirect').getImageThumbURL(null, 'hu-HU')
+          dataManager.getImageThumbURL('asset-file-redirect', null, 'hu-HU')
             .then(function() {
               process.nextTick(function() {
                 expect(api.get).to.have.been.calledWith('/asset-file-redirect', {'Accept-Language': 'hu-HU'}, {
@@ -496,7 +496,7 @@ describe('DataManager SDK', function() {
             }, done);
         });
         it('size parameter', function(done) { // check that API connector is correctly called
-          dataManager.asset('asset-file-redirect').getImageThumbURL(200)
+          dataManager.getImageThumbURL('asset-file-redirect', 200)
             .then(function() {
               process.nextTick(function() {
                 expect(api.get).to.have.been.calledWith('/asset-file-redirect', null, {size: 200, nocrop: false});
@@ -505,7 +505,7 @@ describe('DataManager SDK', function() {
             }, done);
         });
         it('normalize size parameter to 400', function(done) { // check that API connector is correctly called
-          dataManager.asset('asset-file-redirect').getImageThumbURL(256)
+          dataManager.getImageThumbURL('asset-file-redirect', 256)
             .then(function() {
               process.nextTick(function() {
                 expect(api.get).to.have.been.calledWith('/asset-file-redirect', null, {size: 400, nocrop: false});
@@ -514,7 +514,7 @@ describe('DataManager SDK', function() {
             }, done);
         });
         it('normalize size parameter to 200', function(done) { // check that API connector is correctly called
-          dataManager.asset('asset-file-redirect').getImageThumbURL(128)
+          dataManager.getImageThumbURL('asset-file-redirect', 128)
             .then(function() {
               process.nextTick(function() {
                 expect(api.get).to.have.been.calledWith('/asset-file-redirect', null, {size: 200, nocrop: false});
@@ -523,7 +523,7 @@ describe('DataManager SDK', function() {
             }, done);
         });
         it('normalize size parameter to 100', function(done) { // check that API connector is correctly called
-          dataManager.asset('asset-file-redirect').getImageThumbURL(64)
+          dataManager.getImageThumbURL('asset-file-redirect', 64)
             .then(function() {
               process.nextTick(function() {
                 expect(api.get).to.have.been.calledWith('/asset-file-redirect', null, {size: 100, nocrop: false});
@@ -532,7 +532,7 @@ describe('DataManager SDK', function() {
             }, done);
         });
         it('normalize size parameter to 50', function(done) { // check that API connector is correctly called
-          dataManager.asset('asset-file-redirect').getImageThumbURL(32)
+          dataManager.getImageThumbURL('asset-file-redirect', 32)
             .then(function() {
               process.nextTick(function() {
                 expect(api.get).to.have.been.calledWith('/asset-file-redirect', null, {size: 50, nocrop: false});
@@ -540,9 +540,8 @@ describe('DataManager SDK', function() {
               });
             }, done);
         });
-
         it('upper limit for size parameter', function(done) { // check that API connector is correctly called
-          dataManager.asset('asset-file-redirect').getImageThumbURL(512)
+          dataManager.getImageThumbURL('asset-file-redirect', 512)
             .then(function() {
               process.nextTick(function() {
                 expect(api.get).to.have.been.calledWith('/asset-file-redirect', null, {size: 400, nocrop: false});
@@ -553,7 +552,6 @@ describe('DataManager SDK', function() {
       });
     });
   }
-  
   describe('replaceLastOccurrence', function() {
     it('replaces correctly', function(done) {
       var result = dataManager.__helpers.replaceLastOccurrence('abcabcabc', 'ab', 'x');
@@ -566,5 +564,5 @@ describe('DataManager SDK', function() {
       done();
     });
   });
-  
+
 });

@@ -186,23 +186,11 @@ dataManager.user('a78fb8') // dataManager.user(id) is shorthand for dataManager.
 });
 ```
 
-### Get Assets
-
-```js
-dataManager.assets()
-.then(function(assets) {
-  console.log(assets); // array with assets
-})
-.fail(function(error){
-  console.error(error); // error getting asset list
-});
-```
-
-### Get Asset
+### Asset File Helper
 The SDK can help you getting asset files, and image assets in the right sizes.
 
 ```js
-dataManager.asset('46092f02-7441-4759-b6ff-8f3831d3da4b').getFileURL()
+dataManager.getFileURL('46092f02-7441-4759-b6ff-8f3831d3da4b')
 .then(function(url) {
     console.log(url)
 ), function(error) {
@@ -213,7 +201,7 @@ dataManager.asset('46092f02-7441-4759-b6ff-8f3831d3da4b').getFileURL()
 For image Assets, the following helper is available:
 
 ```js
-dataManager.asset('46092f02-7441-4759-b6ff-8f3831d3da4b').getImageURL(500)
+dataManager.getImageURL('46092f02-7441-4759-b6ff-8f3831d3da4b', 500)
 .then(function(url) {
     console.log(url)
 ), function(error) {
@@ -226,7 +214,7 @@ dataManager.asset('46092f02-7441-4759-b6ff-8f3831d3da4b').getImageURL(500)
 You can also request a thumbnail:
 
 ```js
-dataManager.asset('46092f02-7441-4759-b6ff-8f3831d3da4b').getImageThumbURL(100)
+dataManager.getImageThumbURL('46092f02-7441-4759-b6ff-8f3831d3da4b', 100)
 .then(function(url) {
     console.log(url)
 ), function(error) {
@@ -235,6 +223,17 @@ dataManager.asset('46092f02-7441-4759-b6ff-8f3831d3da4b').getImageThumbURL(100)
 ```
 The returned image will be a square-cropped variant with (in this example) at least 100 pixels (pixel value can be set as with `getImageURL`). Available sizes are 50, 100, 200 and 400 px.
 
+### Get Assets
+
+```js
+dataManager.assets()
+.then(function(assets) {
+  console.log(assets); // array with assets
+})
+.fail(function(error){
+  console.error(error); // error getting asset list
+});
+```
 
 ### Create Asset
 
