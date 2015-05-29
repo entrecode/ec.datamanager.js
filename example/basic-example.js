@@ -54,22 +54,22 @@ dataManager.model('to-do-item').createEntry({
 });
 
 // Assets API
-var dataManager = new DataManager({
+var dataManager2 = new DataManager({
   url: 'https://datamanager.angus.entrecode.de/api/6bdcbeb3/'
   //,  accessToken: 'e63dca99-6a56-43a5-8864-1a63ee8565e7' // if accessToken is omitted, a POST to the users model is done and a new token is retrieved and used
 });
 
-dataManager.asset('a3b04329-1a6c-4557-b23f-48b9f85cb54d').getFileURL()
+dataManager2.asset('a3b04329-1a6c-4557-b23f-48b9f85cb54d').getFileURL()
   .then(function(url) {
     console.log('file URL:', url);
   });
 
-dataManager.asset('a3b04329-1a6c-4557-b23f-48b9f85cb54d').getImageURL()
+dataManager2.asset('a3b04329-1a6c-4557-b23f-48b9f85cb54d').getImageURL()
   .then(function(url) {
     console.log('image URL:', url);
   });
 
-dataManager.asset('a3b04329-1a6c-4557-b23f-48b9f85cb54d').getImageThumbURL()
+dataManager2.asset('a3b04329-1a6c-4557-b23f-48b9f85cb54d').getImageThumbURL()
   .then(function(url) {
     console.log('thumb URL:', url);
   });
