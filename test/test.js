@@ -552,6 +552,61 @@ describe('DataManager SDK', function() {
       });
     });
   }
+
+  describe('assets', function() {
+    beforeEach(function() {
+      dataManager = new DataManager({
+        url: serverRoot + '/api/f84710b8/',
+        accessToken: 'test'
+      });
+    });
+    describe('get assets', function() {
+      if (isNodeJS) {
+        it('api called with correct arguments', function(done) {
+          dataManager.assets().then(function() {
+            process.nextTick(function() {
+              expect(api.get).to.have.been.calledWith('/asset/f84710b8', {Authorization: "Bearer test"});
+              done();
+            }, done);
+          })
+        });
+      }
+      it('api resonse correctly', function() {
+        return expect(dataManager.assets())
+          .to.eventually.have.deep.property('0.value.assetID', '317d248b-92c5-4ed8-aec5-cfd2bdae5e55');
+      });
+    });
+    describe('get asset', function() {
+      it('api called with correct arguments', function(done) {
+        dataManager.asset('317d248b-92c5-4ed8-aec5-cfd2bdae5e55').then(function(asset) {
+          process.nextTick(function() {
+            expect(api.get).to.have.been.calledWith('/asset/f84710b8', {Authorization: "Bearer test"}, {assetID: '317d248b-92c5-4ed8-aec5-cfd2bdae5e55'});
+            done();
+          });
+        });
+      });
+      it('api response correctly', function() {
+        return expect(dataManager.asset('317d248b-92c5-4ed8-aec5-cfd2bdae5e55'))
+          .to.eventually.have.deep.property('value.assetID', '317d248b-92c5-4ed8-aec5-cfd2bdae5e55');
+      });
+    });
+    describe.skip('put assets', function() {
+      // TODO
+    });
+    describe.skip('delete()', function() {
+      it('api called with correct arguments', function(done) {
+        dataManager.asset('317d248b-92c5-4ed8-aec5-cfd2bdae5e55').then(function(asset) {
+          return asset.delete();
+        }).then(function() {
+          process.nextTick(function() {
+            expect(api.delete).to.have.been.calledWith('/asset/f84710b8?assetID=317d248b-92c5-4ed8-aec5-cfd2bdae5e55', {Authorization: "Bearer test"});
+            done();
+          });
+        }, done);
+      });
+    });
+  });
+
   describe('replaceLastOccurrence', function() {
     it('replaces correctly', function(done) {
       var result = dataManager.__helpers.replaceLastOccurrence('abcabcabc', 'ab', 'x');
