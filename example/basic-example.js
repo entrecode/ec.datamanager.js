@@ -2,7 +2,6 @@
 
 /* This file is an example node.js script that uses the SDK. */
 
-
 var DataManager = require('../index.js'); // in your own project, just use require('ec.datamanager.js')
 
 // Constructor
@@ -56,20 +55,34 @@ dataManager.model('to-do-item').createEntry({
 // Assets API
 var dataManager2 = new DataManager({
   url: 'https://datamanager.angus.entrecode.de/api/6bdcbeb3/'
-  //,  accessToken: 'e63dca99-6a56-43a5-8864-1a63ee8565e7' // if accessToken is omitted, a POST to the users model is done and a new token is retrieved and used
+  //,  accessToken: 'e63dca99-6a56-43a5-8864-1a63ee8565e7' // if accessToken is omitted, a POST to the users model is
+  // done and a new token is retrieved and used
 });
 
-dataManager2.asset('a3b04329-1a6c-4557-b23f-48b9f85cb54d').getFileURL()
+dataManager2.getFileURL('a3b04329-1a6c-4557-b23f-48b9f85cb54d')
   .then(function(url) {
     console.log('file URL:', url);
   });
 
-dataManager2.asset('a3b04329-1a6c-4557-b23f-48b9f85cb54d').getImageURL()
+dataManager2.getImageURL('a3b04329-1a6c-4557-b23f-48b9f85cb54d')
   .then(function(url) {
     console.log('image URL:', url);
   });
 
-dataManager2.asset('a3b04329-1a6c-4557-b23f-48b9f85cb54d').getImageThumbURL()
+dataManager2.getImageThumbURL('a3b04329-1a6c-4557-b23f-48b9f85cb54d')
   .then(function(url) {
     console.log('thumb URL:', url);
   });
+
+var dm = new DataManager({
+  url: 'https://datamanager.angus.entrecode.de/api/c024f209/'
+});
+
+// for node usage (for browser usage see createAssetExample.html)
+dm.createAsset('./file.jpg').then(function(assets) {
+  assets[0].then(function(asset) {
+    console.log(asset);
+  });
+}).catch(function(err) {
+  console.log(err);
+});

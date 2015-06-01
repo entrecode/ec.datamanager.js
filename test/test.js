@@ -11,6 +11,9 @@ if (typeof process !== 'undefined') {
     , expect         = chai.expect
     ;
 
+  var FormData = require('form-data');
+  var fs = require('fs');
+
   chai.use(chaiAsPromised);
   chai.use(sinonChai);
 
@@ -553,7 +556,7 @@ describe('DataManager SDK', function() {
     });
   }
 
-  describe('assets', function() {
+  describe('public assets', function() {
     beforeEach(function() {
       dataManager = new DataManager({
         url: serverRoot + '/api/f84710b8/',
@@ -571,7 +574,7 @@ describe('DataManager SDK', function() {
           })
         });
       }
-      it('api resonse correctly', function() {
+      it('api response correctly', function() {
         return expect(dataManager.assets())
           .to.eventually.have.deep.property('0.value.assetID', '317d248b-92c5-4ed8-aec5-cfd2bdae5e55');
       });
@@ -589,11 +592,31 @@ describe('DataManager SDK', function() {
         return expect(dataManager.asset('317d248b-92c5-4ed8-aec5-cfd2bdae5e55'))
           .to.eventually.have.deep.property('value.assetID', '317d248b-92c5-4ed8-aec5-cfd2bdae5e55');
       });
+      it('asset not found', function() {
+        return expect(dataManager.asset('noasset'))
+          .to.be.rejected;
+      });
     });
-    describe.skip('put assets', function() {
-      // TODO
+    describe('create asset', function() {
+      if (isNodeJS) {
+        it.skip('create asset with path', function(done) {
+          dataManager.createAsset('./file.jpg').then(function(asset) {
+            expect(asset).to.have.deep.property('value.assetID');
+            done;
+          }).catch(function(err) {
+            if (err) {
+              return done(err);
+            }
+          });
+        });
+      }
     });
-    describe.skip('delete()', function() {
+    /*
+     describe.skip('put assets', function() {
+     // TODO
+     });
+     */
+    describe.skip('delete()', function() { //TODO WTAF
       it('api called with correct arguments', function(done) {
         dataManager.asset('317d248b-92c5-4ed8-aec5-cfd2bdae5e55').then(function(asset) {
           return asset.delete();
