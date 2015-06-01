@@ -69,7 +69,7 @@ Alternative:
 
 ```js
 var dataManager = new DataManager({
-    id: 'abcdef'
+    id: 'abcdef12'
 });
 ```
 
@@ -249,12 +249,34 @@ dataManager.createAsset(formData)
 
 For node.js acceptable inputs are:
 
-* Readable Stream (`fs.createReadStream(…)`)
 * A path string to a local file (`path/to/file`)
+* Currently only path is supported. Others are planned.
 
 For browsers acceptable inputs are:
 
 * [FormData](https://developer.mozilla.org/de/docs/Web/API/FormData)
+
+	Example: 
+
+	```js
+	$( 'form' ).submit(function ( e ) {
+	  e.preventDefault();
+	  var data;
+	  data = new FormData();
+	  data.append( 'file', $( '#file' )[0].files[0] );
+	  
+	  var dataManager = new DataManager({
+	    url: 'https://datamanager.angus.entrecode.de/api/c024f209/'
+	  });
+	  dataManager.createAsset(data).then(function(asset){
+	    console.log(asset);
+	  }).catch(function(err){
+	    console.log(err);
+	  });
+
+	  e.preventDefault();
+	});
+	```
 
 ### Delete Asset
 ```js
@@ -332,6 +354,20 @@ dataManager.modelList()
 });
 ```
 
+#### `assets()`
+returns available Assets as array of Promises.
+
+Example:
+
+```js
+dataManager.assets().then(function(assets) {
+  console.log(assets); // Array of promises.
+  assets[0].then(function(asset) {
+    console.log(asset); // Resolved promise of first asset
+  });
+});
+```
+
 #### `register()`
 POSTs to `user` model for creating a new anonymous user account. Returns `token` to be used with DataManager initialization. The token is also assigned to DataManager and used with subsequent requests.
 
@@ -348,6 +384,35 @@ dataManager.register()
 });
 ```
 
+#### Asset Helper Methods
+
+#### `getFileURL(assetID, [locale])`
+
+returns a file. Optionally, a specific `locale` can be requested.
+The promise is getting rejected if no file is found.
+
+#### `getImageURL(assetID, [size, locale])`
+
+returns an image file. `size` is optional and states the size in pixels the largest edge should have at least.
+Note that the image may still be smaller if the original image is smaller than `size`. If `size` is omitted, the largest size (i.e. the original image) is returned.
+Optionally, a specific `locale` can be requested.
+The promise is getting rejected if no file is found.
+The following sizes are being returned: 256, 512, 1024, 2048, 4096
+Example: The source image has a largest edge of 3000 pixels. `getImageURL(id, 1000)` will return the 1024px version. `getImageURL(id, 4096)` will return the original file with 3000 pixels.
+
+#### `getImageThumbURL(assetID, size[, locale])`
+
+returns an image thumbnail (square cropped). `size` is required and states the size in pixels the thumbnail square edge should have at least.
+Note that the image may still be smaller if the original image is smaller than `size`.
+Optionally, a specific `locale` can be requested.
+The promise is getting rejected if no file is found.
+The following sizes are being returned: 50, 100, 200, 400
+
+#### `createAsset(formData|filePath)`
+
+creates a new Asset. Returns an Array of Promsises to retrieve the created Assets.
+
+
 ### DataManager Instance Properties
 
 `accessToken` - Access Token for user, or `null` if not set
@@ -361,30 +426,28 @@ var myAsset = asset('8c3b7b55-531f-4a03-b584-09fdef59cb0c');
 ```
 returns Asset Object which is a promise.
 
+### Asset properties
+
+#### value
+The properties of the Asset are available at asset.value.
+
 ### Asset Instance Methods
 
-#### getFileURL([locale])
+#### save()
+*TBD*
 
-returns a file. Optionally, a specific `locale` can be requested.
-The promise is getting rejected if no file is found.
+#### delete()
+deletes the asset
 
-#### getImageURL([size, locale])
+Example:
 
-returns an image file. `size` is optional and states the size in pixels the largest edge should have at least.
-Note that the image may still be smaller if the original image is smaller than `size`. If `size` is omitted, the largest size (i.e. the original image) is returned.
-Optionally, a specific `locale` can be requested.
-The promise is getting rejected if no file is found.
-The following sizes are being returned: 256, 512, 1024, 2048, 4096
-Example: The source image has a largest edge of 3000 pixels. `getImageURL(1000)` will return the 1024px version. `getImageURL(4096)` will return the original file with 3000 pixels.
-
-#### getImageThumbURL(size[, locale])
-
-returns an image thumbnail (square cropped). `size` is required and states the size in pixels the thumbnail square edge should have at least.
-Note that the image may still be smaller if the original image is smaller than `size`.
-Optionally, a specific `locale` can be requested.
-The promise is getting rejected if no file is found.
-The following sizes are being returned: 50, 100, 200, 400
-
+```js
+dataManager.entry('8c3b7b55-531f-4a03-b584-09fdef59cb0c')
+.then(function(asset) {
+   return asset.delete();
+});
+```
+Note that `delete()` also returns a promise.
 
 ## Model object
 
@@ -520,6 +583,12 @@ grunt build
 
 
 # Changelog
+
+#### 0.2.3
+- added public asset api
+- moved asset helper functions into DataManager object
+	- instead of `dataManager.asset(id).get[File|Image|ImageThumb]URL();`
+	- use `dataManager.get[File|Image|ImageThumb]URL(id);`
 
 ### 0.2.2
 - added readonly flag to disable automatic obtaining of access token
