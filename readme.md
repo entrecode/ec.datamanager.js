@@ -584,6 +584,9 @@ grunt build
 
 # Changelog
 
+##### 0.2.4
+- bugfixes
+
 #### 0.2.3
 - added public asset api
 - moved asset helper functions into DataManager object

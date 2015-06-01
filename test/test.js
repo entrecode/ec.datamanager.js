@@ -11,9 +11,6 @@ if (typeof process !== 'undefined') {
     , expect         = chai.expect
     ;
 
-  var FormData = require('form-data');
-  var fs = require('fs');
-
   chai.use(chaiAsPromised);
   chai.use(sinonChai);
 
