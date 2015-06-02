@@ -429,7 +429,7 @@ describe('DataManager SDK', function() {
           dataManager.getFileURL('asset-file-redirect')
             .then(function() {
               process.nextTick(function() {
-                expect(api.get).to.have.been.calledWith('/asset-file-redirect');
+                expect(api.get).to.have.been.calledWith('/asset-file-redirect/url');
                 done();
               });
             }, done);
@@ -438,7 +438,7 @@ describe('DataManager SDK', function() {
           dataManager.getFileURL('asset-file-redirect', 'hu-HU')
             .then(function() {
               process.nextTick(function() {
-                expect(api.get).to.have.been.calledWith('/asset-file-redirect', {'Accept-Language': 'hu-HU'});
+                expect(api.get).to.have.been.calledWith('/asset-file-redirect/url', {'Accept-Language': 'hu-HU'});
                 done();
               });
             }, done);
@@ -449,7 +449,7 @@ describe('DataManager SDK', function() {
           dataManager.getImageURL('asset-file-redirect')
             .then(function() {
               process.nextTick(function() {
-                expect(api.get).to.have.been.calledWith('/asset-file-redirect');
+                expect(api.get).to.have.been.calledWith('/asset-file-redirect/url');
                 done();
               });
             }, done);
@@ -458,7 +458,7 @@ describe('DataManager SDK', function() {
           dataManager.getImageURL('asset-file-redirect', null, 'hu-HU')
             .then(function() {
               process.nextTick(function() {
-                expect(api.get).to.have.been.calledWith('/asset-file-redirect', {'Accept-Language': 'hu-HU'});
+                expect(api.get).to.have.been.calledWith('/asset-file-redirect/url', {'Accept-Language': 'hu-HU'});
                 done();
               });
             }, done);
@@ -467,7 +467,7 @@ describe('DataManager SDK', function() {
           dataManager.getImageURL('asset-file-redirect', 500)
             .then(function() {
               process.nextTick(function() {
-                expect(api.get).to.have.been.calledWith('/asset-file-redirect', null, {size: 500, nocrop: true});
+                expect(api.get).to.have.been.calledWith('/asset-file-redirect/url', null, {size: 500, nocrop: true});
                 done();
               });
             }, done);
@@ -478,7 +478,7 @@ describe('DataManager SDK', function() {
           dataManager.getImageThumbURL('asset-file-redirect')
             .then(function() {
               process.nextTick(function() {
-                expect(api.get).to.have.been.calledWith('/asset-file-redirect', null, {size: 400, nocrop: false});
+                expect(api.get).to.have.been.calledWith('/asset-file-redirect/url', null, {size: 400, nocrop: false});
                 done();
               });
             }, done);
@@ -487,7 +487,7 @@ describe('DataManager SDK', function() {
           dataManager.getImageThumbURL('asset-file-redirect', null, 'hu-HU')
             .then(function() {
               process.nextTick(function() {
-                expect(api.get).to.have.been.calledWith('/asset-file-redirect', {'Accept-Language': 'hu-HU'}, {
+                expect(api.get).to.have.been.calledWith('/asset-file-redirect/url', {'Accept-Language': 'hu-HU'}, {
                   size: 400,
                   nocrop: false
                 });
@@ -499,7 +499,7 @@ describe('DataManager SDK', function() {
           dataManager.getImageThumbURL('asset-file-redirect', 200)
             .then(function() {
               process.nextTick(function() {
-                expect(api.get).to.have.been.calledWith('/asset-file-redirect', null, {size: 200, nocrop: false});
+                expect(api.get).to.have.been.calledWith('/asset-file-redirect/url', null, {size: 200, nocrop: false});
                 done();
               });
             }, done);
@@ -508,7 +508,7 @@ describe('DataManager SDK', function() {
           dataManager.getImageThumbURL('asset-file-redirect', 256)
             .then(function() {
               process.nextTick(function() {
-                expect(api.get).to.have.been.calledWith('/asset-file-redirect', null, {size: 400, nocrop: false});
+                expect(api.get).to.have.been.calledWith('/asset-file-redirect/url', null, {size: 400, nocrop: false});
                 done();
               });
             }, done);
@@ -517,7 +517,7 @@ describe('DataManager SDK', function() {
           dataManager.getImageThumbURL('asset-file-redirect', 128)
             .then(function() {
               process.nextTick(function() {
-                expect(api.get).to.have.been.calledWith('/asset-file-redirect', null, {size: 200, nocrop: false});
+                expect(api.get).to.have.been.calledWith('/asset-file-redirect/url', null, {size: 200, nocrop: false});
                 done();
               });
             }, done);
@@ -526,7 +526,7 @@ describe('DataManager SDK', function() {
           dataManager.getImageThumbURL('asset-file-redirect', 64)
             .then(function() {
               process.nextTick(function() {
-                expect(api.get).to.have.been.calledWith('/asset-file-redirect', null, {size: 100, nocrop: false});
+                expect(api.get).to.have.been.calledWith('/asset-file-redirect/url', null, {size: 100, nocrop: false});
                 done();
               });
             }, done);
@@ -535,7 +535,7 @@ describe('DataManager SDK', function() {
           dataManager.getImageThumbURL('asset-file-redirect', 32)
             .then(function() {
               process.nextTick(function() {
-                expect(api.get).to.have.been.calledWith('/asset-file-redirect', null, {size: 50, nocrop: false});
+                expect(api.get).to.have.been.calledWith('/asset-file-redirect/url', null, {size: 50, nocrop: false});
                 done();
               });
             }, done);
@@ -544,7 +544,7 @@ describe('DataManager SDK', function() {
           dataManager.getImageThumbURL('asset-file-redirect', 512)
             .then(function() {
               process.nextTick(function() {
-                expect(api.get).to.have.been.calledWith('/asset-file-redirect', null, {size: 400, nocrop: false});
+                expect(api.get).to.have.been.calledWith('/asset-file-redirect/url', null, {size: 400, nocrop: false});
                 done();
               });
             }, done);
