@@ -584,10 +584,20 @@ grunt build
 
 # Changelog
 
-##### 0.2.4
+### 0.2.7
+- bugfixes for readonly mode
+
+### 0.2.6
+- added browserify and uglify as local packages to avoid dependencies to globally installed packages
+- fixed bug in getAssets methods - should return promises now
+
+### 0.2.5
+- use new bestFile API with /url parameter for asset helper functions
+
+### 0.2.4
 - bugfixes
 
-#### 0.2.3
+### 0.2.3
 - added public asset api
 - moved asset helper functions into DataManager object
 	- instead of `dataManager.asset(id).get[File|Image|ImageThumb]URL();`
