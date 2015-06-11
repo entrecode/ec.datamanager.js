@@ -1,6 +1,6 @@
 {
   "name": "ec.datamanager",
-  "version": "0.2.2",
+  "version": "0.2.6",
   "description": "JavaScript SDK for ec.datamanager. By entrecode.",
   "main": "index.js",
   "directories": {
@@ -31,10 +31,13 @@
   },
   "homepage": "https://github.com/entrecode/ec.datamanager.js",
   "devDependencies": {
+    "browserify": "^10.2.3",
     "chai": "^2.3.0",
     "chai-as-promised": "^5.0.0",
     "ec.appcms-mock.js": "git+ssh://git@stash.entrecode.de:7999/cms/ec.appcms-mock.js.git#develop",
     "grunt": "^0.4.5",
+    "grunt-browserify": "^3.8.0",
+    "grunt-contrib-uglify": "^0.9.1",
     "grunt-karma": "^0.10.1",
     "grunt-mocha-test": "^0.12.7",
     "grunt-run": "^0.3.0",
@@ -56,6 +59,7 @@
   "dependencies": {
     "axios": "^0.5.4",
     "es6-promise": "^2.1.1",
-    "lodash": "^3.7.0"
+    "lodash": "^3.7.0",
+    "superagent": "^1.2.0"
   }
 }

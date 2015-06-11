@@ -13,7 +13,7 @@ if (typeof process !== 'undefined') {
 
   chai.use(chaiAsPromised);
   chai.use(sinonChai);
-  
+
   serverRoot = '';
 
 } else {
@@ -417,7 +417,7 @@ describe('DataManager SDK', function() {
   });
 
   if (isNodeJS) {
-    describe('asset functions', function() {
+    describe('asset helper functions', function() {
       beforeEach(function() {
         dataManager = new DataManager({
           url: serverRoot + '/api/f84710b8/',
@@ -426,19 +426,19 @@ describe('DataManager SDK', function() {
       });
       describe('getFileURL()', function() {
         it('api called with correct arguments', function(done) { // check that API connector is correctly called
-          dataManager.asset('asset-file-redirect').getFileURL()
+          dataManager.getFileURL('asset-file-redirect')
             .then(function() {
               process.nextTick(function() {
-                expect(api.get).to.have.been.calledWith('/asset-file-redirect');
+                expect(api.get).to.have.been.calledWith('/asset-file-redirect/url');
                 done();
               });
             }, done);
         });
         it('locale parameter', function(done) { // check that API connector is correctly called
-          dataManager.asset('asset-file-redirect').getFileURL('hu-HU')
+          dataManager.getFileURL('asset-file-redirect', 'hu-HU')
             .then(function() {
               process.nextTick(function() {
-                expect(api.get).to.have.been.calledWith('/asset-file-redirect', {'Accept-Language': 'hu-HU'});
+                expect(api.get).to.have.been.calledWith('/asset-file-redirect/url', {'Accept-Language': 'hu-HU'});
                 done();
               });
             }, done);
@@ -446,28 +446,28 @@ describe('DataManager SDK', function() {
       });
       describe('getImageURL()', function() {
         it('api called with correct arguments', function(done) { // check that API connector is correctly called
-          dataManager.asset('asset-file-redirect').getImageURL()
+          dataManager.getImageURL('asset-file-redirect')
             .then(function() {
               process.nextTick(function() {
-                expect(api.get).to.have.been.calledWith('/asset-file-redirect');
+                expect(api.get).to.have.been.calledWith('/asset-file-redirect/url');
                 done();
               });
             }, done);
         });
         it('locale parameter', function(done) { // check that API connector is correctly called
-          dataManager.asset('asset-file-redirect').getImageURL(null, 'hu-HU')
+          dataManager.getImageURL('asset-file-redirect', null, 'hu-HU')
             .then(function() {
               process.nextTick(function() {
-                expect(api.get).to.have.been.calledWith('/asset-file-redirect', {'Accept-Language': 'hu-HU'});
+                expect(api.get).to.have.been.calledWith('/asset-file-redirect/url', {'Accept-Language': 'hu-HU'});
                 done();
               });
             }, done);
         });
         it('size parameter', function(done) { // check that API connector is correctly called
-          dataManager.asset('asset-file-redirect').getImageURL(500)
+          dataManager.getImageURL('asset-file-redirect', 500)
             .then(function() {
               process.nextTick(function() {
-                expect(api.get).to.have.been.calledWith('/asset-file-redirect', null, {size: 500, nocrop: true});
+                expect(api.get).to.have.been.calledWith('/asset-file-redirect/url', null, {size: 500, nocrop: true});
                 done();
               });
             }, done);
@@ -475,19 +475,19 @@ describe('DataManager SDK', function() {
       });
       describe('getImageThumbURL()', function() {
         it('api called with correct arguments', function(done) { // check that API connector is correctly called
-          dataManager.asset('asset-file-redirect').getImageThumbURL()
+          dataManager.getImageThumbURL('asset-file-redirect')
             .then(function() {
               process.nextTick(function() {
-                expect(api.get).to.have.been.calledWith('/asset-file-redirect', null, {size: 400, nocrop: false});
+                expect(api.get).to.have.been.calledWith('/asset-file-redirect/url', null, {size: 400, nocrop: false});
                 done();
               });
             }, done);
         });
         it('locale parameter', function(done) { // check that API connector is correctly called
-          dataManager.asset('asset-file-redirect').getImageThumbURL(null, 'hu-HU')
+          dataManager.getImageThumbURL('asset-file-redirect', null, 'hu-HU')
             .then(function() {
               process.nextTick(function() {
-                expect(api.get).to.have.been.calledWith('/asset-file-redirect', {'Accept-Language': 'hu-HU'}, {
+                expect(api.get).to.have.been.calledWith('/asset-file-redirect/url', {'Accept-Language': 'hu-HU'}, {
                   size: 400,
                   nocrop: false
                 });
@@ -496,56 +496,55 @@ describe('DataManager SDK', function() {
             }, done);
         });
         it('size parameter', function(done) { // check that API connector is correctly called
-          dataManager.asset('asset-file-redirect').getImageThumbURL(200)
+          dataManager.getImageThumbURL('asset-file-redirect', 200)
             .then(function() {
               process.nextTick(function() {
-                expect(api.get).to.have.been.calledWith('/asset-file-redirect', null, {size: 200, nocrop: false});
+                expect(api.get).to.have.been.calledWith('/asset-file-redirect/url', null, {size: 200, nocrop: false});
                 done();
               });
             }, done);
         });
         it('normalize size parameter to 400', function(done) { // check that API connector is correctly called
-          dataManager.asset('asset-file-redirect').getImageThumbURL(256)
+          dataManager.getImageThumbURL('asset-file-redirect', 256)
             .then(function() {
               process.nextTick(function() {
-                expect(api.get).to.have.been.calledWith('/asset-file-redirect', null, {size: 400, nocrop: false});
+                expect(api.get).to.have.been.calledWith('/asset-file-redirect/url', null, {size: 400, nocrop: false});
                 done();
               });
             }, done);
         });
         it('normalize size parameter to 200', function(done) { // check that API connector is correctly called
-          dataManager.asset('asset-file-redirect').getImageThumbURL(128)
+          dataManager.getImageThumbURL('asset-file-redirect', 128)
             .then(function() {
               process.nextTick(function() {
-                expect(api.get).to.have.been.calledWith('/asset-file-redirect', null, {size: 200, nocrop: false});
+                expect(api.get).to.have.been.calledWith('/asset-file-redirect/url', null, {size: 200, nocrop: false});
                 done();
               });
             }, done);
         });
         it('normalize size parameter to 100', function(done) { // check that API connector is correctly called
-          dataManager.asset('asset-file-redirect').getImageThumbURL(64)
+          dataManager.getImageThumbURL('asset-file-redirect', 64)
             .then(function() {
               process.nextTick(function() {
-                expect(api.get).to.have.been.calledWith('/asset-file-redirect', null, {size: 100, nocrop: false});
+                expect(api.get).to.have.been.calledWith('/asset-file-redirect/url', null, {size: 100, nocrop: false});
                 done();
               });
             }, done);
         });
         it('normalize size parameter to 50', function(done) { // check that API connector is correctly called
-          dataManager.asset('asset-file-redirect').getImageThumbURL(32)
+          dataManager.getImageThumbURL('asset-file-redirect', 32)
             .then(function() {
               process.nextTick(function() {
-                expect(api.get).to.have.been.calledWith('/asset-file-redirect', null, {size: 50, nocrop: false});
+                expect(api.get).to.have.been.calledWith('/asset-file-redirect/url', null, {size: 50, nocrop: false});
                 done();
               });
             }, done);
         });
-
         it('upper limit for size parameter', function(done) { // check that API connector is correctly called
-          dataManager.asset('asset-file-redirect').getImageThumbURL(512)
+          dataManager.getImageThumbURL('asset-file-redirect', 512)
             .then(function() {
               process.nextTick(function() {
-                expect(api.get).to.have.been.calledWith('/asset-file-redirect', null, {size: 400, nocrop: false});
+                expect(api.get).to.have.been.calledWith('/asset-file-redirect/url', null, {size: 400, nocrop: false});
                 done();
               });
             }, done);
@@ -553,7 +552,81 @@ describe('DataManager SDK', function() {
       });
     });
   }
-  
+
+  describe('public assets', function() {
+    beforeEach(function() {
+      dataManager = new DataManager({
+        url: serverRoot + '/api/f84710b8/',
+        accessToken: 'test'
+      });
+    });
+    describe('get assets', function() {
+      if (isNodeJS) {
+        it('api called with correct arguments', function(done) {
+          dataManager.assets().then(function() {
+            process.nextTick(function() {
+              expect(api.get).to.have.been.calledWith('/asset/f84710b8', {Authorization: "Bearer test"});
+              done();
+            }, done);
+          })
+        });
+      }
+      it('api response correctly', function() {
+        return expect(dataManager.assets())
+          .to.eventually.have.deep.property('0.value.assetID', '317d248b-92c5-4ed8-aec5-cfd2bdae5e55');
+      });
+    });
+    describe('get asset', function() {
+      it('api called with correct arguments', function(done) {
+        dataManager.asset('317d248b-92c5-4ed8-aec5-cfd2bdae5e55').then(function(asset) {
+          process.nextTick(function() {
+            expect(api.get).to.have.been.calledWith('/asset/f84710b8', {Authorization: "Bearer test"}, {assetID: '317d248b-92c5-4ed8-aec5-cfd2bdae5e55'});
+            done();
+          });
+        });
+      });
+      it('api response correctly', function() {
+        return expect(dataManager.asset('317d248b-92c5-4ed8-aec5-cfd2bdae5e55'))
+          .to.eventually.have.deep.property('value.assetID', '317d248b-92c5-4ed8-aec5-cfd2bdae5e55');
+      });
+      it('asset not found', function() {
+        return expect(dataManager.asset('noasset'))
+          .to.be.rejected;
+      });
+    });
+    describe('create asset', function() {
+      if (isNodeJS) {
+        it.skip('create asset with path', function(done) {
+          dataManager.createAsset('./file.jpg').then(function(asset) {
+            expect(asset).to.have.deep.property('value.assetID');
+            done;
+          }).catch(function(err) {
+            if (err) {
+              return done(err);
+            }
+          });
+        });
+      }
+    });
+    /*
+     describe.skip('put assets', function() {
+     // TODO
+     });
+     */
+    describe.skip('delete()', function() { //TODO WTAF
+      it('api called with correct arguments', function(done) {
+        dataManager.asset('317d248b-92c5-4ed8-aec5-cfd2bdae5e55').then(function(asset) {
+          return asset.delete();
+        }).then(function() {
+          process.nextTick(function() {
+            expect(api.delete).to.have.been.calledWith('/asset/f84710b8?assetID=317d248b-92c5-4ed8-aec5-cfd2bdae5e55', {Authorization: "Bearer test"});
+            done();
+          });
+        }, done);
+      });
+    });
+  });
+
   describe('replaceLastOccurrence', function() {
     it('replaces correctly', function(done) {
       var result = dataManager.__helpers.replaceLastOccurrence('abcabcabc', 'ab', 'x');
@@ -566,5 +639,5 @@ describe('DataManager SDK', function() {
       done();
     });
   });
-  
+
 });
