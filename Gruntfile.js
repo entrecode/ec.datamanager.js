@@ -6,7 +6,6 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-mocha-test');
   grunt.loadNpmTasks('grunt-karma');
   grunt.loadNpmTasks('grunt-contrib-uglify');
-  grunt.loadNpmTasks('grunt-browserify');
 
   // Project configuration.
   grunt.initConfig({
@@ -21,13 +20,32 @@ module.exports = function(grunt) {
       },
       coverage: {
         exec: 'istanbul cover _mocha -- --recursive -R spec '
+      },
+      browserify: {
+        exec: 'browserify -r ./index.js:ec.datamanager.js -s DataManager -o ./build/datamanager.js'
       }
     },
     uglify: {
-      exec: 'uglifyjs ./build/datamanager.js -m -c -o ./build/datamanager.js'
+      datamanagerjs: {
+        files: {
+          './build/datamanager.js': ['./build/datamanager.js']
+        }
+      }
     },
     browserify: {
-      exec: 'browserify -r ./index.js:ec.datamanager.js -s DataManager -o ./build/datamanager.js'
+      datamanagerjs: {
+        files: {
+          './build/datamanager.js': ['./index.js']
+        },
+        options: {
+          alias: {
+            'ec.datamanager.js': './index.js'
+          },
+          browserifyOptions: {
+            standalone: 'DataManager'
+          }
+        }
+      }
     },
     mochaTest: {
       test: {
@@ -47,6 +65,6 @@ module.exports = function(grunt) {
   grunt.registerTask('mockserver-stop', 'run:mockserver:stop');
   grunt.registerTask('test-backend', 'mochaTest');
   grunt.registerTask('test-frontend', ['mockserver', 'karma:test', 'mockserver-stop']);
-  grunt.registerTask('build', ['browserify', 'uglify']);
+  grunt.registerTask('build', ['run:browserify', 'uglify']);
 
 };
