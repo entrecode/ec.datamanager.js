@@ -577,14 +577,16 @@ describe('DataManager SDK', function() {
       });
     });
     describe('get asset', function() {
-      it('api called with correct arguments', function(done) {
-        dataManager.asset('317d248b-92c5-4ed8-aec5-cfd2bdae5e55').then(function(asset) {
-          process.nextTick(function() {
-            expect(api.get).to.have.been.calledWith('/asset/f84710b8', {Authorization: "Bearer test"}, {assetID: '317d248b-92c5-4ed8-aec5-cfd2bdae5e55'});
-            done();
+      if (isNodeJS) {
+        it('api called with correct arguments', function(done) {
+          dataManager.asset('317d248b-92c5-4ed8-aec5-cfd2bdae5e55').then(function(asset) {
+            process.nextTick(function() {
+              expect(api.get).to.have.been.calledWith('/asset/f84710b8', {Authorization: "Bearer test"}, {assetID: '317d248b-92c5-4ed8-aec5-cfd2bdae5e55'});
+              done();
+            });
           });
         });
-      });
+      }
       it('api response correctly', function() {
         return expect(dataManager.asset('317d248b-92c5-4ed8-aec5-cfd2bdae5e55'))
           .to.eventually.have.deep.property('value.assetID', '317d248b-92c5-4ed8-aec5-cfd2bdae5e55');
