@@ -584,6 +584,9 @@ grunt build
 
 # Changelog
 
+### 0.2.8
+- switched to new getImage(Thumb)URL api
+
 ### 0.2.7
 - bugfixes for readonly mode
 
