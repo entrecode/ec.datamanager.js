@@ -584,6 +584,9 @@ grunt build
 
 # Changelog
 
+### 0.2.9
+- rebuild
+
 ### 0.2.8
 - switched to new getImage(Thumb)URL api
 
