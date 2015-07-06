@@ -34,8 +34,10 @@
                     });
 
                     dataManager.createAsset(data).then(function(asset){
+                    	console.log('THEN CALLED.');
                     	console.log(asset);
                     }).catch(function(err){
+                    	console.log('CATCH CALLED');
                     	console.log(err);
                     });
 
