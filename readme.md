@@ -278,14 +278,73 @@ For browsers acceptable inputs are:
 	});
 	```
 
+### Edit Asset
+```js
+dataManager.asset('46092f02-7441-4759-b6ff-8f3831d3da4b')
+.then(function(asset){
+  asset.value.title = 'new title';
+  return asset.save();
+}).then(function(savedAsset){
+  console.log('success!'); // successfully saved asset
+}).catch(function(error){
+  console.log(error); // error modifying asset
+});
+```
+
 ### Delete Asset
 ```js
-dataManager.asset('46092f02-7441-4759-b6ff-8f3831d3da4b').delete()
-.then(function(){
+dataManager.asset('46092f02-7441-4759-b6ff-8f3831d3da4b')
+.then(function(asset){
+  return asset.delete();
+}).then(function(){
   console.log('success!'); // successfully deleted asset
-});
-.catch(function(error){
+}).catch(function(error){
   console.log(error); // error deleting asset
+});
+```
+
+### Get Tags
+```js
+dataManager.tags()
+.then(function(tags){
+  console.log(tags); // array of tags
+}).catch(function(error){
+  console.log(error); // error getting tags
+});
+```
+
+### Get Tag 
+```js
+dataManager.tag('tag1')
+.then(function(tag){
+  console.log(tag); // tag
+}).catch(function(error){
+  console.log(error); // error getting tag
+});
+```
+
+### Edit Tag
+```js
+dataManager.tag('tag1')
+.then(function(tag){
+  tag.value.tag = 'newTag';
+  return tag.save();
+}).then(function(savedTag){
+  console.log('success!'); // successfully saved tag
+}).catch(function(error){
+  console.log(error); // error modifying tag
+});
+```
+
+### Delete Tag
+```js
+dataManager.tag('tag1')
+.then(function(tag){
+  return tag.delete();
+}).then(function(){
+  console.log('success!'); // successfully deleted tag
+}).catch(function(error){
+  console.log(error); // error deleted tag
 });
 ```
 
