@@ -4,11 +4,11 @@ var isNodeJS, DataManager, serverRoot;
 if (typeof process !== 'undefined') {
   // We are in node. Require modules.
   isNodeJS = true;
-  var chai = require('chai') // main testing lib
+  var chai           = require('chai') // main testing lib
     , chaiAsPromised = require('chai-as-promised')
-    , sinon = require('sinon') // for spies
-    , sinonChai = require('sinon-chai') // chai assertions for sinon spies
-    , expect = chai.expect
+    , sinon          = require('sinon') // for spies
+    , sinonChai      = require('sinon-chai') // chai assertions for sinon spies
+    , expect         = chai.expect
     ;
 
   chai.use(chaiAsPromised);
@@ -310,7 +310,7 @@ describe('DataManager SDK', function() {
           dataManager.model('to-do-item').entry('my7fmeXh').then(function(entry) {
             theEntry = entry;
             return entry.save();
-          }).then(function() {
+          }).then(function(entry) {
             process.nextTick(function() {
               expect(api.put).to.have.been.calledWith('/api/f84710b8/to-do-item?id=my7fmeXh', {Authorization: "Bearer test"}, null, theEntry.value);
               done();
@@ -601,7 +601,7 @@ describe('DataManager SDK', function() {
         it.skip('create asset with path', function(done) {
           dataManager.createAsset('./file.jpg').then(function(asset) {
             expect(asset).to.have.deep.property('value.assetID');
-            done;
+            done();
           }).catch(function(err) {
             if (err) {
               return done(err);
@@ -626,6 +626,78 @@ describe('DataManager SDK', function() {
           });
         }, done);
       });
+    });
+  });
+
+  describe('public tags', function() {
+    beforeEach(function() {
+      dataManager = new DataManager({
+        url: serverRoot + '/api/f84710b8/',
+        accessToken: 'test'
+      });
+    });
+    describe('get tags', function() {
+      if (isNodeJS) {
+        it('api called with correct arguments', function(done) {
+          dataManager.tags().then(function(tags) {
+            process.nextTick(function() {
+              expect(api.get).to.have.been.calledWith('/tag/f84710b8', {Authorization: "Bearer test"});
+              done();
+            });
+          })
+        });
+      }
+      it('api response correctly', function(done) {
+        expect(dataManager.tags()).to.eventually.have.deep.property('0.value.tag', 'tag1');
+        done();
+      });
+    });
+    describe('get tag', function() {
+      if (isNodeJS) {
+        it('api called with correct arguments', function(done) {
+          dataManager.tag('tag1').then(function(tag) {
+            process.nextTick(function() {
+              expect(api.get).to.have.been.calledWith('/tag/f84710b8', {Authorization: "Bearer test"}, {tag: 'tag1'});
+              done();
+            });
+          });
+        });
+      }
+      it('api response correctly', function(done) {
+        expect(dataManager.tag('tag1')).to.eventually.have.deep.property('value.tag', 'tag1');
+        done();
+      });
+      it('tag not found', function() {
+        return expect(dataManager.tag('notfound')).to.be.rejected;
+      });
+    });
+    describe('edit tag', function() {
+      if (isNodeJS) {
+        it('api called with correct arguments', function(done) {
+          dataManager.tags().then(function(tags) {
+            return tags[0].save();
+          }).then(function(tag) {
+            process.nextTick(function() {
+              expect(api.put).to.have.been.calledWith('/tag/f84710b8?tag=tag1', {Authorization: "Bearer test"});
+              done();
+            });
+          });
+        });
+      }
+    });
+    describe('delete tag', function() {
+      if (isNodeJS) {
+        it('api called with correct arguments', function(done) {
+          dataManager.tag('tag1').then(function(tag) {
+            return tag.delete();
+          }).then(function() {
+            process.nextTick(function() {
+              expect(api.delete).to.have.been.calledWith('/tag/f84710b8?tag=tag1', {Authorization: "Bearer test"});
+              done();
+            });
+          });
+        });
+      }
     });
   });
 
