@@ -310,7 +310,7 @@ describe('DataManager SDK', function() {
           dataManager.model('to-do-item').entry('my7fmeXh').then(function(entry) {
             theEntry = entry;
             return entry.save();
-          }).then(function() {
+          }).then(function(entry) {
             process.nextTick(function() {
               expect(api.put).to.have.been.calledWith('/api/f84710b8/to-do-item?id=my7fmeXh', {Authorization: "Bearer test"}, null, theEntry.value);
               done();
