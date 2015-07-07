@@ -643,6 +643,10 @@ grunt build
 
 # Changelog
 
+### 0.3.0
+- added public tag api
+- fix bug: entry save will return entry, not string
+
 ### 0.2.9
 - rebuild
 
