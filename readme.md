@@ -90,7 +90,7 @@ You can also use `entry(entryID)` for a single Entry, identified by its id.
 
 ```js
 dataManager.model('myModel').createEntry({})
-.fail(function(error) {
+.catch(function(error) {
    console.error(error); // error creating entry
 });
 ```
@@ -121,7 +121,7 @@ dataManager.model('myModel').entry('f328af3')
    entry.key2 = 2;
    return entry.save();
 })
-.fail(function(error) {
+.catch(function(error) {
    console.error(error); // error updating entry
 });
 ```
@@ -181,7 +181,7 @@ dataManager.user('a78fb8') // dataManager.user(id) is shorthand for dataManager.
    user.email = 'new@adress.com';
    return user.save();
 })
-.fail(function(error) {
+.catch(function(error) {
    console.error(error); // error updating entry
 });
 ```
@@ -230,7 +230,7 @@ dataManager.assets()
 .then(function(assets) {
   console.log(assets); // array with assets
 })
-.fail(function(error){
+.catch(function(error){
   console.error(error); // error getting asset list
 });
 ```
@@ -242,7 +242,7 @@ dataManager.createAsset(formData)
 .then(function(assets){
   console.log(assets); // object with asset id properties
 })
-.fail(function(error){
+.catch(function(error){
   console.error(error); // error creating asset
 });
 ```
@@ -278,14 +278,73 @@ For browsers acceptable inputs are:
 	});
 	```
 
+### Edit Asset
+```js
+dataManager.asset('46092f02-7441-4759-b6ff-8f3831d3da4b')
+.then(function(asset){
+  asset.value.title = 'new title';
+  return asset.save();
+}).then(function(savedAsset){
+  console.log('success!'); // successfully saved asset
+}).catch(function(error){
+  console.log(error); // error modifying asset
+});
+```
+
 ### Delete Asset
 ```js
-dataManager.asset('46092f02-7441-4759-b6ff-8f3831d3da4b').delete()
-.then(function(){
+dataManager.asset('46092f02-7441-4759-b6ff-8f3831d3da4b')
+.then(function(asset){
+  return asset.delete();
+}).then(function(){
   console.log('success!'); // successfully deleted asset
-});
-.fail(function(error){
+}).catch(function(error){
   console.log(error); // error deleting asset
+});
+```
+
+### Get Tags
+```js
+dataManager.tags()
+.then(function(tags){
+  console.log(tags); // array of tags
+}).catch(function(error){
+  console.log(error); // error getting tags
+});
+```
+
+### Get Tag 
+```js
+dataManager.tag('tag1')
+.then(function(tag){
+  console.log(tag); // tag
+}).catch(function(error){
+  console.log(error); // error getting tag
+});
+```
+
+### Edit Tag
+```js
+dataManager.tag('tag1')
+.then(function(tag){
+  tag.value.tag = 'newTag';
+  return tag.save();
+}).then(function(savedTag){
+  console.log('success!'); // successfully saved tag
+}).catch(function(error){
+  console.log(error); // error modifying tag
+});
+```
+
+### Delete Tag
+```js
+dataManager.tag('tag1')
+.then(function(tag){
+  return tag.delete();
+}).then(function(){
+  console.log('success!'); // successfully deleted tag
+}).catch(function(error){
+  console.log(error); // error deleted tag
 });
 ```
 

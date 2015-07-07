@@ -75,7 +75,8 @@ dataManager2.getImageThumbURL('a3b04329-1a6c-4557-b23f-48b9f85cb54d')
   });
 
 var dm = new DataManager({
-  url: 'https://datamanager.angus.entrecode.de/api/c024f209/'
+  url: 'https://datamanager.angus.entrecode.de/api/c024f209/',
+  accessToken: '4c0fd785-bd08-4124-95b9-048467a9c0f6'
 });
 
 dm.assets().then(function(assets) {
@@ -95,4 +96,47 @@ dm.createAsset('./file.jpg').then(function(assets) {
   console.log('Deleted.');
 }).catch(function(err) {
   console.log(err);
+});
+
+dm.asset('2b526c69-6c73-42fc-85d0-e4913926155f').then(function(asset) {
+  console.log(asset);
+  asset.value.tags[asset.value.tags.indexOf('tag2')] = 'tag2new';
+  return asset.save();
+}).then(function(asset) {
+  console.log(asset);
+  asset.value.tags[asset.value.tags.indexOf('tag2new')] = 'tag2';
+  return asset.save();
+}).then(function(asset) {
+  console.log(asset);
+  asset.value.tags.push('tag3');
+  return asset.save();
+}).then(function(asset) {
+  console.log(asset);
+  return dm.tag('tag3');
+}).then(function(tag) {
+  return tag.delete();
+}).then(function() {
+  console.log('Tag deleted.');
+}).catch(function(error) {
+  console.error(error);
+});
+
+dm.tags().then(function(tags) {
+  console.log(tags);
+}).catch(function(error) {
+  console.log(error);
+});
+
+dm.tag('tag1').then(function(tag) {
+  console.log(tag);
+  tag.value.tag = 'tag1changed';
+  return tag.save();
+}).then(function(tag2) {
+  console.log(tag2);
+  tag2.value.tag = 'tag1';
+  return tag2.save();
+}).then(function(tag3) {
+  console.log(tag3);
+}).catch(function(error) {
+  console.log(error);
 });
