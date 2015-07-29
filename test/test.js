@@ -146,6 +146,21 @@ describe('DataManager SDK', function() {
         return expect(dataManager.modelList())
           .to.eventually.have.all.keys('to-do-item', 'user');
       });
+      if (isNodeJS) {
+        it('empty model list should be empty array', function(done) {
+          var dm = new DataManager({
+            url: serverRoot + '/api/beefbeef/',
+            accessToken: 'test'
+          });
+          dm.modelList().then(function(modelList) {
+            process.nextTick(function() {
+              expect(modelList).to.exist;
+              expect(modelList).to.be.empty;
+              done();
+            });
+          });
+        });
+      }
     });
     describe('get schema', function() {
       describe('default (get)', function() {
@@ -207,6 +222,14 @@ describe('DataManager SDK', function() {
           .to.be.rejected;
       });
       if (isNodeJS) {
+        it('model with no entries', function(done) {
+          dataManager.model('empty-model').entries().then(function(entries) {
+            process.nextTick(function() {
+              expect(entries).to.be.empty;
+              done();
+            });
+          });
+        });
         describe('with options', function() {
           it('size and page', function(done) {
             dataManager.model('to-do-item').entries({
@@ -570,6 +593,18 @@ describe('DataManager SDK', function() {
             }, done);
           })
         });
+        it('empty asset list', function(done) {
+          var dm = new DataManager({
+            url: serverRoot + '/api/beefbeef/',
+            accessToken: 'test'
+          });
+          dm.assets().then(function(assets) {
+            process.nextTick(function() {
+              expect(assets).to.be.empty;
+              done();
+            }, done);
+          });
+        });
       }
       it('api response correctly', function() {
         return expect(dataManager.assets())
@@ -645,6 +680,18 @@ describe('DataManager SDK', function() {
               done();
             });
           })
+        });
+        it('empty tag list', function(done) {
+          var dm = new DataManager({
+            url: serverRoot + '/api/beefbeef/',
+            accessToken: 'test'
+          });
+          dm.tags().then(function(tags) {
+            process.nextTick(function() {
+              expect(tags).to.be.empty;
+              done();
+            }, done);
+          });
         });
       }
       it('api response correctly', function(done) {
