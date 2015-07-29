@@ -235,15 +235,31 @@ dataManager.assets()
 });
 ```
 
+### Get Asset
+
+```js
+dataManager.asset('46092f02-7441-4759-b6ff-8f3831d3da4b')
+.then(function(asset) {
+  console.log(assets); // the Asset
+})
+.catch(function(error){
+  console.error(error); // error getting Asset list
+});
+```
+
 ### Create Asset
 
 ```js
 dataManager.createAsset(formData)
 .then(function(assets){
-  console.log(assets); // object with asset id properties
+  console.log(assets); // array with Get Asset promises
+  return assets[0];
+})
+.then(function(asset){
+  console.log(asset); // the created Asset.
 })
 .catch(function(error){
-  console.error(error); // error creating asset
+  console.error(error); // error creating Asset
 });
 ```
 
