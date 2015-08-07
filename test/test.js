@@ -212,13 +212,29 @@ describe('DataManager SDK', function() {
             });
           }, done);
         });
+        it('api called with correct arguments entryList', function(done) { // check that API connector is correctly called
+          dataManager.model('to-do-item').entryList().then(function(res) {
+            process.nextTick(function() {
+              expect(api.get).to.have.been.calledWith('/api/f84710b8/to-do-item', {Authorization: "Bearer test"});
+              done();
+            });
+          }, done);
+        });
       }
       it('api responds correctly', function() { // check that correct result is output (from mock)
         return expect(dataManager.model('to-do-item').entries())
           .to.eventually.have.deep.property('0.value.id', 'm1yUQlm2');
       });
+      it('api responds correctly entryList', function() { // check that correct result is output (from mock)
+        return expect(dataManager.model('to-do-item').entryList())
+          .to.eventually.have.deep.property('entries.0.value.id', 'm1yUQlm2');
+      });
       it('fail if model not found', function() {
         return expect(dataManager.model('not-found').entries())
+          .to.be.rejected;
+      });
+      it('fail if model not found', function() {
+        return expect(dataManager.model('not-found').entryList())
           .to.be.rejected;
       });
       if (isNodeJS) {
@@ -229,10 +245,32 @@ describe('DataManager SDK', function() {
               done();
             });
           });
+        })
+        it('model with no entries entryList', function(done) {
+          dataManager.model('empty-model').entryList().then(function(entries) {
+            process.nextTick(function() {
+              expect(entries.entries).to.be.empty;
+              done();
+            });
+          });
         });
         describe('with options', function() {
           it('size and page', function(done) {
             dataManager.model('to-do-item').entries({
+              size: 5,
+              page: 3
+            }).then(function() {
+              process.nextTick(function() {
+                expect(api.get).to.have.been.calledWith('/api/f84710b8/to-do-item', {Authorization: "Bearer test"}, {
+                  size: 5,
+                  page: 3
+                });
+                done();
+              });
+            }, done);
+          });
+          it('size and page', function(done) {
+            dataManager.model('to-do-item').entryList({
               size: 5,
               page: 3
             }).then(function() {
@@ -259,8 +297,62 @@ describe('DataManager SDK', function() {
               });
             }, done);
           });
+          it('sort', function(done) {
+            dataManager.model('to-do-item').entryList({
+              sort: [
+                'propertyAsc',
+                '-propertyDesc',
+                '+propertyExplAsc'
+              ]
+            }).then(function() {
+              process.nextTick(function() {
+                expect(api.get).to.have.been.calledWith('/api/f84710b8/to-do-item', {Authorization: "Bearer test"}, {sort: 'propertyAsc,-propertyDesc,+propertyExplAsc'});
+                done();
+              });
+            }, done);
+          });
           it('filter', function(done) {
             dataManager.model('to-do-item').entries({
+              filter: {
+                key1: {
+                  exact: 'key1exact'
+                },
+                key2: {
+                  search: 'key2search'
+                },
+                key3: {
+                  from: 3,
+                  to: 5
+                },
+                key4: {
+                  any: [
+                    'either',
+                    'or'
+                  ]
+                },
+                key5: {
+                  all: [
+                    'this',
+                    'and_this'
+                  ]
+                }
+              }
+            }).then(function() {
+              process.nextTick(function() {
+                expect(api.get).to.have.been.calledWith('/api/f84710b8/to-do-item', {Authorization: "Bearer test"}, {
+                  key1: 'key1exact',
+                  'key2~': 'key2search',
+                  key3From: 3,
+                  key3To: 5,
+                  key4: 'either,or',
+                  key5: 'this+and_this'
+                });
+                done();
+              });
+            }, done);
+          });
+          it('filter', function(done) {
+            dataManager.model('to-do-item').entryList({
               filter: {
                 key1: {
                   exact: 'key1exact'
@@ -605,10 +697,34 @@ describe('DataManager SDK', function() {
             }, done);
           });
         });
+        it('api called with correct arguments assetList', function(done) {
+          dataManager.assetList().then(function() {
+            process.nextTick(function() {
+              expect(api.get).to.have.been.calledWith('/asset/f84710b8', {Authorization: "Bearer test"});
+              done();
+            }, done);
+          })
+        });
+        it('empty asset list assetList', function(done) {
+          var dm = new DataManager({
+            url: serverRoot + '/api/beefbeef/',
+            accessToken: 'test'
+          });
+          dm.assetList().then(function(assets) {
+            process.nextTick(function() {
+              expect(assets.assets).to.be.empty;
+              done();
+            }, done);
+          });
+        });
       }
       it('api response correctly', function() {
         return expect(dataManager.assets())
           .to.eventually.have.deep.property('0.value.assetID', '317d248b-92c5-4ed8-aec5-cfd2bdae5e55');
+      });
+      it('api response correctly assetList', function() {
+        return expect(dataManager.assetList())
+          .to.eventually.have.deep.property('assets.0.value.assetID', '317d248b-92c5-4ed8-aec5-cfd2bdae5e55');
       });
     });
     describe('get asset', function() {
