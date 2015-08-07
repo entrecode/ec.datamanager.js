@@ -72,6 +72,20 @@ var dataManager = new DataManager({
     id: 'abcdef12'
 });
 ```
+### Get EntryList
+
+```js
+dataManager.model('myModel').entryList({size: 100, sort: ['property' , '-date'])
+.then(function(res) {
+   console.log(res.entries); // success! array of Entries
+   console.log(res.count);
+   console.log(res.total);
+})
+.catch(function(error) {
+   console.error(error); // error getting entries
+});
+```
+
 
 ### Get Entries
 
@@ -222,6 +236,20 @@ dataManager.getImageThumbURL('46092f02-7441-4759-b6ff-8f3831d3da4b', 100)
 }
 ```
 The returned image will be a square-cropped variant with (in this example) at least 100 pixels (pixel value can be set as with `getImageURL`). Available sizes are 50, 100, 200 and 400 px.
+
+### Get AssetList
+
+```js
+dataManager.assetList()
+.then(function(res) {
+  console.log(res.assets); // array with assets
+  console.log(res.count);
+  console.log(res.total);
+})
+.catch(function(error){
+  console.error(error); // error getting asset list
+});
+```
 
 ### Get Assets
 
@@ -535,7 +563,7 @@ returns Model Object which is a promise.
 
 ### Model Instance Methods
 
-#### entries(options)
+#### entries(options)/entryList(options)
 
 returns JSON Array of Entries (async).
 The request can be configured using `options`.
@@ -563,7 +591,18 @@ dataManager.model('myModel').entries({size: 100, sort: ['property' , '-date'])
 .catch(function(error) {
    console.error(error); // error getting entries
 });
+```
 
+ `entries()` will return an array of entries. `entryList()` will return an object with the following structure:
+
+```js
+{
+  entries: [
+    /* array of entries */
+  ],
+  total: 10,
+  count: 5
+}
 ```
 
 #### entry(id)
@@ -658,6 +697,13 @@ grunt build
 
 
 # Changelog
+
+### 0.3.2
+- adds `entryList` and `assetList` with count and total properties.
+
+### 0.3.1
+- empty lists responde with empty array instead of plain body
+- documentation improved
 
 ### 0.3.0
 - added public tag api
