@@ -698,6 +698,9 @@ grunt build
 
 # Changelog
 
+### 0.3.3
+- use new file url for asset helpers
+
 ### 0.3.2
 - adds `entryList` and `assetList` with count and total properties.
 
