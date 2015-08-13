@@ -698,6 +698,9 @@ grunt build
 
 # Changelog
 
+### 0.3.4
+- add error parser for response middlewares CMS-1187
+
 ### 0.3.3
 - use new file url for asset helpers
 
