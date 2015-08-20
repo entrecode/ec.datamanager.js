@@ -683,7 +683,7 @@ Running frontend Tests with karma:
 grunt test-frontend
 ```
 
-The task will run a mocked server at port 7472. Make sure it is available.
+The task will run a mocked server at port 54815. Make sure it is available.
 
 # Build
 
@@ -697,6 +697,9 @@ grunt build
 
 
 # Changelog
+
+### 0.4.0
+- handle single resources in public api propperly
 
 ### 0.3.4
 - add error parser for response middlewares CMS-1187

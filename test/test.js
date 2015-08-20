@@ -4,11 +4,11 @@ var isNodeJS, DataManager, serverRoot;
 if (typeof process !== 'undefined') {
   // We are in node. Require modules.
   isNodeJS = true;
-  var chai           = require('chai') // main testing lib
+  var chai = require('chai') // main testing lib
     , chaiAsPromised = require('chai-as-promised')
-    , sinon          = require('sinon') // for spies
-    , sinonChai      = require('sinon-chai') // chai assertions for sinon spies
-    , expect         = chai.expect
+    , sinon = require('sinon') // for spies
+    , sinonChai = require('sinon-chai') // chai assertions for sinon spies
+    , expect = chai.expect
     ;
 
   chai.use(chaiAsPromised);
@@ -20,7 +20,7 @@ if (typeof process !== 'undefined') {
   isNodeJS = false;
   // We are in the browser. Karma already knows chai etc.
 
-  serverRoot = 'http://localhost:7472/api/datamanager';
+  serverRoot = 'http://localhost:54815/api/datamanager';
 
 }
 
@@ -593,7 +593,10 @@ describe('DataManager SDK', function() {
           dataManager.getImageThumbURL('asset-file-redirect')
             .then(function() {
               process.nextTick(function() {
-                expect(api.get).to.have.been.calledWith('/files/asset-file-redirect/url', null, {size: 400, thumb: true});
+                expect(api.get).to.have.been.calledWith('/files/asset-file-redirect/url', null, {
+                  size: 400,
+                  thumb: true
+                });
                 done();
               });
             }, done);
@@ -614,7 +617,10 @@ describe('DataManager SDK', function() {
           dataManager.getImageThumbURL('asset-file-redirect', 200)
             .then(function() {
               process.nextTick(function() {
-                expect(api.get).to.have.been.calledWith('/files/asset-file-redirect/url', null, {size: 200, thumb: true});
+                expect(api.get).to.have.been.calledWith('/files/asset-file-redirect/url', null, {
+                  size: 200,
+                  thumb: true
+                });
                 done();
               });
             }, done);
@@ -623,7 +629,10 @@ describe('DataManager SDK', function() {
           dataManager.getImageThumbURL('asset-file-redirect', 256)
             .then(function() {
               process.nextTick(function() {
-                expect(api.get).to.have.been.calledWith('/files/asset-file-redirect/url', null, {size: 400, thumb: true});
+                expect(api.get).to.have.been.calledWith('/files/asset-file-redirect/url', null, {
+                  size: 400,
+                  thumb: true
+                });
                 done();
               });
             }, done);
@@ -632,7 +641,10 @@ describe('DataManager SDK', function() {
           dataManager.getImageThumbURL('asset-file-redirect', 128)
             .then(function() {
               process.nextTick(function() {
-                expect(api.get).to.have.been.calledWith('/files/asset-file-redirect/url', null, {size: 200, thumb: true});
+                expect(api.get).to.have.been.calledWith('/files/asset-file-redirect/url', null, {
+                  size: 200,
+                  thumb: true
+                });
                 done();
               });
             }, done);
@@ -641,7 +653,10 @@ describe('DataManager SDK', function() {
           dataManager.getImageThumbURL('asset-file-redirect', 64)
             .then(function() {
               process.nextTick(function() {
-                expect(api.get).to.have.been.calledWith('/files/asset-file-redirect/url', null, {size: 100, thumb: true});
+                expect(api.get).to.have.been.calledWith('/files/asset-file-redirect/url', null, {
+                  size: 100,
+                  thumb: true
+                });
                 done();
               });
             }, done);
@@ -650,7 +665,10 @@ describe('DataManager SDK', function() {
           dataManager.getImageThumbURL('asset-file-redirect', 32)
             .then(function() {
               process.nextTick(function() {
-                expect(api.get).to.have.been.calledWith('/files/asset-file-redirect/url', null, {size: 50, thumb: true});
+                expect(api.get).to.have.been.calledWith('/files/asset-file-redirect/url', null, {
+                  size: 50,
+                  thumb: true
+                });
                 done();
               });
             }, done);
@@ -659,7 +677,10 @@ describe('DataManager SDK', function() {
           dataManager.getImageThumbURL('asset-file-redirect', 512)
             .then(function() {
               process.nextTick(function() {
-                expect(api.get).to.have.been.calledWith('/files/asset-file-redirect/url', null, {size: 400, thumb: true});
+                expect(api.get).to.have.been.calledWith('/files/asset-file-redirect/url', null, {
+                  size: 400,
+                  thumb: true
+                });
                 done();
               });
             }, done);
