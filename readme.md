@@ -698,6 +698,9 @@ grunt build
 
 # Changelog
 
+### 0.4.0
+- handle single resources in public api propperly
+
 ### 0.3.4
 - add error parser for response middlewares CMS-1187
 
