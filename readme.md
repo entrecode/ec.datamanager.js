@@ -30,7 +30,7 @@ Also see `./example/basic-example.js` for a running usage example.
 Loading the module in node.js:
 
 ```js
-var DataManager = require('ec.datamanager.js');
+var DataManager = require('ec.datamanager');
 
 ```
 
