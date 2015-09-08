@@ -75,7 +75,7 @@ var dataManager = new DataManager({
 ### Get EntryList
 
 ```js
-dataManager.model('myModel').entryList({size: 100, sort: ['property' , '-date'])
+dataManager.model('myModel').entryList({size: 100, sort: ['property', '-date']})
 .then(function(res) {
    console.log(res.entries); // success! array of Entries
    console.log(res.count);
@@ -85,6 +85,8 @@ dataManager.model('myModel').entryList({size: 100, sort: ['property' , '-date'])
    console.error(error); // error getting entries
 });
 ```
+
+*`size: 0` will return ALL entries*
 
 
 ### Get Entries
@@ -98,7 +100,7 @@ dataManager.model('myModel').entries({size: 100, sort: ['property' , '-date'])
    console.error(error); // error getting entries
 });
 ```
-You can also use `entry(entryID)` for a single Entry, identified by its id.
+You can also use `entry(entryID)` for a single Entry, identified by its id. *`size: 0` will return ALL entries*
 
 ### Create Entry
 
@@ -312,9 +314,13 @@ For browsers acceptable inputs are:
 	  var dataManager = new DataManager({
 	    url: 'https://datamanager.angus.entrecode.de/api/c024f209/'
 	  });
-	  dataManager.createAsset(data).then(function(asset){
-	    console.log(asset);
-	  }).catch(function(err){
+	  dataManager.createAsset(data).then(function(assets){
+	    console.log(assets);
+	    return assets[0];
+	  }).then(function(asset){
+        console.log(asset); // the created Asset.
+      })
+      .catch(function(err){
 	    console.log(err);
 	  });
 
