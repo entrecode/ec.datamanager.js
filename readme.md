@@ -762,3 +762,12 @@ grunt build
 
 ### 0.2.0
 - initial public release
+
+[npm-image]: https://badge.fury.io/js/ec.datamanager.svg
+[npm-url]: https://www.npmjs.com/package/ec.datamanager
+[travis-image]: https://travis-ci.org/entrecode/ec.datamanager.js.svg
+[travis-url]: https://travis-ci.org/entrecode/ec.datamanager.js
+[coveralls-image]: https://coveralls.io/repos/entrecode/ec.datamanager.js/badge.svg?branch=master&service=github
+[coveralls-url]: https://coveralls.io/github/entrecode/ec.datamanager.js?branch=master
+[daviddm-image]: https://david-dm.org/entrecode/ec.datamanager.svg?theme=shields.io
+[daviddm-url]: https://david-dm.org/entrecode/ec.datamanager.js
