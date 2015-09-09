@@ -1,6 +1,6 @@
 {
   "name": "ec.datamanager",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "JavaScript SDK for ec.datamanager. By entrecode.",
   "main": "index.js",
   "directories": {
@@ -10,7 +10,7 @@
   "scripts": {
     "test": "mocha test",
     "test-travis": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec ./test/*",
-    "build": "browserify -r ./index.js -s DataManager -o ./build/datamanager.js"
+    "build": "browserify -r ./index.js -s DataManager -o ./build/datamanager.js &&  node_modules/uglify-js/bin/uglifyjs ./build/datamanager.js -o ./build/datamanager.js"
   },
   "repository": {
     "type": "git",

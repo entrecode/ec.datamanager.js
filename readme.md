@@ -704,6 +704,10 @@ grunt build
 
 # Changelog
 
+### 0.4.2
+- removes lodash from dependencies
+- fixed some issues in the docs
+
 ### 0.4.1
 - adds titleField and hexColor to model prototype
 
