@@ -1,3 +1,4 @@
+[![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Coverage][coveralls-image]][coveralls-url] [![Dependency Status][daviddm-image]][daviddm-url]
 # ec.datamanager.js
 
 JavaScript SDK for [ec.datamanager](https://entrecode.de/datamanager). By entrecode.
@@ -773,5 +774,5 @@ grunt build
 [travis-url]: https://travis-ci.org/entrecode/ec.datamanager.js
 [coveralls-image]: https://coveralls.io/repos/entrecode/ec.datamanager.js/badge.svg?branch=master&service=github
 [coveralls-url]: https://coveralls.io/github/entrecode/ec.datamanager.js?branch=master
-[daviddm-image]: https://david-dm.org/entrecode/ec.datamanager.svg?theme=shields.io
+[daviddm-image]: https://david-dm.org/entrecode/ec.datamanager.js.svg?theme=shields.io
 [daviddm-url]: https://david-dm.org/entrecode/ec.datamanager.js
