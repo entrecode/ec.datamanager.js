@@ -75,7 +75,7 @@ var dataManager = new DataManager({
 ### Get EntryList
 
 ```js
-dataManager.model('myModel').entryList({size: 100, sort: ['property' , '-date'])
+dataManager.model('myModel').entryList({size: 100, sort: ['property', '-date']})
 .then(function(res) {
    console.log(res.entries); // success! array of Entries
    console.log(res.count);
@@ -85,6 +85,8 @@ dataManager.model('myModel').entryList({size: 100, sort: ['property' , '-date'])
    console.error(error); // error getting entries
 });
 ```
+
+*`size: 0` will return ALL entries*
 
 
 ### Get Entries
@@ -98,7 +100,7 @@ dataManager.model('myModel').entries({size: 100, sort: ['property' , '-date'])
    console.error(error); // error getting entries
 });
 ```
-You can also use `entry(entryID)` for a single Entry, identified by its id.
+You can also use `entry(entryID)` for a single Entry, identified by its id. *`size: 0` will return ALL entries*
 
 ### Create Entry
 
@@ -312,9 +314,13 @@ For browsers acceptable inputs are:
 	  var dataManager = new DataManager({
 	    url: 'https://datamanager.angus.entrecode.de/api/c024f209/'
 	  });
-	  dataManager.createAsset(data).then(function(asset){
-	    console.log(asset);
-	  }).catch(function(err){
+	  dataManager.createAsset(data).then(function(assets){
+	    console.log(assets);
+	    return assets[0];
+	  }).then(function(asset){
+        console.log(asset); // the created Asset.
+      })
+      .catch(function(err){
 	    console.log(err);
 	  });
 
@@ -698,6 +704,10 @@ grunt build
 
 # Changelog
 
+### 0.4.2
+- removes lodash from dependencies
+- fixed some issues in the docs
+
 ### 0.4.1
 - adds titleField and hexColor to model prototype
 
@@ -756,3 +766,12 @@ grunt build
 
 ### 0.2.0
 - initial public release
+
+[npm-image]: https://badge.fury.io/js/ec.datamanager.svg
+[npm-url]: https://www.npmjs.com/package/ec.datamanager
+[travis-image]: https://travis-ci.org/entrecode/ec.datamanager.js.svg
+[travis-url]: https://travis-ci.org/entrecode/ec.datamanager.js
+[coveralls-image]: https://coveralls.io/repos/entrecode/ec.datamanager.js/badge.svg?branch=master&service=github
+[coveralls-url]: https://coveralls.io/github/entrecode/ec.datamanager.js?branch=master
+[daviddm-image]: https://david-dm.org/entrecode/ec.datamanager.svg?theme=shields.io
+[daviddm-url]: https://david-dm.org/entrecode/ec.datamanager.js
