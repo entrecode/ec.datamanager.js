@@ -1,7 +1,7 @@
 [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Coverage][coveralls-image]][coveralls-url] [![Dependency Status][daviddm-image]][daviddm-url]
 # ec.datamanager.js
 
-JavaScript SDK for [ec.datamanager](https://entrecode.de/datamanager). By entrecode.
+JavaScript SDK for [ec.datamanager](https://doc.entrecode.de/en/latest/data_manager/). By entrecode.
 
 Simply use the generated APIs of the ec.datamanager with JavaScript. Supports usage in frontend (web) and backend (Node.js).
 
@@ -301,7 +301,7 @@ For node.js acceptable inputs are:
 
 For browsers acceptable inputs are:
 
-* [FormData](https://developer.mozilla.org/de/docs/Web/API/FormData)
+* [FormData](https://developer.mozilla.org/docs/web/api/formdata)
 
 	Example: 
 
@@ -705,6 +705,12 @@ grunt build
 
 # Changelog
 
+### 0.4.4
+- fixes a bug when uploading Assets
+
+### 0.4.3
+- Dependency update
+
 ### 0.4.2
 - removes lodash from dependencies
 - fixed some issues in the docs
@@ -776,3 +782,4 @@ grunt build
 [coveralls-url]: https://coveralls.io/github/entrecode/ec.datamanager.js?branch=master
 [daviddm-image]: https://david-dm.org/entrecode/ec.datamanager.js.svg?theme=shields.io
 [daviddm-url]: https://david-dm.org/entrecode/ec.datamanager.js
+
