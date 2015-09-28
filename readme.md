@@ -93,7 +93,7 @@ dataManager.model('myModel').entryList({size: 100, sort: ['property', '-date']})
 ### Get Entries
 
 ```js
-dataManager.model('myModel').entries({size: 100, sort: ['property' , '-date'])
+dataManager.model('myModel').entries({size: 100, sort: ['property' , '-date'], "levels": 3)
 .then(function(entries) {
    console.log(entries); // success! array of Entries
 })
