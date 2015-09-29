@@ -61,7 +61,7 @@
     "uglify-js": "2.4.24"
   },
   "dependencies": {
-    "axios": "0.5.4",
+    "axios": "0.7.0",
     "es6-promise": "2.3.0",
     "superagent": "1.4.0"
   }
