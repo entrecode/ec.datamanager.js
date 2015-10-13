@@ -34,7 +34,7 @@
   "homepage": "https://github.com/entrecode/ec.datamanager.js",
   "devDependencies": {
     "browserify": "10.2.6",
-    "chai": "2.3.0",
+    "chai": "3.3.0",
     "chai-as-promised": "5.1.0",
     "coveralls": "2.11.4",
     "ec.appcms-mock.js": "git+https://stash.entrecode.de/scm/cms/ec.appcms-mock.js.git#develop",
@@ -44,12 +44,12 @@
     "grunt-karma": "0.10.1",
     "grunt-mocha-test": "0.12.7",
     "grunt-run": "0.3.0",
-    "istanbul": "0.3.21",
+    "istanbul": "0.3.22",
     "karma": "0.12.37",
     "karma-chai-plugins": "0.5.2",
     "karma-chrome-launcher": "0.1.12",
     "karma-firefox-launcher": "0.1.6",
-    "karma-mocha": "0.1.10",
+    "karma-mocha": "0.2.0",
     "karma-opera-launcher": "0.1.0",
     "karma-phantomjs-launcher": "0.1.4",
     "karma-safari-launcher": "0.1.1",
@@ -58,7 +58,7 @@
     "sinon": "1.17.1",
     "sinon-chai": "2.8.0",
     "supertest-as-promised": "2.0.2",
-    "uglify-js": "2.4.24"
+    "uglify-js": "2.5.0"
   },
   "dependencies": {
     "axios": "0.7.0",
