@@ -4,11 +4,11 @@ var isNodeJS, DataManager, serverRoot;
 if (typeof process !== 'undefined') {
   // We are in node. Require modules.
   isNodeJS = true;
-  var chai = require('chai') // main testing lib
+  var chai           = require('chai') // main testing lib
     , chaiAsPromised = require('chai-as-promised')
-    , sinon = require('sinon') // for spies
-    , sinonChai = require('sinon-chai') // chai assertions for sinon spies
-    , expect = chai.expect
+    , sinon          = require('sinon') // for spies
+    , sinonChai      = require('sinon-chai') // chai assertions for sinon spies
+    , expect         = chai.expect
     ;
 
   chai.use(chaiAsPromised);
@@ -220,6 +220,22 @@ describe('DataManager SDK', function() {
             });
           }, done);
         });
+        it('api called with correct arguments levels support', function(done) {
+          dataManager.model('to-do-item').entryList({levels: 2}).then(function(res) {
+            process.nextTick(function() {
+              expect(api.get).to.have.been.calledWith('/api/f84710b8/to-do-item', {Authorization: "Bearer test"}, {_levels: 2});
+              done();
+            });
+          }, done);
+        });
+        it('api called with correct arguments levels support entryList', function(done) {
+          dataManager.model('to-do-item').entryList({levels: 2}).then(function(res) {
+            process.nextTick(function() {
+              expect(api.get).to.have.been.calledWith('/api/f84710b8/to-do-item', {Authorization: "Bearer test"}, {_levels: 2});
+              done();
+            });
+          }, done);
+        });
       }
       it('api responds correctly', function() { // check that correct result is output (from mock)
         return expect(dataManager.model('to-do-item').entries())
@@ -400,6 +416,17 @@ describe('DataManager SDK', function() {
           dataManager.model('to-do-item').entry('my7fmeXh').then(function() {
             process.nextTick(function() {
               expect(api.get).to.have.been.calledWith('/api/f84710b8/to-do-item', {Authorization: "Bearer test"}, {id: 'my7fmeXh'});
+              done();
+            });
+          }, done);
+        });
+        it('api called with correct arguments with levels', function(done) { // check that API connector is correctly called
+          dataManager.model('to-do-item').entry({id: 'my7fmeXh', levels: 2}).then(function() {
+            process.nextTick(function() {
+              expect(api.get).to.have.been.calledWith('/api/f84710b8/to-do-item', {Authorization: "Bearer test"}, {
+                id: 'my7fmeXh',
+                _levels: 2
+              });
               done();
             });
           }, done);

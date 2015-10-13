@@ -93,7 +93,7 @@ dataManager.model('myModel').entryList({size: 100, sort: ['property', '-date']})
 ### Get Entries
 
 ```js
-dataManager.model('myModel').entries({size: 100, sort: ['property' , '-date'], "levels": 3)
+dataManager.model('myModel').entries({size: 100, sort: ['property' , '-date'], "levels": 3})
 .then(function(entries) {
    console.log(entries); // success! array of Entries
 })
@@ -101,7 +101,29 @@ dataManager.model('myModel').entries({size: 100, sort: ['property' , '-date'], "
    console.error(error); // error getting entries
 });
 ```
-You can also use `entry(entryID)` for a single Entry, identified by its id. *`size: 0` will return ALL entries*
+*`size: 0` will return ALL entries*
+
+### Get Entry
+
+```js
+dataManager.model('myModel').entry('my7fmeXh')
+.then(function(entry) {
+   console.log(entries); // success! an Entry
+})
+.catch(function(error) {
+   console.error(error); // error getting entry
+});
+
+// OR for nested entries
+
+dataManager.model('myModel').entry({id: 'my7fmeXh', levels: 2})
+.then(function(entry) {
+   console.log(entries); // success! an Entry
+})
+.catch(function(error) {
+   console.error(error); // error getting entry
+});
+```
 
 ### Create Entry
 
@@ -704,6 +726,12 @@ grunt build
 
 
 # Changelog
+
+### 0.4.6
+- nested entry support with `entry({id: '<id>', levels: 2})…`
+
+### 0.4.5
+- nested entries with `level` filter property
 
 ### 0.4.4
 - fixes a bug when uploading Assets

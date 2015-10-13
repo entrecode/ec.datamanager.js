@@ -1,6 +1,6 @@
 {
   "name": "ec.datamanager",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "description": "JavaScript SDK for ec.datamanager. By entrecode.",
   "main": "index.js",
   "directories": {
@@ -54,6 +54,7 @@
     "karma-phantomjs-launcher": "^0.1.4",
     "karma-safari-launcher": "^0.1.1",
     "mocha": "^2.2.4",
+    "mocha-bamboo-reporter": "^1.1.0",
     "mockery": "^1.4.0",
     "sinon": "^1.14.1",
     "sinon-chai": "^2.7.0",
