@@ -58,7 +58,7 @@
     "sinon": "1.17.1",
     "sinon-chai": "2.8.0",
     "supertest-as-promised": "2.0.2",
-    "uglify-js": "2.4.24"
+    "uglify-js": "2.5.0"
   },
   "dependencies": {
     "axios": "0.7.0",
