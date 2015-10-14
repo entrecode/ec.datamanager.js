@@ -33,7 +33,7 @@
   },
   "homepage": "https://github.com/entrecode/ec.datamanager.js",
   "devDependencies": {
-    "browserify": "10.2.6",
+    "browserify": "11.2.0",
     "chai": "2.3.0",
     "chai-as-promised": "5.1.0",
     "coveralls": "2.11.4",
