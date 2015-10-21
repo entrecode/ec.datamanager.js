@@ -34,7 +34,7 @@
   "homepage": "https://github.com/entrecode/ec.datamanager.js",
   "devDependencies": {
     "browserify": "10.2.6",
-    "chai": "2.3.0",
+    "chai": "3.4.0",
     "chai-as-promised": "5.1.0",
     "coveralls": "2.11.4",
     "ec.appcms-mock.js": "git+https://stash.entrecode.de/scm/cms/ec.appcms-mock.js.git#develop",
