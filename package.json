@@ -62,7 +62,7 @@
   },
   "dependencies": {
     "axios": "0.7.0",
-    "es6-promise": "2.3.0",
+    "es6-promise": "3.0.2",
     "superagent": "1.4.0"
   }
 }
