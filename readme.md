@@ -189,7 +189,7 @@ dataManager.model('myModel').getSchema()
 });
 
 // For PUT or POST schema:
-dataManager.model('myModel').getSchema('PUT')
+dataManager.model('myModel').getSchema('put')
 .then(…)
 ```
 
@@ -644,7 +644,7 @@ create a new entry. Returns the Entry.
 
 #### getSchema([method])
 
-retrieve JSON Schema. `method` is 'GET' by default. Other possible values: 'PUT', 'POST'.
+retrieve JSON Schema. `method` is 'get' by default. Other possible values: 'put', 'post'.
 
 ### Model Instance Properties
 
