@@ -68,8 +68,9 @@ module.exports = function(grunt) {
   grunt.registerTask('mockserver', ['express:test']);
   grunt.registerTask('mockserver-stop', ['express:test:stop']);
   grunt.registerTask('test-backend', 'mochaTest');
-  grunt.registerTask('test-frontend', ['mockserver', 'karma:test', 'mockserver-stop']);
+  grunt.registerTask('test-frontend', ['build', 'mockserver', 'karma:test', 'mockserver-stop']);
+  //grunt.registerTask('test-frontend', ['mockserver', 'karma:test', 'mockserver-stop']);
   grunt.registerTask('build', ['run:browserify', 'uglify']);
   //grunt.registerTask('build', ['run:browserify']);
-
+  grunt.registerTask('test', ['test-backend', 'test-frontend']);
 };
