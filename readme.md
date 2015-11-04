@@ -12,7 +12,7 @@ The SDK is fully promise-based.
 * [Installation](#installation)
 * [Usage](#usage)
 * [Documentation](#documentation)
-* [Test and Coverage](#test-and-coverage)
+* [Tests and Coverage](#tests-and-coverage)
 * [Build](#build)
 * [Changelog](#changelog)
 
@@ -723,7 +723,7 @@ grunt build
 
 ## Changelog
 ### 0.5.0
-- added support for new authentication/authorization with anonymous users. Use dm.register(…).
+- added support for new authentication/authorization with anonymous users. Use [dm.register(…)](#user-management).
 - removed readonly flag. Data Manager use new user logic now which is not applicable to readonly. See [Data Manager doc](https://doc.entrecode.de/en/latest/data_manager/#user-management) for details.
 
 ### 0.4.6
