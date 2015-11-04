@@ -7,6 +7,15 @@ Simply use the generated APIs of the ec.datamanager with JavaScript. Supports us
 
 The SDK is fully promise-based.
 
+## Contents
+
+* [Installation](#installation)
+* [Usage](#usage)
+* [Documentation](#documentation)
+* [Test and Coverage](#test-and-coverage)
+* [Build](#build)
+* [Changelog](#changelog)
+
 ## Installation
 
 With [npm](http://npmjs.org) (for backend or frontend usage):
@@ -93,7 +102,7 @@ dataManager.model('myModel').entryList({size: 100, sort: ['property', '-date']})
 ### Get Entries
 
 ```js
-dataManager.model('myModel').entries({size: 100, sort: ['property' , '-date'], "levels": 3})
+dataManager.model('myModel').entries({size: 0, sort: ['property' , '-date'], "levels": 3})
 .then(function(entries) {
    console.log(entries); // success! array of Entries
 })
@@ -128,9 +137,11 @@ dataManager.model('myModel').entry({id: 'my7fmeXh', levels: 2})
 ### Create Entry
 
 ```js
-dataManager.model('myModel').createEntry({})
+dataManager.model('myModel').createEntry({
+  some: 'property'
+})
 .catch(function(error) {
-   console.error(error); // error creating entry
+  console.error(error); // error creating entry
 });
 ```
 
@@ -196,13 +207,15 @@ dataManager.model('myModel').getSchema('put')
 ### User Management
 
 ```js
-// post user (automatically called if no token is sent with dataManager initialization)
+// register anonymous user.
 dataManager.register()
-.then(function(token) {
-   console.log(token); // token to save and send with next startup
+.then(function(user) {
+   // token was already added to dataManager instance.
+   console.log(user.jwt); // token of the user. save for later.
+   console.log(user.accountID); // acocuntID of the user
 })
 .catch(function(error) {
-   console.error(error); // error deleting entry
+   console.error(error);
 });
 ```
 
@@ -210,19 +223,6 @@ The `accessToken` is a property of the DataManager instance:
 
 ```js
 dataManager.accessToken; // returns currently saved token for user authentication
-```
-
-Full example for updating a user entry:
-
-```js
-dataManager.user('a78fb8') // dataManager.user(id) is shorthand for dataManager.model('user').entry(id) 
-.then(function(user) {
-   user.email = 'new@adress.com';
-   return user.save();
-})
-.catch(function(error) {
-   console.error(error); // error updating entry
-});
 ```
 
 ### Asset File Helper
@@ -293,10 +293,10 @@ dataManager.assets()
 ```js
 dataManager.asset('46092f02-7441-4759-b6ff-8f3831d3da4b')
 .then(function(asset) {
-  console.log(assets); // the Asset
+  console.log(asset); // the Asset
 })
 .catch(function(error){
-  console.error(error); // error getting Asset list
+  console.error(error); // error getting Asset
 });
 ```
 
@@ -319,7 +319,6 @@ dataManager.createAsset(formData)
 For node.js acceptable inputs are:
 
 * A path string to a local file (`path/to/file`)
-* Currently only path is supported. Others are planned.
 
 For browsers acceptable inputs are:
 
@@ -328,15 +327,16 @@ For browsers acceptable inputs are:
 	Example: 
 
 	```js
-	$( 'form' ).submit(function ( e ) {
+	$('form').submit(function (e) {
 	  e.preventDefault();
 	  var data;
 	  data = new FormData();
-	  data.append( 'file', $( '#file' )[0].files[0] );
+	  data.append('file', $('#file')[0].files[0]);
 	  
 	  var dataManager = new DataManager({
 	    url: 'https://datamanager.angus.entrecode.de/api/c024f209/'
 	  });
+	  dataManager.register();
 	  dataManager.createAsset(data).then(function(assets){
 	    console.log(assets);
 	    return assets[0];
@@ -421,17 +421,17 @@ dataManager.tag('tag1')
 });
 ```
 
-# Documentation
+## Documentation
 
-## class DataManager
+### class DataManager
 
-### Constructor
+#### Constructor
 
 `new DataManager(options)`
 returns new DataManager Object
 
 
-`options` contains following keys: `url`, `accessToken`, `id`, `readonly`. All are optional, but either `url` or `id` have to be set. When omitting `accessToken`, a new token will be requested, saved and used. If you set `readonly` to `true`, no token will be received. Depending on the Data Manager Settings you will then not be able to modify entries.
+`options` contains following keys: `url`, `accessToken`, and `id`. All are optional, but either `url` or `id` have to be set. When omitting `accessToken`, a new token will be requested, saved and used. Depending on the Data Manager Settings you will not be able to modify entries etc. when no accessToken is spcified.
 
 
 Example:
@@ -448,30 +448,24 @@ var dataManager = new DataManager({
     url: 'https://datamanager.entrecode.de/api/abcdef'
 });
 
-// Initialization without token in read only mode (no token will be created)
-var dataManager = new DataManager({
-    url: 'https://datamanager.entrecode.de/api/abcdef',
-    readonly: true
-});
-
 // Alternative
 var dataManager = new DataManager({
     id: 'abcdef'
 });
 ```
 
-### DataManager Instance Methods
+#### DataManager Instance Methods
 
-#### `asset(identifier)`
+##### `asset(identifier)`
 
 returns an Asset object as Promise. `identifier` (String) is required.
 
-#### `model(identifier)`
+##### `model(identifier)`
 
 returns a Model object as Promise. `identifier` (String) is required.
 
 
-#### `modelList()`
+##### `modelList()`
 returns available Models as object.
 
 Example:
@@ -486,7 +480,7 @@ dataManager.modelList()
 });
 ```
 
-#### `assets()`
+##### `assets()`
 returns available Assets as array of Promises.
 
 Example:
@@ -500,7 +494,7 @@ dataManager.assets().then(function(assets) {
 });
 ```
 
-#### `register()`
+##### `register()`
 POSTs to `user` model for creating a new anonymous user account. Returns `token` to be used with DataManager initialization. The token is also assigned to DataManager and used with subsequent requests.
 
 Example:
@@ -516,14 +510,14 @@ dataManager.register()
 });
 ```
 
-#### Asset Helper Methods
+##### Asset Helper Methods
 
-#### `getFileURL(assetID, [locale])`
+##### `getFileURL(assetID, [locale])`
 
 returns a file. Optionally, a specific `locale` can be requested.
 The promise is getting rejected if no file is found.
 
-#### `getImageURL(assetID, [size, locale])`
+##### `getImageURL(assetID, [size, locale])`
 
 returns an image file. `size` is optional and states the size in pixels the largest edge should have at least.
 Note that the image may still be smaller if the original image is smaller than `size`. If `size` is omitted, the largest size (i.e. the original image) is returned.
@@ -532,7 +526,7 @@ The promise is getting rejected if no file is found.
 The following sizes are being returned: 256, 512, 1024, 2048, 4096
 Example: The source image has a largest edge of 3000 pixels. `getImageURL(id, 1000)` will return the 1024px version. `getImageURL(id, 4096)` will return the original file with 3000 pixels.
 
-#### `getImageThumbURL(assetID, size[, locale])`
+##### `getImageThumbURL(assetID, size[, locale])`
 
 returns an image thumbnail (square cropped). `size` is required and states the size in pixels the thumbnail square edge should have at least.
 Note that the image may still be smaller if the original image is smaller than `size`.
@@ -540,35 +534,35 @@ Optionally, a specific `locale` can be requested.
 The promise is getting rejected if no file is found.
 The following sizes are being returned: 50, 100, 200, 400
 
-#### `createAsset(formData|filePath)`
+##### `createAsset(formData|filePath)`
 
 creates a new Asset. Returns an Array of Promsises to retrieve the created Assets.
 
 
-### DataManager Instance Properties
+#### DataManager Instance Properties
 
 `accessToken` - Access Token for user, or `null` if not set
 
-## Asset object
+### Asset object
 
-### Connecting an Asset
+#### Connecting an Asset
 
 ```js
 var myAsset = asset('8c3b7b55-531f-4a03-b584-09fdef59cb0c');
 ```
 returns Asset Object which is a promise.
 
-### Asset properties
+#### Asset properties
 
-#### value
+##### value
 The properties of the Asset are available at asset.value.
 
-### Asset Instance Methods
+#### Asset Instance Methods
 
-#### save()
+##### save()
 *TBD*
 
-#### delete()
+##### delete()
 deletes the asset
 
 Example:
@@ -581,18 +575,18 @@ dataManager.entry('8c3b7b55-531f-4a03-b584-09fdef59cb0c')
 ```
 Note that `delete()` also returns a promise.
 
-## Model object
+### Model object
 
-### Connecting a Model
+#### Connecting a Model
 
 ```js
 var myModel = dataManager.model('myModel');
 ```
 returns Model Object which is a promise.
 
-### Model Instance Methods
+#### Model Instance Methods
 
-#### entries(options)/entryList(options)
+##### entries(options)/entryList(options)
 
 returns JSON Array of Entries (async).
 The request can be configured using `options`.
@@ -634,32 +628,32 @@ dataManager.model('myModel').entries({size: 100, sort: ['property' , '-date'])
 }
 ```
 
-#### entry(id)
+##### entry(id)
 
 shorthand for entries({id: …})
 
-#### createEntry(object)
+##### createEntry(object)
 
 create a new entry. Returns the Entry.
 
-#### getSchema([method])
+##### getSchema([method])
 
 retrieve JSON Schema. `method` is 'get' by default. Other possible values: 'put', 'post'.
 
-### Model Instance Properties
+#### Model Instance Properties
 
 `id` - The model id
 
-## Entry Object
+### Entry Object
 
-### Entry properties
+#### Entry properties
 
-#### values
+##### values
 The properties of the Entry are available at entry.values.
 
-### Entry Instance Methods
+#### Entry Instance Methods
 
-#### save()
+##### save()
 saves the entry
 
 Example:
@@ -675,7 +669,7 @@ dataManager.model('myModel').entry('f328af3')
 ```
 Note that `save()` also returns a promise.
 
-# Tests & Coverage
+## Tests and Coverage
 
 Before running tests, you need to `npm install` the dev dependency modules.
 
@@ -688,7 +682,9 @@ mocha
 Alternative, using [grunt](http://gruntjs.com/):
 
 ```sh
-grunt test-backend
+grunt test           # tests backend and frontend
+grunt test-backend   # only backend
+grunt test-frontend  # only frontent
 ```
 
 Running backend tests with coverage:
@@ -714,7 +710,7 @@ grunt test-frontend
 
 The task will run a mocked server at port 54815. Make sure it is available.
 
-# Build
+## Build
 
 Should not be necessary. A new build for frontend usage (minified) can be triggered with
 
@@ -725,7 +721,10 @@ grunt build
 (`npm install` is needed before for installing dev dependency modules)
 
 
-# Changelog
+## Changelog
+### 0.5.0
+- added support for new authentication/authorization with anonymous users. Use dm.register(…).
+- removed readonly flag. Data Manager use new user logic now which is not applicable to readonly. See [Data Manager doc](https://doc.entrecode.de/en/latest/data_manager/#user-management) for details.
 
 ### 0.4.6
 - nested entry support with `entry({id: '<id>', levels: 2})…`
