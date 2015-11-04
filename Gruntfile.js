@@ -6,18 +6,23 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-mocha-test');
   grunt.loadNpmTasks('grunt-karma');
   grunt.loadNpmTasks('grunt-contrib-uglify');
+  grunt.loadNpmTasks('grunt-express-server');
 
   // Project configuration.
   grunt.initConfig({
-    run: {
-      mockserver: {
-        start: {
-          exec: 'cd node_modules/ec.appcms-mock.js/ && ./run-server.sh start'
-        },
-        stop: {
-          exec: 'cd node_modules/ec.appcms-mock.js/ && ./run-server.sh stop'
-        }
+    express: {
+      options: {
+        port: 54815,
+        output: 'Test Server running on.*'
+        // Override defaults here
       },
+      test: {
+        options: {
+          script: 'node_modules/ec.appcms-mock.js/server.js'
+        }
+      }
+    },
+    run: {
       coverage: {
         exec: 'istanbul cover _mocha -- --recursive -R spec '
       },
@@ -59,12 +64,12 @@ module.exports = function(grunt) {
     }
   });
 
-
   // Default task(s).
-  grunt.registerTask('mockserver', ['run:mockserver:start']);
-  grunt.registerTask('mockserver-stop', 'run:mockserver:stop');
+  grunt.registerTask('mockserver', ['express:test']);
+  grunt.registerTask('mockserver-stop', ['express:test:stop']);
   grunt.registerTask('test-backend', 'mochaTest');
   grunt.registerTask('test-frontend', ['mockserver', 'karma:test', 'mockserver-stop']);
   grunt.registerTask('build', ['run:browserify', 'uglify']);
+  //grunt.registerTask('build', ['run:browserify']);
 
 };
