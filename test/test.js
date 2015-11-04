@@ -94,32 +94,41 @@ describe('DataManager SDK', function() {
       }).to.throw(Error);
       done();
     });
-    it('retrieves accessToken if not sent', function() {
-      var instance = new DataManager({
-        url: serverRoot + '/api/f84710b8/'
-      });
-      expect(instance).to.have.property('accessToken');
-      return expect(instance.accessToken).to.eventually.match(/^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i);
-    });
-    it('readOnly mode of data manager has no accessToken', function(done) {
-      var instance = new DataManager({
-        url: serverRoot + '/api/f84710b8/',
-        readonly: true
-      });
-      expect(instance).to.have.property('readonly', true);
+    it('DEPRECATED: retrieves accessToken if not sent', function(done) {
       done();
+      /*
+       var instance = new DataManager({
+       url: serverRoot + '/api/f84710b8/'
+       });
+       expect(instance).to.have.property('accessToken');
+       return
+       expect(instance.accessToken).to.eventually.match(/^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i);
+       */
+    });
+    it('DEPRECATED: readOnly mode of data manager has no accessToken', function(done) {
+      done();
+      /*
+       var instance = new DataManager({
+       url: serverRoot + '/api/f84710b8/',
+       readonly: true
+       });
+       expect(instance).to.have.property('readonly', true);
+       */
     });
     if (isNodeJS) {
-      it('waits until accessToken is retrieved for further calls', function(done) {
-        dataManager = new DataManager({
-          url: serverRoot + '/api/f84710b8'
-        });
-        dataManager.model('to-do-item').entries().then(function() {
-          process.nextTick(function() {
-            expect(api.get).to.have.been.calledWith('/api/f84710b8/to-do-item', {Authorization: 'Bearer 044d843f-80db-433e-bc25-6a132823a80f'});
-            done();
-          });
-        }, done);
+      it('DEPRECATED: waits until accessToken is retrieved for further calls', function(done) {
+        done();
+        /*
+         dataManager = new DataManager({
+         url: serverRoot + '/api/f84710b8'
+         });
+         dataManager.model('to-do-item').entries().then(function() {
+         process.nextTick(function() {
+         expect(api.get).to.have.been.calledWith('/api/f84710b8/to-do-item', {Authorization: 'Bearer 044d843f-80db-433e-bc25-6a132823a80f'});
+         done();
+         });
+         }, done);
+         */
       });
     }
   });
@@ -144,7 +153,7 @@ describe('DataManager SDK', function() {
       }
       it('api responds correctly', function() { // check that correct result is output (from mock)
         return expect(dataManager.modelList())
-          .to.eventually.have.all.keys('to-do-item', 'user');
+          .to.eventually.have.all.keys('to-do-item');
       });
       if (isNodeJS) {
         it('empty model list should be empty array', function(done) {
@@ -502,16 +511,16 @@ describe('DataManager SDK', function() {
         it('api called with correct arguments', function(done) { // check that API connector is correctly called
           dataManager.register().then(function() {
             process.nextTick(function() {
-              expect(api.post).to.have.been.calledWith('/api/f84710b8/user');
+              expect(api.post).to.have.been.calledWith('/api/f84710b8/_auth/account');
               done();
             });
           }, done);
         });
+        it('api responds correctly', function() { // check that correct result is output (from mock)
+          return expect(dataManager.register())
+            .to.eventually.have.deep.property('jwt');
+        });
       }
-      it('api responds correctly', function() { // check that correct result is output (from mock)
-        return expect(dataManager.register())
-          .to.eventually.have.deep.property('value.temporaryToken');
-      });
     });
     describe('get and set data manager token', function() {
       it('reading out token', function(done) {
@@ -531,10 +540,10 @@ describe('DataManager SDK', function() {
         });
         it('getting new token and saving it', function(done) {
           return dataManager.register().then(function(user) {
-            dataManager.accessToken = user.value.temporaryToken;
+            dataManager.accessToken = user.jwt;
             dataManager.model('to-do-item').entry('my7fmeXh').then(function() {
               process.nextTick(function() {
-                expect(api.get).to.have.been.calledWith('/api/f84710b8/to-do-item', {Authorization: "Bearer " + user.value.temporaryToken}, {id: 'my7fmeXh'});
+                expect(api.get).to.have.been.calledWith('/api/f84710b8/to-do-item', {Authorization: "Bearer " + dataManager.accessToken}, {id: 'my7fmeXh'});
                 done();
               });
             }, done);
