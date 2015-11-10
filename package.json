@@ -1,6 +1,6 @@
 {
   "name": "ec.datamanager",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "JavaScript SDK for ec.datamanager. By entrecode.",
   "main": "index.js",
   "directories": {
@@ -34,7 +34,7 @@
   "homepage": "https://github.com/entrecode/ec.datamanager.js",
   "devDependencies": {
     "browserify": "12.0.1",
-    "chai": "3.4.0",
+    "chai": "3.4.1",
     "chai-as-promised": "5.1.0",
     "coveralls": "2.11.4",
     "ec.appcms-mock.js": "git+https://stash.entrecode.de/scm/cms/ec.appcms-mock.js.git#develop",
