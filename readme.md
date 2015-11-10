@@ -722,6 +722,10 @@ grunt build
 
 
 ## Changelog
+### 0.5.1
+- fixed 204 no content response on create entry
+- fixed bug when post/put without token
+
 ### 0.5.0
 - added support for new authentication/authorization with anonymous users. Use [dm.register(…)](#user-management).
 - removed readonly flag. Data Manager use new user logic now which is not applicable to readonly. See [Data Manager doc](https://doc.entrecode.de/en/latest/data_manager/#user-management) for details.
