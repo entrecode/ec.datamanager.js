@@ -520,6 +520,13 @@ describe('DataManager SDK', function() {
           return expect(dataManager.register())
             .to.eventually.have.deep.property('jwt');
         });
+        it('rejects when dm with no anonymous users', function() { // check that correct result is output (from mock)
+          var dm = new DataManager({
+            url: serverRoot + '/api/beefbeef/'
+          });
+          return expect(dm.register())
+            .to.eventually.have.been.rejected;
+        });
       }
     });
     describe('get and set data manager token', function() {
