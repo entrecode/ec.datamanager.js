@@ -722,6 +722,9 @@ grunt build
 
 
 ## Changelog
+### 0.5.2
+- fixed bug when datamanager has no anonymous users activated CMS-1694
+
 ### 0.5.1
 - fixed 204 no content response on create entry
 - fixed bug when post/put without token
