@@ -40,7 +40,7 @@
     "ec.appcms-mock.js": "git+https://stash.entrecode.de/scm/cms/ec.appcms-mock.js.git#develop",
     "grunt": "0.4.5",
     "grunt-browserify": "4.0.1",
-    "grunt-contrib-uglify": "0.10.1",
+    "grunt-contrib-uglify": "0.11.0",
     "grunt-express-server": "0.5.1",
     "grunt-karma": "0.12.1",
     "grunt-mocha-test": "0.12.7",
