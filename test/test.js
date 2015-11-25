@@ -24,14 +24,14 @@ if (typeof process !== 'undefined') {
 
 }
 
-describe('basic check of testing library', function() {
+describe.skip('basic check of testing library', function() {
   it('assert that JavaScript is still a little crazy', function() {
     expect([] + []).to.equal('');
   });
 });
 
 var dataManager, api;
-describe('DataManager SDK', function() {
+describe.skip('DataManager SDK', function() {
   if (isNodeJS) { // Backend only
     before(function() {
       api = require('../lib/api.js'); // API connector to spy at

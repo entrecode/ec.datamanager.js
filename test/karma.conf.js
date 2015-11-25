@@ -5,16 +5,19 @@ module.exports = function(config) {
   config.set({
 
     // base path that will be used to resolve all patterns (eg. files, exclude)
-    basePath: '',
+    basePath: '../',
 
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['mocha', 'chai', 'chai-as-promised'],
+    frameworks: ['mocha', 'chai'],
 
     // list of files / patterns to load in the browser
     files: [
       "build/datamanager.js",
-      "test/test.js"
+      "node_modules/traverson/browser/dist/traverson.js",
+      "node_modules/traverson-hal/browser/dist/traverson-hal.js",
+      "test/**/*.test.js"
+      //"test/test.js"
     ],
 
     // list of files to exclude
@@ -42,11 +45,21 @@ module.exports = function(config) {
     // enable / disable watching file and executing tests whenever any file changes
     autoWatch: false,
 
+    // you can define custom flags
+    customLaunchers: {
+      Chrome_without_security: {
+        base: 'Chrome',
+        flags: ['--disable-web-security --disable-cache']
+      },
+      PhantomJS_without_security: {
+        base: 'PhantomJS',
+        flags: ['--web-security=no']
+      }
+    },
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-    //browsers: ['Chrome', 'Firefox', 'Safari', 'PhantomJS'],
-    //browsers: ['Chrome'],
-    browsers: ['PhantomJS'],
+    browsers: ['Chrome_without_security'],
+    //browsers: ['PhantomJS'],
 
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits

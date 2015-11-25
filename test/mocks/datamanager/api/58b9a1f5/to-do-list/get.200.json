@@ -1,0 +1,67 @@
+{
+  "qs": {},
+  "req": {},
+  "res": {
+    "count": 1,
+    "total": 1,
+    "_links": {
+      "collection": {
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5"
+      },
+      "curies": {
+        "name": "58b9a1f5",
+        "href": "https://datamanager.entrecode.de/api/doc/58b9a1f5/{rel}",
+        "templated": true
+      },
+      "self": {
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-list"
+      },
+      "58b9a1f5:to-do-list/options": {
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-list{?_created,_createdFrom,_createdTo,_id,_modified,_modifiedFrom,_modifiedTo,_private,created,createdFrom,createdTo,id,list-items~,modified,modifiedFrom,modifiedTo,page,private,size,sort,title,title~}",
+        "templated": true
+      }
+    },
+    "_embedded": {
+      "58b9a1f5:to-do-list": {
+        "_id": "4JMjeO737e",
+        "_created": "2015-11-23T16:03:38.304Z",
+        "_creator": null,
+        "_modified": "2015-11-23T16:03:42.561Z",
+        "id": "4JMjeO737e",
+        "created": "2015-11-23T16:03:38.304Z",
+        "modified": "2015-11-23T16:03:42.561Z",
+        "private": false,
+        "title": "Shopping List",
+        "list-items": [
+          "4JGrCvm27e",
+          "V1G2TvQnXx",
+          "VkM8aPQnQe"
+        ],
+        "description": "",
+        "_modelTitleField": "title",
+        "_links": {
+          "collection": {
+            "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-list"
+          },
+          "self": {
+            "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-list?id=4JMjeO737e"
+          },
+          "58b9a1f5:to-do-list/list-items": [
+            {
+              "title": "Bananas",
+              "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?id=4JGrCvm27e"
+            },
+            {
+              "title": "Oranges",
+              "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?id=V1G2TvQnXx"
+            },
+            {
+              "title": "Apples",
+              "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?id=VkM8aPQnQe"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

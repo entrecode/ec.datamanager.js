@@ -13,12 +13,12 @@ module.exports = function(grunt) {
     express: {
       options: {
         port: 54815,
-        output: 'Test Server running on.*'
+        output: 'Testserver started an listening on port*'
         // Override defaults here
       },
       test: {
         options: {
-          script: 'node_modules/ec.appcms-mock.js/server.js'
+          script: 'test/mocks/mockserver.js'
         }
       }
     },
@@ -54,12 +54,12 @@ module.exports = function(grunt) {
     },
     mochaTest: {
       test: {
-        src: ['test/*.js']
+        src: ['test/**.test.js']
       }
     },
     karma: {
       test: {
-        configFile: 'karma.conf.js'
+        configFile: 'test/karma.conf.js'
       }
     }
   });
@@ -69,7 +69,6 @@ module.exports = function(grunt) {
   grunt.registerTask('mockserver-stop', ['express:test:stop']);
   grunt.registerTask('test-backend', 'mochaTest');
   grunt.registerTask('test-frontend', ['build', 'mockserver', 'karma:test', 'mockserver-stop']);
-  //grunt.registerTask('test-frontend', ['mockserver', 'karma:test', 'mockserver-stop']);
   grunt.registerTask('build', ['run:browserify', 'uglify']);
   grunt.registerTask('test', ['test-backend', 'test-frontend']);
 };
