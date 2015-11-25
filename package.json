@@ -69,6 +69,8 @@
   "dependencies": {
     "axios": "0.7.0",
     "es6-promise": "3.0.2",
+    "traverson": "^3.1.0",
+    "traverson-hal": "^4.1.1",
     "superagent": "1.4.0"
   }
 }
