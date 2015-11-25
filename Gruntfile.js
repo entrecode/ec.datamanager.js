@@ -33,7 +33,7 @@ module.exports = function(grunt) {
     uglify: {
       datamanagerjs: {
         files: {
-          './build/datamanager.js': ['./build/datamanager.js']
+          './build/datamanager.min.js': ['./build/datamanager.js']
         }
       }
     },
@@ -71,6 +71,5 @@ module.exports = function(grunt) {
   grunt.registerTask('test-frontend', ['build', 'mockserver', 'karma:test', 'mockserver-stop']);
   //grunt.registerTask('test-frontend', ['mockserver', 'karma:test', 'mockserver-stop']);
   grunt.registerTask('build', ['run:browserify', 'uglify']);
-  //grunt.registerTask('build', ['run:browserify']);
   grunt.registerTask('test', ['test-backend', 'test-frontend']);
 };
