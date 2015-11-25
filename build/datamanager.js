@@ -835,7 +835,7 @@ DataManager.prototype.__helpers = {
   replaceLastOccurrence: replaceLastOccurrence
 };
 
-},{"./api.js":5,"es6-promise":19,"superagent":20,"traverson":70,"traverson-hal":23}],5:[function(require,module,exports){
+},{"./api.js":5,"es6-promise":19,"superagent":20,"traverson":67,"traverson-hal":23}],5:[function(require,module,exports){
 'use strict';
 
 /* wrapper for HTTP Requests around axios */
@@ -4995,7 +4995,7 @@ function handleResponse(callback) {
 
 module.exports = new Request();
 
-},{"superagent":66}],31:[function(require,module,exports){
+},{"superagent":20}],31:[function(require,module,exports){
 'use strict';
 
 /*
@@ -6768,7 +6768,7 @@ module.exports = function resolveUriTemplate(t) {
 
 
 
-},{"minilog":28,"underscore.string":31,"url-template":69,"util":29}],62:[function(require,module,exports){
+},{"minilog":28,"underscore.string":31,"url-template":66,"util":29}],62:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -7108,12 +7108,6 @@ void (function(root, factory) {
 }));
 
 },{}],66:[function(require,module,exports){
-arguments[4][20][0].apply(exports,arguments)
-},{"dup":20,"emitter":67,"reduce":68}],67:[function(require,module,exports){
-arguments[4][21][0].apply(exports,arguments)
-},{"dup":21}],68:[function(require,module,exports){
-arguments[4][22][0].apply(exports,arguments)
-},{"dup":22}],69:[function(require,module,exports){
 (function (root, factory) {
     if (typeof exports === 'object') {
         module.exports = factory();
@@ -7294,7 +7288,7 @@ arguments[4][22][0].apply(exports,arguments)
   return new UrlTemplate();
 }));
 
-},{}],70:[function(require,module,exports){
+},{}],67:[function(require,module,exports){
 (function (process){
 'use strict';
 
