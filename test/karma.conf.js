@@ -30,7 +30,11 @@ module.exports = function(config) {
     // test results reporter to use
     // possible values: 'dots', 'progress'
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-    reporters: ['progress'],
+    reporters: ['progress', 'bamboo'],
+
+    bambooReporter:{
+      filename: 'test/results.json' //optional, defaults to "mocha.json"
+    },
 
     // web server port
     port: 9876,
