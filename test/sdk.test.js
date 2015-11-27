@@ -110,19 +110,7 @@ describe('datamanager constructor', function() {
     expect(dm).to.be.instanceOf(DataManager);
     expect(dm).to.have.property('url', 'https://datamanager.entrecode.de/api/58b9a1f5');
     expect(dm).to.have.property('id', '58b9a1f5');
-    expect(dm).to.have.property('token', 'test');
     expect(dm).to.have.property('accessToken', 'test');
-    return done();
-  });
-  it('create datamanager instance from url and token', function(done) {
-    var dm = new DataManager({
-      url: 'https://datamanager.entrecode.de/api/58b9a1f5',
-      token: 'test'
-    });
-    expect(dm).to.be.instanceOf(DataManager);
-    expect(dm).to.have.property('url', 'https://datamanager.entrecode.de/api/58b9a1f5');
-    expect(dm).to.have.property('id', '58b9a1f5');
-    expect(dm).to.have.property('token', 'test');
     return done();
   });
   it('create datamanger instance from id', function(done) {
@@ -141,19 +129,7 @@ describe('datamanager constructor', function() {
     expect(dm).to.be.instanceOf(DataManager);
     expect(dm).to.have.property('url', 'https://datamanager.entrecode.de/api/58b9a1f5');
     expect(dm).to.have.property('id', '58b9a1f5');
-    expect(dm).to.have.property('token', 'test');
     expect(dm).to.have.property('accessToken', 'test');
-    return done();
-  });
-  it('create datamanager instance from id and token', function(done) {
-    var dm = new DataManager({
-      id: '58b9a1f5',
-      token: 'test'
-    });
-    expect(dm).to.be.instanceOf(DataManager);
-    expect(dm).to.have.property('url', 'https://datamanager.entrecode.de/api/58b9a1f5');
-    expect(dm).to.have.property('id', '58b9a1f5');
-    expect(dm).to.have.property('token', 'test');
     return done();
   });
   it('fails if illegal url is given', function(done) {
@@ -174,3 +150,82 @@ describe('datamanager constructor', function() {
   });
 });
 
+describe('get root', function() {
+  var dm;
+  beforeEach(function() {
+    dm = new DataManager({
+      url: baseUrl + '58b9a1f5'
+    });
+  });
+  afterEach(function() {
+    dm = null;
+  });
+  it('gets root resource', function(done) {
+    dm.getRoot().then(function(root) {
+      expect(root).to.be.ok;
+      expect(root).to.have.property('dataManagerID', '7e2fd960-b8ab-419f-8c8f-90da12b2a9d0');
+      expect(root).to.have.property('_links');
+      expect(root).to.have.property('_embedded');
+      done();
+    }, done);
+  });
+});
+
+describe('static best file routes', function() {
+  it('get file url', function(done) {
+    DataManager.getFileUrl('4920f5ac-eab9-400b-8e41-5a202488b249').then(function(url) {
+      expect(url).to.be.ok;
+      expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM.jpg');
+      return done();
+    }, done);
+  });
+  it('get file url with locale', function(done) {
+    DataManager.getFileUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 'de_DE').then(function(url) {
+      expect(url).to.be.ok;
+      expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM.jpg');
+      return done();
+    }, done);
+  });
+  it('get image url', function(done) {
+    DataManager.getImageUrl('4920f5ac-eab9-400b-8e41-5a202488b249').then(function(url) {
+      expect(url).to.be.ok;
+      expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM.jpg');
+      return done();
+    }, done);
+  });
+  it('get image url with size', function(done) {
+    DataManager.getImageUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 200).then(function(url) {
+      expect(url).to.be.ok;
+      expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_256.jpg');
+      return done();
+    }, done);
+  });
+  it('get image url wit size and locale', function(done) {
+    DataManager.getImageUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 200, 'de_DE').then(function(url) {
+      expect(url).to.be.ok;
+      expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_256.jpg');
+      return done();
+    }, done);
+  });
+  it('get thumb url', function(done) {
+    DataManager.getThumbUrl('4920f5ac-eab9-400b-8e41-5a202488b249').then(function(url) {
+      expect(url).to.be.ok;
+      expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_400_thumb.jpg');
+      return done();
+    }, done);
+  });
+  it('get thumb url with size', function(done) {
+    DataManager.getThumbUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 100).then(function(url) {
+      expect(url).to.be.ok;
+      expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_100_thumb.jpg');
+      return done();
+    }, done);
+  });
+  it('get thumb url wit size and locale', function(done) {
+    DataManager.getThumbUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 100, 'de_DE').then(function(url) {
+      expect(url).to.be.ok;
+      expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_100_thumb.jpg');
+      return done();
+    }, done);
+  });
+});
