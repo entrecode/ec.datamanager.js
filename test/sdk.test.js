@@ -208,21 +208,85 @@ describe('static best file routes', function() {
     }, done);
   });
   it('get thumb url', function(done) {
-    DataManager.getThumbUrl('4920f5ac-eab9-400b-8e41-5a202488b249').then(function(url) {
+    DataManager.getImageThumbUrl('4920f5ac-eab9-400b-8e41-5a202488b249').then(function(url) {
       expect(url).to.be.ok;
       expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_400_thumb.jpg');
       return done();
     }, done);
   });
   it('get thumb url with size', function(done) {
-    DataManager.getThumbUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 100).then(function(url) {
+    DataManager.getImageThumbUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 100).then(function(url) {
       expect(url).to.be.ok;
       expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_100_thumb.jpg');
       return done();
     }, done);
   });
   it('get thumb url wit size and locale', function(done) {
-    DataManager.getThumbUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 100, 'de_DE').then(function(url) {
+    DataManager.getImageThumbUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 100, 'de_DE').then(function(url) {
+      expect(url).to.be.ok;
+      expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_100_thumb.jpg');
+      return done();
+    }, done);
+  });
+});
+describe('best file routes', function() {
+  var dm;
+  before(function() {
+    dm = new DataManager({
+      url: baseUrl + '58b9a1f5'
+    });
+  });
+  it('get file url', function(done) {
+    dm.getFileUrl('4920f5ac-eab9-400b-8e41-5a202488b249').then(function(url) {
+      expect(url).to.be.ok;
+      expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM.jpg');
+      return done();
+    }, done);
+  });
+  it('get file url with locale', function(done) {
+    dm.getFileUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 'de_DE').then(function(url) {
+      expect(url).to.be.ok;
+      expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM.jpg');
+      return done();
+    }, done);
+  });
+  it('get image url', function(done) {
+    dm.getImageUrl('4920f5ac-eab9-400b-8e41-5a202488b249').then(function(url) {
+      expect(url).to.be.ok;
+      expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM.jpg');
+      return done();
+    }, done);
+  });
+  it('get image url with size', function(done) {
+    dm.getImageUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 200).then(function(url) {
+      expect(url).to.be.ok;
+      expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_256.jpg');
+      return done();
+    }, done);
+  });
+  it('get image url wit size and locale', function(done) {
+    dm.getImageUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 200, 'de_DE').then(function(url) {
+      expect(url).to.be.ok;
+      expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_256.jpg');
+      return done();
+    }, done);
+  });
+  it('get thumb url', function(done) {
+    dm.getImageThumbUrl('4920f5ac-eab9-400b-8e41-5a202488b249').then(function(url) {
+      expect(url).to.be.ok;
+      expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_400_thumb.jpg');
+      return done();
+    }, done);
+  });
+  it('get thumb url with size', function(done) {
+    dm.getImageThumbUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 100).then(function(url) {
+      expect(url).to.be.ok;
+      expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_100_thumb.jpg');
+      return done();
+    }, done);
+  });
+  it('get thumb url wit size and locale', function(done) {
+    dm.getImageThumbUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 100, 'de_DE').then(function(url) {
       expect(url).to.be.ok;
       expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_100_thumb.jpg');
       return done();
