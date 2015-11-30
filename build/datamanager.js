@@ -244,11 +244,6 @@ module.exports = function(arr, obj){
 },{}],4:[function(require,module,exports){
 'use strict';
 
-/*
- * Main DataManager class and SDK entry point
- *
- */
-
 var api                     = require('./api.js')
   , request                 = require('superagent')
   , traverson               = require('traverson')
@@ -257,6 +252,20 @@ var api                     = require('./api.js')
 require('es6-promise').polyfill();
 traverson.registerMediaType(TraversonJsonHalAdapter.mediaType, TraversonJsonHalAdapter);
 
+/**
+ * Constructs a instance of DataManager SDK for a specific Data Manager. Accepts an options object containing 'url' or
+ * 'id' and an optional parameter 'accessToken'.
+ *
+ * Example:
+ * <pre><code>
+ *  var dataManager = new DataManager({
+ *    id: 'beefbeef',
+ *    accessToken: 'aReallyLongJWTToken'
+ *  });
+ * </code></pre>
+ * @param {Object} options Object containing either 'url' or 'id' and optionally 'accessToken'.
+ * @constructor
+ */
 var DataManager = function(options) {
   if (!options || (!options.hasOwnProperty('url') && !options.hasOwnProperty('id'))) {
     throw new Error('DataManager constructor requires an options object with either \'url\'  or \'id\' set.');
@@ -268,17 +277,16 @@ var DataManager = function(options) {
     this.url = 'https://datamanager.entrecode.de/api/' + this.id;
   }
 
-  if (this.url.slice(-1) !== '/') {
-    this.url += '/';
+  if (this.url.slice(-1) === '/') {
+    this.url = this.url.substr(0, this.url.length - 1);
   }
 
   if (!this.id) {
-    this.id = this.url.split('/').reverse()[1];
+    this.id = this.url.split('/').reverse()[0];
   }
 
-  this.assetUrl = this.url.replace('/api/' + this.id + '/', '/asset/' + this.id);
-  this.tagUrl = this.url.replace('/api/' + this.id + '/', '/tag/' + this.id);
-  this.fileUrl = this.url.replace('api/' + this.id + '/', 'files/');
+  this.tagUrl = this.url.replace('api/' + this.id, 'tag' + this.id); // TODO relation for tag api
+  this._fileUrl = this.url.replace('api/' + this.id, 'files'); // TODO relation for bestFile api
 
   if (!/^[a-f0-9]+$/i.test(this.id)) {
     throw new Error('Invalid URL');
@@ -287,7 +295,236 @@ var DataManager = function(options) {
   if (options.hasOwnProperty('accessToken')) {
     this.accessToken = options.accessToken;
   }
+};
 
+/**
+ * Default fileUrl for bestFile functions {@link DataManager.getFileUrl}, {@link DataManager.getImageUrl}, and {@link DataManager.getImageThumbUrl}.
+ *
+ * @private
+ * @constant {string} _fileUrl
+ */
+DataManager._fileUrl = 'https://datamanager.entrecode.de/files';
+
+/**
+ * Best file method for generic files.
+ *
+ * @function _getFileUrl
+ * @static
+ * @param {String} assetID The assetID of the file to look up.
+ * @param {String} locale The locale to request.
+ * @param {String} url The url of the Data Manager in which the asset should be looked up.
+ * @returns {Promise}
+ */
+DataManager._getFileUrl = function(assetID, locale, url) {
+  return new Promise(function(resolve, reject) {
+    if (!assetID) {
+      reject(new Error('No assetID provided'));
+    }
+    var req = request.get(url + '/' + assetID + '/url');
+    if (locale) {
+      req.set('Accept-Language', locale);
+    }
+    req.end(function(err, res) {
+      if (err) {
+        return reject(err);
+      }
+      if (!res.body.hasOwnProperty('url')) {
+        return reject(new Error('Could not get a valid url for asset ' + assetID));
+      }
+      return resolve(res.body.url);
+    });
+  });
+};
+
+/**
+ * Best file method for image files.
+ *
+ * @function _getImageUrl
+ * @static
+ * @param {String} assetID The assetID of the image to look up.
+ * @param {Integer} size The image size to request.
+ * @param {String} locale The locale to request.
+ * @param {String} url The url of the Data Manager in which the asset should be looked up.
+ * @returns {Promise}
+ */
+DataManager._getImageUrl = function(assetID, size, locale, url) {
+  return new Promise(function(resolve, reject) {
+    if (!assetID) {
+      reject(new Error('No assetID provided'));
+    }
+    var req = request.get(url + '/' + assetID + '/url');
+    if (locale) {
+      req.set('Accept-Language', locale);
+    }
+    if (size) {
+      req.query({size: size});
+    }
+    req.end(function(err, res) {
+      if (err) {
+        return reject(err);
+      }
+      if (!res.body.hasOwnProperty('url')) {
+        return reject(new Error('Could not get a valid url for asset ' + assetID));
+      }
+      return resolve(res.body.url);
+    });
+  });
+};
+
+/**
+ * Best file method for image thumb files.
+ *
+ * @function _getImageThumbUrl
+ * @static
+ * @param {String} assetID The assetID of the thumb to look up.
+ * @param {Integer} size The thumb size to request.
+ * @param {String} locale The locale to request.
+ * @param {String} url The url of the Data Manager in which the asset should be looked up.
+ * @returns {Promise}
+ */
+DataManager._getImageThumbUrl = function(assetID, size, locale, url) {
+  return new Promise(function(resolve, reject) {
+    if (!assetID) {
+      reject(new Error('No assetID provided'));
+    }
+
+    if (size && size <= 50) {
+      size = 50;
+    } else if (size && size <= 100) {
+      size = 100;
+    } else if (size && size <= 200) {
+      size = 200;
+    } else {
+      size = 400;
+    }
+
+    var req = request.get(url + '/' + assetID + '/url');
+    if (locale) {
+      req.set('Accept-Language', locale);
+    }
+    req.query({size: size, thumb: true});
+    req.end(function(err, res) {
+      if (err) {
+        return reject(err);
+      }
+      if (!res.body.hasOwnProperty('url')) {
+        return reject(new Error('Could not get a valid url for asset ' + assetID));
+      }
+      return resolve(res.body.url);
+    });
+  });
+};
+
+/**
+ * Best file method for generic files.
+ *
+ * @function _getFileUrl
+ * @static
+ * @param {String} assetID The assetID of the file to look up.
+ * @param {String} locale The locale to request.
+ * @returns {Promise}
+ */
+DataManager.getFileUrl = function(assetID, locale) {
+  return DataManager._getFileUrl(assetID, locale, DataManager._fileUrl);
+};
+
+/**
+ * Best file method for image files.
+ *
+ * @function _getImageUrl
+ * @static
+ * @param {String} assetID The assetID of the image to look up.
+ * @param {Integer} size The image size to request.
+ * @param {String} locale The locale to request.
+ * @returns {Promise}
+ */
+DataManager.getImageUrl = function(assetID, size, locale) {
+  return DataManager._getImageUrl(assetID, size, locale, DataManager._fileUrl);
+};
+
+/**
+ * Best file method for image thumb files.
+ *
+ * @function _getImageThumbUrl
+ * @static
+ * @param {String} assetID The assetID of the thumb to look up.
+ * @param {Integer} size The thumb size to request.
+ * @param {String} locale The locale to request.
+ * @returns {Promise}
+ */
+DataManager.getImageThumbUrl = function(assetID, size, locale) {
+  return DataManager._getImageThumbUrl(assetID, size, locale, DataManager._fileUrl);
+};
+
+/**
+ * Best file method for generic files on a specific Data Manager.
+ *
+ * @function _getFileUrl
+ * @param {String} assetID The assetID of the file to look up.
+ * @param {String} locale The locale to request.
+ * @returns {Promise}
+ */
+DataManager.prototype.getFileUrl = function(assetID, locale) {
+  return DataManager.getFileUrl(assetID, locale, this._fileUrl);
+};
+
+/**
+ * Best file method for image files on a specific Data Manager.
+ *
+ * @function _getImageUrl
+ * @param {String} assetID The assetID of the image to look up.
+ * @param {Integer} size The image size to request.
+ * @param {String} locale The locale to request.
+ * @returns {Promise}
+ */
+DataManager.prototype.getImageUrl = function(assetID, size, locale) {
+  return DataManager.getImageUrl(assetID, size, locale, this._fileUrl);
+};
+
+/**
+ * Best file method for image thumb files on a specific Data Manager.
+ *
+ * @function _getImageThumbUrl
+ * @param {String} assetID The assetID of the thumb to look up.
+ * @param {Integer} size The thumb size to request.
+ * @param {String} locale The locale to request.
+ * @returns {Promise}
+ */
+DataManager.prototype.getImageThumbUrl = function(assetID, size, locale) {
+  return DataManager.getImageThumbUrl(assetID, size, locale, this._fileUrl);
+};
+
+/**
+ * @deprecated since 0.6.0
+ */
+DataManager.prototype.getFileURL = DataManager.prototype.getFileUrl;
+
+/**
+ * @deprecated since 0.6.0
+ */
+DataManager.prototype.getImageURL = DataManager.prototype.getImageUrl;
+
+/**
+ * @deprecated since 0.6.0
+ */
+DataManager.prototype.getImageThumbURL = DataManager.prototype.getImageThumbUrl;
+
+/////////////////////////////////////////////////////
+/// we can't got beyond this, this is bat country ///
+/////////////////////////////////////////////////////
+
+DataManager.prototype.getRoot = function() {
+  var context = this;
+  return new Promise(function(resolve, reject) {
+    traverson.from(context.url).jsonHal().getResource(function(err, res, traversal) {
+      context.traversal = traversal;
+      if (err) {
+        reject(err);
+      } else {
+        resolve(res);
+      }
+    });
+  });
 };
 
 function waitUntilDataManagerIsReady(dataManager) {
@@ -351,65 +588,15 @@ DataManager.prototype.authHeader = function() {
   return this.accessToken ? {Authorization: 'Bearer ' + this.accessToken} : {};
 };
 
-DataManager.prototype.getFileURL = function(assetID, locale) {
-  var headers = locale ? {'Accept-Language': locale} : null;
-  return api.get(this.fileUrl + assetID + '/url', headers, {}, function(res) {
-    res = JSON.parse(res);
-    return res.url;
-  });
-};
-
-DataManager.prototype.getImageURL = function(assetID, size, locale) {
-  var headers = locale ? {'Accept-Language': locale} : null;
-  return api.get(this.fileUrl + assetID + '/url', headers, {size: size}, function(res) {
-    res = JSON.parse(res);
-    return res.url;
-  });
-};
-
-DataManager.prototype.getImageThumbURL = function(assetID, size, locale) {
-  if (size && size <= 50) {
-    size = 50;
-  } else if (size && size <= 100) {
-    size = 100;
-  } else if (size && size <= 200) {
-    size = 200;
-  } else {
-    size = 400;
-  }
-  var headers = locale ? {'Accept-Language': locale} : null;
-  return api.get(this.fileUrl + assetID + '/url', headers, {size: size, thumb: true}, function(res) {
-    res = JSON.parse(res);
-    return res.url;
-  });
-};
-
-DataManager.prototype.getRoot = function() {
-  var context = this;
-  return new Promise(function(resolve, reject) {
-    traverson.from(context.url).jsonHal().getResource(function(err, res, traversal) {
-      context.traversal = traversal;
-      if (err) {
-        reject(err);
-      } else {
-        resolve(res);
-      }
-    });
-  });
-};
-
 DataManager.prototype.modelList = function() {
   return waitUntilDataManagerIsReady(this).then(function(dataManager) {
     return api.get(dataManager.url, dataManager.authHeader(), {},
       function(data) {
         var body = JSON.parse(data);
-        var regex = new RegExp('^' + dataManager.id + ':(.+$)');
         var listOfModels = {};
-        for (var key in body._embedded) {
-          if (body._embedded.hasOwnProperty(key)) {
-            var modelName = regex.exec(key)[1];
-            var embedded = body._embedded[key];
-            listOfModels[modelName] = dataManager.model(modelName, embedded.titleField, embedded.hexColor);
+        if (body.models) {
+          for (var i = 0; i < body.models.length; i++) {
+            listOfModels[body.models[i].title] = dataManager.model(body.models[i].title, body.models[i].titleField, body.models[i].hexColor);
           }
         }
         return listOfModels;
