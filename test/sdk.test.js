@@ -251,3 +251,52 @@ describe('best file routes', function() {
     });
   });
 });
+
+describe('model', function() {
+  var dm;
+  beforeEach(function() {
+    dm = new DataManager({
+      url: baseUrl + '58b9a1f5'
+    });
+  });
+  afterEach(function() {
+    dm = null;
+  });
+  it('datamanager with 2 models', function() {
+    return dm.modelList().then(function(models) {
+      expect(models).to.be.ok;
+      expect(models).to.be.instanceOf(Object);
+      expect(models).to.have.property('to-do-list');
+      expect(models).to.have.property('to-do-item');
+    });
+  });
+  it('model resolve', function() {
+    return dm.model('to-do-list').resolve().then(function(model) {
+      expect(model).to.be.ok;
+      expect(model).to.have.property('metadata');
+      expect(model.metadata).to.have.property('title', 'to-do-list');
+      expect(model.metadata).to.have.property('titleField', 'title');
+      expect(model.metadata).to.have.property('hexColor', '#d23738');
+    })
+  });
+  it('datamanager with 1 model', function() {
+    var dmSingle = new DataManager({
+      url: baseUrl + '3d52509f'
+    });
+    return dmSingle.modelList().then(function(models) {
+      expect(models).to.be.ok;
+      expect(models).to.be.instanceOf(Object);
+      expect(models).to.have.property('single');
+    });
+  });
+  it('datamanager with 0 models', function() {
+    var dmNone = new DataManager({
+      url: baseUrl + 'aa3b242e'
+    });
+    return dmNone.modelList().then(function(models) {
+      expect(models).to.be.ok;
+      expect(models).to.be.instanceOf(Object);
+      expect(models).to.be.empty;
+    });
+  });
+});

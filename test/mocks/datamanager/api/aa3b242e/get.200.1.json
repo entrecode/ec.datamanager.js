@@ -1,0 +1,19 @@
+{
+  "qs": {},
+  "req": {},
+  "res": {
+    "dataManagerID": "bbbff362-62f2-4513-b034-eeb7c3427ce8",
+    "models": [
+    ],
+    "_links": {
+      "curies": {
+        "name": "aa3b242e",
+        "href": "https://datamanager.entrecode.de/api/doc/aa3b242e/relation/{rel}",
+        "templated": true
+      },
+      "ec:api/assets": {
+        "href": "https://datamanager.entrecode.de/asset/aa3b242e"
+      }
+    }
+  }
+}
