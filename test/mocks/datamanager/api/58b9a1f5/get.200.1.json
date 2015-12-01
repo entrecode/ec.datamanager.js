@@ -3,6 +3,20 @@
   "req": {},
   "res": {
     "dataManagerID": "7e2fd960-b8ab-419f-8c8f-90da12b2a9d0",
+    "models": [
+      {
+        "title": "to-do-item",
+        "modelID": "6d33e556-b5bf-4925-9962-8a1852e712d2",
+        "titleField": "title",
+        "hexColor": "#d23738"
+      },
+      {
+        "title": "to-do-list",
+        "modelID": "f3b43060-463f-4321-bf90-b60dc9c8ad0d",
+        "titleField": "title",
+        "hexColor": "#d23738"
+      }
+    ],
     "_links": {
       "curies": {
         "name": "58b9a1f5",
@@ -24,32 +38,6 @@
         "name": "Register new anonymous account (POST)",
         "href": "https://datamanager.entrecode.de/api/58b9a1f5/_auth/account{?validUntil}",
         "templated": true
-      }
-    },
-    "_embedded": {
-      "58b9a1f5:to-do-item": {
-        "title": "to-do-item",
-        "modelID": "6d33e556-b5bf-4925-9962-8a1852e712d2",
-        "titleField": "title",
-        "hexColor": "#d23738",
-        "_links": {
-          "self": {
-            "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item",
-            "name": "to-do-item list"
-          }
-        }
-      },
-      "58b9a1f5:to-do-list": {
-        "title": "to-do-list",
-        "modelID": "f3b43060-463f-4321-bf90-b60dc9c8ad0d",
-        "titleField": "title",
-        "hexColor": "#d23738",
-        "_links": {
-          "self": {
-            "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-list",
-            "name": "to-do-list list"
-          }
-        }
       }
     }
   }
