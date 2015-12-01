@@ -29,7 +29,6 @@ app.use(function(req, res, next) {
 app.use(bodyParser.json());
 
 app.all('/*', function(req, res, next) {
-  console.log('request ' + req.originalUrl + ' received');
   var filePath = path.resolve(__dirname, req.path.slice(1));
   var walker = walk.walk(filePath);
   var stop = false;

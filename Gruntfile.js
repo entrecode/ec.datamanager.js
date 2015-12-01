@@ -54,7 +54,7 @@ module.exports = function(grunt) {
     },
     mochaTest: {
       test: {
-        src: ['test/**.test.js']
+        src: ['test/**/*.test.js']
       }
     },
     karma: {
