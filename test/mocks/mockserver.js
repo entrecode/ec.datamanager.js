@@ -1,6 +1,7 @@
 /**
  * Express webserver which uses the same files for mocked responses as nock uses for node.js mocking.
  * I know this is not an ideal solution but it will work for now.
+ * Maybe we can use https://github.com/mmalecki/hock someday.
  */
 
 
@@ -29,6 +30,9 @@ app.use(function(req, res, next) {
 app.use(bodyParser.json());
 
 app.all('/*', function(req, res, next) {
+  if (req.method.toLowerCase() === 'options') {
+    return res.status(200).send('GET, PUT, POST, DELETE').end();
+  }
   var filePath = path.resolve(__dirname, req.path.slice(1));
   var walker = walk.walk(filePath);
   var stop = false;
@@ -47,6 +51,10 @@ app.all('/*', function(req, res, next) {
       if (!_.eq(file.qs, req.query)) {
         return nextFile();
       }
+      file.req = JSON.parse(JSON.stringify(file.req)
+        .split('https://datamanager.entrecode.de').join('http://localhost:54815/datamanager')
+        .split('https://appserver.entrecode.de').join('http://localhost:54815/appserver')
+        .split('https://accounts.entrecode.de').join('http://localhost:54815/accounts'));
       if (!_.eq(file.req, req.body)) {
         return nextFile();
       }
@@ -63,7 +71,7 @@ app.all('/*', function(req, res, next) {
     if (res.hasOwnProperty('statusCode')) {
       return res.end();
     } else {
-      return next(new Error('No mock found for ' + req.originalUrl + ' with method ' + req.method));
+      return next(new Error('No mock found for ' + req.originalUrl + ' body ' + JSON.stringify(req.body) + ' with method ' + req.method));
     }
   });
   walker.on('error', function(root, nodeStatsArray, next) {

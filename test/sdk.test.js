@@ -8,9 +8,9 @@ if (isNode) { // require only in node, frontend knows things. ;)
     , traverson               = require('traverson')
     , TraversonJsonHalAdapter = require('traverson-hal')
 
-    , DataManager             = require('../lib/DataManager.js');
+    , DataManager             = require('../lib/DataManager.js')
 
-  ;
+    ;
 
   var baseUrl = 'https://datamanager.entrecode.de/api/';
 } else {
@@ -271,7 +271,11 @@ describe('model', function() {
     });
   });
   it('model resolve', function() {
-    return dm.model('to-do-list').resolve().then(function(model) {
+    var model = dm.model('to-do-list');
+    expect(model).to.be.ok;
+    expect(model).to.have.property('metadata');
+    expect(model.metadata).to.be.undefined;
+    return model.resolve().then(function(model) {
       expect(model).to.be.ok;
       expect(model).to.have.property('metadata');
       expect(model.metadata).to.have.property('title', 'to-do-list');
@@ -297,6 +301,144 @@ describe('model', function() {
       expect(models).to.be.ok;
       expect(models).to.be.instanceOf(Object);
       expect(models).to.be.empty;
+    });
+  });
+  it('get schema', function() {
+    return dm.model('to-do-list').getSchema().then(function(schema) {
+      expect(schema).to.be.ok;
+      expect(schema).to.have.property('id', baseUrl + 'schema/58b9a1f5/to-do-item');
+      expect(schema).to.have.property('type', 'object');
+    });
+  });
+  it('get schema with method', function() {
+    return dm.model('to-do-list').getSchema('get').then(function(schema) {
+      expect(schema).to.be.ok;
+      expect(schema).to.have.property('id', baseUrl + 'schema/58b9a1f5/to-do-item');
+      expect(schema).to.have.property('type', 'object');
+    });
+  });
+  it('put schema', function() {
+    return dm.model('to-do-list').getSchema('put').then(function(schema) {
+      expect(schema).to.be.ok;
+      expect(schema).to.have.property('id', baseUrl + 'schema/58b9a1f5/to-do-item?template=put');
+      expect(schema).to.have.property('type', 'object');
+    });
+  });
+  it('post schema', function() {
+    return dm.model('to-do-list').getSchema('post').then(function(schema) {
+      expect(schema).to.be.ok;
+      expect(schema).to.have.property('id', baseUrl + 'schema/58b9a1f5/to-do-item?template=post');
+      expect(schema).to.have.property('type', 'object');
+    });
+  });
+});
+
+describe('entry/entries', function() { // this is basically modelList
+  var dm;
+  beforeEach(function() {
+    dm = new DataManager({
+      url: baseUrl + '58b9a1f5'
+    });
+  });
+  afterEach(function() {
+    dm = null;
+  });
+  it('get entries, list single item', function() {
+    return dm.model('to-do-list').entries({
+      filter: {
+        exact: {
+          title: 'Beef'
+        }
+      }
+    }).then(function(entries) {
+      expect(entries).to.be.ok;
+      expect(entries).to.be.instanceOf(Array);
+      expect(entries.length).to.be.equal(1);
+    });
+  });
+  it('get entries, list multiple item', function() {
+    return dm.model('to-do-item').entries().then(function(entries) {
+      expect(entries).to.be.ok;
+      expect(entries).to.be.instanceOf(Array);
+      expect(entries.length).to.be.at.least(4);
+    });
+  });
+  it('get single entry', function() {
+    return dm.model('to-do-item').entry('VkGhAPQ2Qe').then(function(entry) {
+      expect(entry).to.be.ok;
+      expect(entry).to.be.instanceOf(Object);
+      expect(entry).to.have.property('value');
+      expect(entry.value).to.have.property('_id', 'VkGhAPQ2Qe');
+    });
+  });
+  it('list: get entries, list single item', function() {
+    return dm.model('to-do-list').entryList({
+      filter: {
+        exact: {
+          title: 'Beef'
+        }
+      }
+    }).then(function(list) {
+      expect(list).to.be.ok;
+      expect(list).to.be.instanceOf(Object);
+      expect(list).to.have.property('entries');
+      expect(list.entries).to.be.instanceOf(Array);
+      expect(list.entries.length).to.be.equal(1);
+      expect(list).to.have.property('count', 1);
+      expect(list).to.have.property('total', 1);
+    });
+  });
+  it('get entries, list multiple item', function() {
+    return dm.model('to-do-item').entryList().then(function(list) {
+      expect(list).to.be.ok;
+      expect(list).to.be.instanceOf(Object);
+      expect(list).to.have.property('entries');
+      expect(list.entries.length).to.be.at.least(4);
+      expect(list).to.have.property('count')
+        .that.is.at.least(4);
+      expect(list).to.have.property('total')
+        .that.is.at.least(4);
+    });
+  });
+  it('create entry', function() {
+    return dm.model('to-do-item').createEntry({
+      title: 'NewItem',
+      description: '<p>A New Item.</p>'
+    }).then(function(entry) {
+      expect(entry).to.be.ok;
+      expect(entry).to.be.instanceOf(Object);
+      expect(entry).to.have.property('value')
+        .that.is.instanceOf(Object);
+      expect(entry.value).to.have.property('_id', 'N1GJuenPEl');
+      expect(entry.value).to.have.property('title', 'NewItem');
+      expect(entry.value).to.have.property('description', '<p>A New Item.</p>');
+    });
+  });
+  it('create entry fail', function() {
+    return dm.model('to-do-item').createEntry({
+      description: 'But No Title.'
+    }).then(function(result) {
+      throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+    }, function(err) {
+      expect(err).to.be.ok;
+      expect(err).to.have.property('status', 400);
+      expect(err).to.have.property('code', 2201);
+    });
+  });
+  it('delete entry', function() {
+    return dm.model('to-do-item').deleteEntry('N1GJuenPEl').then(function(deleted) {
+      expect(deleted).to.be.true;
+    });
+  });
+  it('put entry', function() {
+    return dm.model('to-do-item').entry('N1GJuenPEl').then(function(entry) {
+      entry.value.description = '<p>New Description.</p>';
+      return entry.save();
+    }).then(function(entry) {
+      expect(entry).to.be.ok;
+      expect(entry).to.have.property('value');
+      expect(entry.value).to.have.property('_id', 'N1GJuenPEl');
+      expect(entry.value).to.have.property('description', '<p>New Description.</p>');
     });
   });
 });

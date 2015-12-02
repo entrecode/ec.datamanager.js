@@ -13,11 +13,10 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      "build/datamanager.js",
-      "node_modules/traverson/browser/dist/traverson.js",
-      "node_modules/traverson-hal/browser/dist/traverson-hal.js",
+      "build/datamanager.min.js",
+      "node_modules/traverson/browser/dist/traverson.min.js",
+      "node_modules/traverson-hal/browser/dist/traverson-hal.min.js",
       "test/**/*.test.js"
-      //"test/test.js"
     ],
 
     // list of files to exclude
@@ -30,7 +29,7 @@ module.exports = function(config) {
     // test results reporter to use
     // possible values: 'dots', 'progress'
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-    reporters: ['progress', 'bamboo'],
+    reporters: ['dots', 'bamboo'],
 
     bambooReporter:{
       filename: 'test/results.json' //optional, defaults to "mocha.json"
