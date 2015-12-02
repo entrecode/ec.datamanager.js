@@ -32,6 +32,10 @@ bower install ec.datamanager
 
 The bower module only includes the minified build (and no tests etc.).
 
+## Errors
+* `ec_sdk_model_not_found` When you tried to `model(…).resolve()` a model which is not present in the Data Manager.
+* `ec_sdk_invalid_method_for_schema` You specified the wrong method for `model(…).getSchema(<method>)`. Only `get`, `put`, and `post` are allowed.
+
 ## Usage
 
 Also see `./example/basic-example.js` for a running usage example.
@@ -816,4 +820,3 @@ grunt build
 [coveralls-url]: https://coveralls.io/github/entrecode/ec.datamanager.js?branch=master
 [daviddm-image]: https://david-dm.org/entrecode/ec.datamanager.js.svg?theme=shields.io
 [daviddm-url]: https://david-dm.org/entrecode/ec.datamanager.js
-
