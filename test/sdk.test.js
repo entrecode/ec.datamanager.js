@@ -142,6 +142,12 @@ describe('datamanager constructor', function() {
     }).to.throw(Error);
     return done();
   });
+  it('fails if no id or url is given', function(done) {
+    expect(function() {
+      new DataManager({});
+    }).to.throw(Error);
+    return done();
+  });
 });
 
 describe('static best file routes', function() {
@@ -156,6 +162,12 @@ describe('static best file routes', function() {
       expect(url).to.be.ok;
       expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM.jpg');
     });
+  });
+  it('get file url fail, no assetID', function() {
+
+  });
+  it('get file url fail, not found', function() {
+
   });
   it('get image url', function() {
     return DataManager.getImageUrl('4920f5ac-eab9-400b-8e41-5a202488b249').then(function(url) {
@@ -175,6 +187,12 @@ describe('static best file routes', function() {
       expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_256.jpg');
     });
   });
+  it('get image url fail, no assetID', function() {
+
+  });
+  it('get image url fail, not found', function() {
+
+  });
   it('get thumb url', function() {
     return DataManager.getImageThumbUrl('4920f5ac-eab9-400b-8e41-5a202488b249').then(function(url) {
       expect(url).to.be.ok;
@@ -187,11 +205,17 @@ describe('static best file routes', function() {
       expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_100_thumb.jpg');
     });
   });
-  it('get thumb url wit size and locale', function() {
+  it('get thumb url with size and locale', function() {
     return DataManager.getImageThumbUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 100, 'de_DE').then(function(url) {
       expect(url).to.be.ok;
       expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_100_thumb.jpg');
     });
+  });
+  it('get thumb url fail, no assetID', function() {
+
+  });
+  it('get thumb url fail, not found', function() {
+
   });
 });
 
@@ -270,19 +294,6 @@ describe('model', function() {
       expect(models).to.have.property('to-do-item');
     });
   });
-  it('model resolve', function() {
-    var model = dm.model('to-do-list');
-    expect(model).to.be.ok;
-    expect(model).to.have.property('metadata');
-    expect(model.metadata).to.be.undefined;
-    return model.resolve().then(function(model) {
-      expect(model).to.be.ok;
-      expect(model).to.have.property('metadata');
-      expect(model.metadata).to.have.property('title', 'to-do-list');
-      expect(model.metadata).to.have.property('titleField', 'title');
-      expect(model.metadata).to.have.property('hexColor', '#d23738');
-    })
-  });
   it('datamanager with 1 model', function() {
     var dmSingle = new DataManager({
       url: baseUrl + '3d52509f'
@@ -302,6 +313,25 @@ describe('model', function() {
       expect(models).to.be.instanceOf(Object);
       expect(models).to.be.empty;
     });
+  });
+  it('model resolve', function() {
+    var model = dm.model('to-do-list');
+    expect(model).to.be.ok;
+    expect(model).to.have.property('metadata');
+    expect(model.metadata).to.be.undefined;
+    return model.resolve().then(function(model) {
+      expect(model).to.be.ok;
+      expect(model).to.have.property('metadata');
+      expect(model.metadata).to.have.property('title', 'to-do-list');
+      expect(model.metadata).to.have.property('titleField', 'title');
+      expect(model.metadata).to.have.property('hexColor', '#d23738');
+    })
+  });
+  it('model resolve, then entries', function() {
+
+  });
+  it('model not found', function() {
+
   });
   it('get schema', function() {
     return dm.model('to-do-list').getSchema().then(function(schema) {
@@ -330,6 +360,9 @@ describe('model', function() {
       expect(schema).to.have.property('id', baseUrl + 'schema/58b9a1f5/to-do-item?template=post');
       expect(schema).to.have.property('type', 'object');
     });
+  });
+  it('invalid schema method', function() {
+
   });
 });
 
@@ -371,6 +404,9 @@ describe('entry/entries', function() { // this is basically modelList
       expect(entry.value).to.have.property('_id', 'VkGhAPQ2Qe');
     });
   });
+  it('get single entry, with levels', function() {
+
+  });
   it('list: get entries, list single item', function() {
     return dm.model('to-do-list').entryList({
       filter: {
@@ -388,7 +424,7 @@ describe('entry/entries', function() { // this is basically modelList
       expect(list).to.have.property('total', 1);
     });
   });
-  it('get entries, list multiple item', function() {
+  it('list: get entries, list multiple item', function() {
     return dm.model('to-do-item').entryList().then(function(list) {
       expect(list).to.be.ok;
       expect(list).to.be.instanceOf(Object);
@@ -414,6 +450,9 @@ describe('entry/entries', function() { // this is basically modelList
       expect(entry.value).to.have.property('description', '<p>A New Item.</p>');
     });
   });
+  it('create entry, 204', function() {
+
+  });
   it('create entry fail', function() {
     return dm.model('to-do-item').createEntry({
       description: 'But No Title.'
@@ -430,6 +469,9 @@ describe('entry/entries', function() { // this is basically modelList
       expect(deleted).to.be.true;
     });
   });
+  it('entry delete', function() {
+
+  });
   it('put entry', function() {
     return dm.model('to-do-item').entry('N1GJuenPEl').then(function(entry) {
       entry.value.description = '<p>New Description.</p>';
@@ -439,6 +481,89 @@ describe('entry/entries', function() { // this is basically modelList
       expect(entry).to.have.property('value');
       expect(entry.value).to.have.property('_id', 'N1GJuenPEl');
       expect(entry.value).to.have.property('description', '<p>New Description.</p>');
+    });
+  });
+});
+
+describe('asset/assets', function() {
+  var dm;
+  beforeEach(function() {
+    dm = new DataManager({
+      url: baseUrl + '58b9a1f5'
+    });
+  });
+  afterEach(function() {
+    dm = null;
+  });
+  it('get assets, list single item', function() {
+
+  });
+  it('get assets, list multiple item', function() {
+
+  });
+  it('get single asset', function() {
+
+  });
+  it('list: get asset, list single item', function() {
+
+  });
+  it('list: get asset, list multiple item', function() {
+
+  });
+  it('create asset', function() {
+
+  });
+  it('create asset fail', function() {
+
+  });
+  it('delete asset', function() {
+
+  });
+  it('put asset', function() {
+
+  });
+});
+
+describe('anonymous user', function() {
+  var dm;
+  beforeEach(function() {
+    dm = new DataManager({
+      url: baseUrl + '58b9a1f5'
+    });
+  });
+  afterEach(function() {
+    dm = null;
+  });
+  it('register', function() {
+    expect(dm).to.not.have.property('accessToken');
+    return dm.registerAnonymous().then(function(user) {
+      expect(user).to.be.ok;
+      expect(dm).to.have.property('accessToken')
+        .that.is.equal('eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJlbWFpbCI6bnVsbCwianRpIjoiM2EzYmQ5MzYtOWFlZS00ZWY0LTg0MjUtNjZhOGViODcyODk4IiwiaWF0IjoxNDQ5MTM2Njg0LCJleHAiOjQ2MDI3MzY2ODQsImlzcyI6ImVjX2RhdGFtYW5hZ2VyX3Nka190ZXN0c18xIiwic3ViIjoiMWNmOWUyOGUtZmE1NC00ZGVhLWJlMTQtZDlkYmNjMGMzYzY5In0.VMA0onkx4fpwBdTL9AQ2bzR4JBziY8UIavrAleIl7wj1Rh1-ZU09i-vze2sObarOZSygx74cO1uRkX37CFYj3Lf45mWPpHj-prJtfnS1xkn4KlfffTuz3VWINCorcZX-OyVeFWSexC6AwEQ9cW8FMEZPDpMLKodiFkhDUt1AIQg');
+      expect(user).to.have.property('value');
+      expect(user.value).to.have.property('accountID', '1cf9e28e-fa54-4dea-be14-d9dbcc0c3c69');
+      expect(user.value).to.have.property('exp', '2115-11-09T09:58:04.000Z');
+      expect(user.value).to.have.property('iat', '2015-12-03T09:58:04.000Z');
+      expect(user.value).to.have.property('jwt', 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJlbWFpbCI6bnVsbCwianRpIjoiM2EzYmQ5MzYtOWFlZS00ZWY0LTg0MjUtNjZhOGViODcyODk4IiwiaWF0IjoxNDQ5MTM2Njg0LCJleHAiOjQ2MDI3MzY2ODQsImlzcyI6ImVjX2RhdGFtYW5hZ2VyX3Nka190ZXN0c18xIiwic3ViIjoiMWNmOWUyOGUtZmE1NC00ZGVhLWJlMTQtZDlkYmNjMGMzYzY5In0.VMA0onkx4fpwBdTL9AQ2bzR4JBziY8UIavrAleIl7wj1Rh1-ZU09i-vze2sObarOZSygx74cO1uRkX37CFYj3Lf45mWPpHj-prJtfnS1xkn4KlfffTuz3VWINCorcZX-OyVeFWSexC6AwEQ9cW8FMEZPDpMLKodiFkhDUt1AIQg');
+    });
+  });
+  it('register, validUntil', function() {
+
+  });
+  it('model resolve, then register', function() {
+
+  });
+  it('logout', function() {
+    expect(dm).to.not.have.property('accessToken');
+    return dm.registerAnonymous().then(function(user) {
+      expect(user).to.be.ok;
+      expect(dm).to.have.property('_user');
+      expect(dm).to.have.property('accessToken')
+        .that.is.equal('eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJlbWFpbCI6bnVsbCwianRpIjoiM2EzYmQ5MzYtOWFlZS00ZWY0LTg0MjUtNjZhOGViODcyODk4IiwiaWF0IjoxNDQ5MTM2Njg0LCJleHAiOjQ2MDI3MzY2ODQsImlzcyI6ImVjX2RhdGFtYW5hZ2VyX3Nka190ZXN0c18xIiwic3ViIjoiMWNmOWUyOGUtZmE1NC00ZGVhLWJlMTQtZDlkYmNjMGMzYzY5In0.VMA0onkx4fpwBdTL9AQ2bzR4JBziY8UIavrAleIl7wj1Rh1-ZU09i-vze2sObarOZSygx74cO1uRkX37CFYj3Lf45mWPpHj-prJtfnS1xkn4KlfffTuz3VWINCorcZX-OyVeFWSexC6AwEQ9cW8FMEZPDpMLKodiFkhDUt1AIQg');
+      return user.logout().then(function() {
+        expect(dm).to.have.property('accessToken', undefined);
+        expect(dm).to.have.property('_user', undefined);
+      });
     });
   });
 });
