@@ -24,7 +24,10 @@ module.exports = function(grunt) {
     },
     run: {
       coverage: {
-        exec: 'istanbul cover _mocha -- --recursive -R spec '
+        exec: 'istanbul cover _mocha -- -R spec "test/**/*.test.js"'
+      },
+      openCoverage: {
+        exec: 'open coverage/lcov-report/index.html'
       },
       browserify: {
         exec: 'browserify -r ./index.js:ec.datamanager.js -s DataManager -o ./build/datamanager.js'
@@ -71,4 +74,6 @@ module.exports = function(grunt) {
   grunt.registerTask('test-frontend', ['build', 'mockserver', 'karma:test', 'mockserver-stop']);
   grunt.registerTask('build', ['run:browserify', 'uglify']);
   grunt.registerTask('test', ['test-backend', 'test-frontend']);
+  grunt.registerTask('coverage', ['coverage-bamboo', 'run:openCoverage']);
+  grunt.registerTask('coverage-bamboo', ['run:coverage']);
 };
