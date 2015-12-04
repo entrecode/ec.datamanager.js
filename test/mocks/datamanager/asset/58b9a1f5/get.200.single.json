@@ -1,0 +1,149 @@
+{
+  "qs": {
+    "assetID": "443163b2-71a9-4f2a-987b-c7c7f31c7e30"
+  },
+  "req": {},
+  "res": {
+    "assetID": "443163b2-71a9-4f2a-987b-c7c7f31c7e30",
+    "created": "2015-11-26T10:03:20.075Z",
+    "files": [
+      {
+        "url": "https://cdn2.entrecode.de/files/58b9a1f5/b_in72f5iM6szybZ4Un4W1zr_1024.jpg",
+        "mimetype": "image/jpeg",
+        "size": 171484,
+        "resolution": {
+          "width": 1024,
+          "height": 768
+        },
+        "locale": null,
+        "created": "2015-11-26T10:03:20.676+00:00",
+        "modified": "2015-11-26T10:03:20.676+00:00",
+        "assetID": "443163b2-71a9-4f2a-987b-c7c7f31c7e30"
+      },
+      {
+        "url": "https://cdn2.entrecode.de/files/58b9a1f5/b_in72f5iM6szybZ4Un4W1zr_50_thumb.jpg",
+        "mimetype": "image/jpeg",
+        "size": 4801,
+        "resolution": {
+          "width": 50,
+          "height": 50
+        },
+        "locale": null,
+        "created": "2015-11-26T10:03:20.561+00:00",
+        "modified": "2015-11-26T10:03:20.561+00:00",
+        "assetID": "443163b2-71a9-4f2a-987b-c7c7f31c7e30"
+      },
+      {
+        "url": "https://cdn2.entrecode.de/files/58b9a1f5/b_in72f5iM6szybZ4Un4W1zr_100_thumb.jpg",
+        "mimetype": "image/jpeg",
+        "size": 7734,
+        "resolution": {
+          "width": 100,
+          "height": 100
+        },
+        "locale": null,
+        "created": "2015-11-26T10:03:20.498+00:00",
+        "modified": "2015-11-26T10:03:20.498+00:00",
+        "assetID": "443163b2-71a9-4f2a-987b-c7c7f31c7e30"
+      },
+      {
+        "url": "https://cdn2.entrecode.de/files/58b9a1f5/b_in72f5iM6szybZ4Un4W1zr_256.jpg",
+        "mimetype": "image/jpeg",
+        "size": 20275,
+        "resolution": {
+          "width": 256,
+          "height": 192
+        },
+        "locale": null,
+        "created": "2015-11-26T10:03:20.508+00:00",
+        "modified": "2015-11-26T10:03:20.508+00:00",
+        "assetID": "443163b2-71a9-4f2a-987b-c7c7f31c7e30"
+      },
+      {
+        "url": "https://cdn2.entrecode.de/files/58b9a1f5/b_in72f5iM6szybZ4Un4W1zr_512.jpg",
+        "mimetype": "image/jpeg",
+        "size": 57635,
+        "resolution": {
+          "width": 512,
+          "height": 384
+        },
+        "locale": null,
+        "created": "2015-11-26T10:03:20.594+00:00",
+        "modified": "2015-11-26T10:03:20.594+00:00",
+        "assetID": "443163b2-71a9-4f2a-987b-c7c7f31c7e30"
+      },
+      {
+        "url": "https://cdn2.entrecode.de/files/58b9a1f5/b_in72f5iM6szybZ4Un4W1zr_400_thumb.jpg",
+        "mimetype": "image/jpeg",
+        "size": 47295,
+        "resolution": {
+          "width": 400,
+          "height": 400
+        },
+        "locale": null,
+        "created": "2015-11-26T10:03:20.623+00:00",
+        "modified": "2015-11-26T10:03:20.623+00:00",
+        "assetID": "443163b2-71a9-4f2a-987b-c7c7f31c7e30"
+      },
+      {
+        "url": "https://cdn2.entrecode.de/files/58b9a1f5/b_in72f5iM6szybZ4Un4W1zr.jpg",
+        "mimetype": "image/jpeg",
+        "size": 381861,
+        "resolution": {
+          "width": 2048,
+          "height": 1536
+        },
+        "locale": null,
+        "created": "2015-11-26T10:03:20.062+00:00",
+        "modified": "2015-11-26T10:03:20.062+00:00",
+        "assetID": "443163b2-71a9-4f2a-987b-c7c7f31c7e30"
+      },
+      {
+        "url": "https://cdn2.entrecode.de/files/58b9a1f5/b_in72f5iM6szybZ4Un4W1zr_200_thumb.jpg",
+        "mimetype": "image/jpeg",
+        "size": 17308,
+        "resolution": {
+          "width": 200,
+          "height": 200
+        },
+        "locale": null,
+        "created": "2015-11-26T10:03:20.524+00:00",
+        "modified": "2015-11-26T10:03:20.524+00:00",
+        "assetID": "443163b2-71a9-4f2a-987b-c7c7f31c7e30"
+      },
+      {
+        "url": "https://cdn2.entrecode.de/files/58b9a1f5/b_in72f5iM6szybZ4Un4W1zr_2048.jpg",
+        "mimetype": "image/jpeg",
+        "size": 428986,
+        "resolution": {
+          "width": 2048,
+          "height": 1536
+        },
+        "locale": null,
+        "created": "2015-11-26T10:03:20.672+00:00",
+        "modified": "2015-11-26T10:03:20.672+00:00",
+        "assetID": "443163b2-71a9-4f2a-987b-c7c7f31c7e30"
+      }
+    ],
+    "tags": [],
+    "title": "vrooom",
+    "type": "image",
+    "_links": {
+      "collection": {
+        "href": "https://datamanager.entrecode.de/asset/58b9a1f5"
+      },
+      "ec:asset/best-file": {
+        "href": "https://datamanager.entrecode.de/files/443163b2-71a9-4f2a-987b-c7c7f31c7e30{?size,thumb}",
+        "templated": true
+      },
+      "self": {
+        "href": "https://datamanager.entrecode.de/asset/58b9a1f5?assetID=443163b2-71a9-4f2a-987b-c7c7f31c7e30",
+        "title": "vrooom"
+      },
+      "curies": {
+        "href": "https://doc.entrecode.de/data_manager/#relation-{rel}",
+        "templated": true
+      }
+    }
+  }
+}

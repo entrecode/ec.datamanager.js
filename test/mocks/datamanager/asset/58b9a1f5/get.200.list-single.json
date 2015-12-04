@@ -1,0 +1,151 @@
+{
+  "qs": {
+    "title": "anotherhardday"
+  },
+  "req": {},
+  "res": {
+    "count": 1,
+    "total": 1,
+    "_links": {
+      "curies": {
+        "href": "https://doc.entrecode.de/data_manager/#relation-{rel}",
+        "templated": true
+      },
+      "ec:api/asset/by-id": {
+        "href": "https://datamanager.entrecode.de/asset/58b9a1f5{?assetID}",
+        "templated": true
+      },
+      "ec:api/tags": {
+        "href": "https://datamanager.entrecode.de/tag/58b9a1f5"
+      },
+      "ec:api": {
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5"
+      },
+      "ec:api/assets/options": {
+        "href": "https://datamanager.entrecode.de/asset/58b9a1f5{?assetID,created,createdFrom,createdTo,created~,creator,dataManagerID,deleted,deletedFrom,deletedTo,deleted~,page,size,sort,tag,title,title~,type,type~}",
+        "templated": true
+      },
+      "self": {
+        "href": "https://datamanager.entrecode.de/asset/58b9a1f5?title=anotherhardday"
+      },
+      "ec:assets/download": {
+        "href": "https://datamanager.entrecode.de/asset/download/58b9a1f5?title=anotherhardday"
+      }
+    },
+    "_embedded": {
+      "ec:api/asset": {
+        "assetID": "bce957c9-7512-4dc1-bb19-0d843574c5b7",
+        "created": "2015-11-26T10:04:02.627Z",
+        "files": [
+          {
+            "url": "https://cdn2.entrecode.de/files/58b9a1f5/Y6piEXU8HhhYaeuSnT2cIyrG_200_thumb.jpg",
+            "mimetype": "image/jpeg",
+            "size": 13144,
+            "resolution": {
+              "width": 200,
+              "height": 200
+            },
+            "locale": null,
+            "created": "2015-11-26T10:04:02.911+00:00",
+            "modified": "2015-11-26T10:04:02.911+00:00",
+            "assetID": "bce957c9-7512-4dc1-bb19-0d843574c5b7"
+          },
+          {
+            "url": "https://cdn2.entrecode.de/files/58b9a1f5/Y6piEXU8HhhYaeuSnT2cIyrG_50_thumb.jpg",
+            "mimetype": "image/jpeg",
+            "size": 4687,
+            "resolution": {
+              "width": 50,
+              "height": 50
+            },
+            "locale": null,
+            "created": "2015-11-26T10:04:02.922+00:00",
+            "modified": "2015-11-26T10:04:02.922+00:00",
+            "assetID": "bce957c9-7512-4dc1-bb19-0d843574c5b7"
+          },
+          {
+            "url": "https://cdn2.entrecode.de/files/58b9a1f5/Y6piEXU8HhhYaeuSnT2cIyrG_400_thumb.jpg",
+            "mimetype": "image/jpeg",
+            "size": 33166,
+            "resolution": {
+              "width": 400,
+              "height": 400
+            },
+            "locale": null,
+            "created": "2015-11-26T10:04:02.912+00:00",
+            "modified": "2015-11-26T10:04:02.912+00:00",
+            "assetID": "bce957c9-7512-4dc1-bb19-0d843574c5b7"
+          },
+          {
+            "url": "https://cdn2.entrecode.de/files/58b9a1f5/Y6piEXU8HhhYaeuSnT2cIyrG_100_thumb.jpg",
+            "mimetype": "image/jpeg",
+            "size": 6779,
+            "resolution": {
+              "width": 100,
+              "height": 100
+            },
+            "locale": null,
+            "created": "2015-11-26T10:04:02.887+00:00",
+            "modified": "2015-11-26T10:04:02.887+00:00",
+            "assetID": "bce957c9-7512-4dc1-bb19-0d843574c5b7"
+          },
+          {
+            "url": "https://cdn2.entrecode.de/files/58b9a1f5/Y6piEXU8HhhYaeuSnT2cIyrG.jpg",
+            "mimetype": "image/jpeg",
+            "size": 129603,
+            "resolution": {
+              "width": 640,
+              "height": 480
+            },
+            "locale": null,
+            "created": "2015-11-26T10:04:02.613+00:00",
+            "modified": "2015-11-26T10:04:02.613+00:00",
+            "assetID": "bce957c9-7512-4dc1-bb19-0d843574c5b7"
+          },
+          {
+            "url": "https://cdn2.entrecode.de/files/58b9a1f5/Y6piEXU8HhhYaeuSnT2cIyrG_512.jpg",
+            "mimetype": "image/jpeg",
+            "size": 38550,
+            "resolution": {
+              "width": 512,
+              "height": 384
+            },
+            "locale": null,
+            "created": "2015-11-26T10:04:02.884+00:00",
+            "modified": "2015-11-26T10:04:02.884+00:00",
+            "assetID": "bce957c9-7512-4dc1-bb19-0d843574c5b7"
+          },
+          {
+            "url": "https://cdn2.entrecode.de/files/58b9a1f5/Y6piEXU8HhhYaeuSnT2cIyrG_256.jpg",
+            "mimetype": "image/jpeg",
+            "size": 14652,
+            "resolution": {
+              "width": 256,
+              "height": 192
+            },
+            "locale": null,
+            "created": "2015-11-26T10:04:02.873+00:00",
+            "modified": "2015-11-26T10:04:02.873+00:00",
+            "assetID": "bce957c9-7512-4dc1-bb19-0d843574c5b7"
+          }
+        ],
+        "tags": [],
+        "title": "anotherhardday",
+        "type": "image",
+        "_links": {
+          "collection": {
+            "href": "https://datamanager.entrecode.de/asset/58b9a1f5"
+          },
+          "ec:asset/best-file": {
+            "href": "https://datamanager.entrecode.de/files/bce957c9-7512-4dc1-bb19-0d843574c5b7{?size,thumb}",
+            "templated": true
+          },
+          "self": {
+            "href": "https://datamanager.entrecode.de/asset/58b9a1f5?assetID=bce957c9-7512-4dc1-bb19-0d843574c5b7",
+            "title": "anotherhardday"
+          }
+        }
+      }
+    }
+  }
+}

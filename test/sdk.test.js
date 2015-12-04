@@ -602,26 +602,68 @@ describe('asset/assets', function() {
   var dm;
   beforeEach(function() {
     dm = new DataManager({
-      url: baseUrl + '58b9a1f5'
+      url: baseUrl + '58b9a1f5',
+      accessToken: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJlbWFpbCI6bnVsbCwianRpIjoiM2EzYmQ5MzYtOWFlZS00ZWY0LTg0MjUtNjZhOGViODcyODk4IiwiaWF0IjoxNDQ5MTM2Njg0LCJleHAiOjQ2MDI3MzY2ODQsImlzcyI6ImVjX2RhdGFtYW5hZ2VyX3Nka190ZXN0c18xIiwic3ViIjoiMWNmOWUyOGUtZmE1NC00ZGVhLWJlMTQtZDlkYmNjMGMzYzY5In0.VMA0onkx4fpwBdTL9AQ2bzR4JBziY8UIavrAleIl7wj1Rh1-ZU09i-vze2sObarOZSygx74cO1uRkX37CFYj3Lf45mWPpHj-prJtfnS1xkn4KlfffTuz3VWINCorcZX-OyVeFWSexC6AwEQ9cW8FMEZPDpMLKodiFkhDUt1AIQg'
     });
   });
   afterEach(function() {
     dm = null;
   });
-  it('get assets, list single item', function() {
-
-  });
   it('get assets, list multiple item', function() {
-
+    return dm.assets().then(function(assets) {
+      expect(assets).to.be.ok;
+      expect(assets).to.be.instanceOf(Array);
+      expect(assets.length).to.be.equal(3);
+    });
+  });
+  it('get assets, list single item', function() {
+    return dm.assets({
+      filter: {
+        title: {
+          exact: 'anotherhardday'
+        }
+      }
+    }).then(function(assets) {
+      expect(assets).to.be.ok;
+      expect(assets).to.be.instanceOf(Array);
+      expect(assets.length).to.be.equal(1);
+    });
   });
   it('get single asset', function() {
-
+    return dm.asset('443163b2-71a9-4f2a-987b-c7c7f31c7e30').then(function(asset) {
+      expect(asset).to.be.ok;
+      expect(asset).to.be.instanceOf(Object);
+      expect(asset).to.have.property('value');
+      expect(asset.value).to.have.property('assetID', '443163b2-71a9-4f2a-987b-c7c7f31c7e30');
+    });
   });
   it('list: get asset, list single item', function() {
-
+    return dm.assetList().then(function(list) {
+      expect(list).to.be.ok;
+      expect(list).to.be.instanceOf(Object);
+      expect(list).to.have.property('count', 3);
+      expect(list).to.have.property('total', 3);
+      expect(list).to.have.property('assets');
+      expect(list.assets).to.have.instanceOf(Array);
+      expect(list.assets.length).to.be.equal(3);
+    });
   });
   it('list: get asset, list multiple item', function() {
-
+    return dm.assetList({
+      filter: {
+        title: {
+          exact: 'anotherhardday'
+        }
+      }
+    }).then(function(list) {
+      expect(list).to.be.ok;
+      expect(list).to.be.instanceOf(Object);
+      expect(list).to.have.property('count', 1);
+      expect(list).to.have.property('total', 1);
+      expect(list).to.have.property('assets');
+      expect(list.assets).to.have.instanceOf(Array);
+      expect(list.assets.length).to.be.equal(1);
+    });
   });
   it('create asset', function() {
 
@@ -630,10 +672,32 @@ describe('asset/assets', function() {
 
   });
   it('delete asset', function() {
-
+    return dm.asset('443163b2-71a9-4f2a-987b-c7c7f31c7e30').then(function(asset) {
+      expect(asset).to.be.ok;
+      expect(asset).to.be.instanceOf(Object);
+      expect(asset).to.have.property('value');
+      expect(asset.value).to.have.property('assetID', '443163b2-71a9-4f2a-987b-c7c7f31c7e30');
+      return asset.delete().then(function(deleted) {
+        expect(deleted).to.be.true;
+      });
+    });
   });
   it('put asset', function() {
-
+    return dm.asset('443163b2-71a9-4f2a-987b-c7c7f31c7e30').then(function(asset) {
+      expect(asset).to.be.ok;
+      expect(asset).to.be.instanceOf(Object);
+      expect(asset).to.have.property('value');
+      expect(asset.value).to.have.property('assetID', '443163b2-71a9-4f2a-987b-c7c7f31c7e30');
+      expect(asset.value).to.have.property('title', 'vrooom');
+      asset.value.title = 'brum';
+      return asset.save().then(function(asset) {
+        expect(asset).to.be.ok;
+        expect(asset).to.be.instanceOf(Object);
+        expect(asset).to.have.property('value');
+        expect(asset.value).to.have.property('assetID', '443163b2-71a9-4f2a-987b-c7c7f31c7e30');
+        expect(asset.value).to.have.property('title', 'brum');
+      });
+    });
   });
 });
 
