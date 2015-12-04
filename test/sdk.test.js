@@ -150,74 +150,120 @@ describe('datamanager constructor', function() {
   });
 });
 
-describe('static best file routes', function() {
-  it('get file url', function() {
-    return DataManager.getFileUrl('4920f5ac-eab9-400b-8e41-5a202488b249').then(function(url) {
-      expect(url).to.be.ok;
-      expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM.jpg');
+if (isNode) {
+  // These test only run in node since we cannot change base url to frontend mocks.
+  describe('static best file routes', function() {
+    it('get file url', function() {
+      return DataManager.getFileUrl('4920f5ac-eab9-400b-8e41-5a202488b249').then(function(url) {
+        expect(url).to.be.ok;
+        expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM.jpg');
+      });
+    });
+    it('get file url with locale', function() {
+      return DataManager.getFileUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 'de_DE').then(function(url) {
+        expect(url).to.be.ok;
+        expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM.jpg');
+      });
+    });
+    it('get file url fail, no assetID', function() {
+      return DataManager.getFileUrl().then(function(result) {
+        throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+      }).catch(function(err) {
+        expect(err).to.be.ok;
+        expect(err).to.have.property('message', 'ec_sdk_no_assetid_provided');
+      });
+    });
+    it('get file url fail, not found', function() {
+      return DataManager.getFileUrl('eab1bfdf-2184-48c2-abfa-a69119a8acec').then(function(result) {
+        throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+      }).catch(function(err) {
+        expect(err).to.be.ok;
+        console.log(err);
+        expect(err).to.have.property('message', 'ec_sdk_could_not_get_url_for_file');
+      });
+    });
+    it('get image url', function() {
+      return DataManager.getImageUrl('4920f5ac-eab9-400b-8e41-5a202488b249').then(function(url) {
+        expect(url).to.be.ok;
+        expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM.jpg');
+      });
+    });
+    it('get image url with size', function() {
+      return DataManager.getImageUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 200).then(function(url) {
+        expect(url).to.be.ok;
+        expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_256.jpg');
+      });
+    });
+    it('get image url wit size and locale', function() {
+      DataManager.getImageUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 200, 'de_DE').then(function(url) {
+        expect(url).to.be.ok;
+        expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_256.jpg');
+      });
+    });
+    it('get image url fail, no assetID', function() {
+      return DataManager.getImageUrl().then(function(result) {
+        throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+      }).catch(function(err) {
+        expect(err).to.be.ok;
+        expect(err).to.have.property('message', 'ec_sdk_no_assetid_provided');
+      });
+    });
+    it('get image url fail, not found', function() {
+      return DataManager.getImageUrl('eab1bfdf-2184-48c2-abfa-a69119a8acec').then(function(result) {
+        throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+      }).catch(function(err) {
+        expect(err).to.be.ok;
+        expect(err).to.have.property('message', 'ec_sdk_could_not_get_url_for_file');
+      });
+    });
+    it('get thumb url', function() {
+      return DataManager.getImageThumbUrl('4920f5ac-eab9-400b-8e41-5a202488b249').then(function(url) {
+        expect(url).to.be.ok;
+        expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_400_thumb.jpg');
+      });
+    });
+    it('get thumb url with size', function() {
+      return DataManager.getImageThumbUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 100).then(function(url) {
+        expect(url).to.be.ok;
+        expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_100_thumb.jpg');
+      });
+    });
+    it('get thumb url with size', function() {
+      return DataManager.getImageThumbUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 150).then(function(url) {
+        expect(url).to.be.ok;
+        expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_200_thumb.jpg');
+      });
+    });
+    it('get thumb url with size', function() {
+      return DataManager.getImageThumbUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 50).then(function(url) {
+        expect(url).to.be.ok;
+        expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_50_thumb.jpg');
+      });
+    });
+    it('get thumb url with size and locale', function() {
+      return DataManager.getImageThumbUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 100, 'de_DE').then(function(url) {
+        expect(url).to.be.ok;
+        expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_100_thumb.jpg');
+      });
+    });
+    it('get thumb url fail, no assetID', function() {
+      return DataManager.getImageThumbUrl().then(function(result) {
+        throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+      }).catch(function(err) {
+        expect(err).to.be.ok;
+        expect(err).to.have.property('message', 'ec_sdk_no_assetid_provided');
+      });
+    });
+    it('get thumb url fail, not found', function() {
+      return DataManager.getImageThumbUrl('eab1bfdf-2184-48c2-abfa-a69119a8acec').then(function(result) {
+        throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+      }).catch(function(err) {
+        expect(err).to.be.ok;
+        expect(err).to.have.property('message', 'ec_sdk_could_not_get_url_for_file');
+      });
     });
   });
-  it('get file url with locale', function() {
-    return DataManager.getFileUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 'de_DE').then(function(url) {
-      expect(url).to.be.ok;
-      expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM.jpg');
-    });
-  });
-  it('get file url fail, no assetID', function() {
-
-  });
-  it('get file url fail, not found', function() {
-
-  });
-  it('get image url', function() {
-    return DataManager.getImageUrl('4920f5ac-eab9-400b-8e41-5a202488b249').then(function(url) {
-      expect(url).to.be.ok;
-      expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM.jpg');
-    });
-  });
-  it('get image url with size', function() {
-    return DataManager.getImageUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 200).then(function(url) {
-      expect(url).to.be.ok;
-      expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_256.jpg');
-    });
-  });
-  it('get image url wit size and locale', function() {
-    DataManager.getImageUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 200, 'de_DE').then(function(url) {
-      expect(url).to.be.ok;
-      expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_256.jpg');
-    });
-  });
-  it('get image url fail, no assetID', function() {
-
-  });
-  it('get image url fail, not found', function() {
-
-  });
-  it('get thumb url', function() {
-    return DataManager.getImageThumbUrl('4920f5ac-eab9-400b-8e41-5a202488b249').then(function(url) {
-      expect(url).to.be.ok;
-      expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_400_thumb.jpg');
-    });
-  });
-  it('get thumb url with size', function() {
-    return DataManager.getImageThumbUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 100).then(function(url) {
-      expect(url).to.be.ok;
-      expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_100_thumb.jpg');
-    });
-  });
-  it('get thumb url with size and locale', function() {
-    return DataManager.getImageThumbUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 100, 'de_DE').then(function(url) {
-      expect(url).to.be.ok;
-      expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_100_thumb.jpg');
-    });
-  });
-  it('get thumb url fail, no assetID', function() {
-
-  });
-  it('get thumb url fail, not found', function() {
-
-  });
-});
+}
 
 describe('best file routes', function() {
   var dm;
@@ -328,10 +374,21 @@ describe('model', function() {
     })
   });
   it('model resolve, then entries', function() {
-
+    return dm.model('to-do-item').resolve().then(function(model) {
+      return model.entries();
+    }).then(function(entries) {
+      expect(entries).to.be.ok;
+      expect(entries).to.be.instanceOf(Array);
+      expect(entries.length).to.be.at.least(4);
+    });
   });
   it('model not found', function() {
-
+    return dm.model('not-found').resolve().then(function(result) {
+      throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+    }).catch(function(err) {
+      expect(err).to.be.ok;
+      expect(err).to.have.property('message', 'ec_sdk_model_not_found');
+    });
   });
   it('get schema', function() {
     return dm.model('to-do-list').getSchema().then(function(schema) {
@@ -362,7 +419,12 @@ describe('model', function() {
     });
   });
   it('invalid schema method', function() {
-
+    return dm.model('to-do-list').getSchema('not-a-method').then(function(result) {
+      throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+    }).catch(function(err) {
+      expect(err).to.be.ok;
+      expect(err).to.have.property('message', 'ec_sdk_invalid_method_for_schema');
+    });
   });
 });
 
@@ -377,10 +439,10 @@ describe('entry/entries', function() { // this is basically modelList
     dm = null;
   });
   it('get entries, list single item', function() {
-    return dm.model('to-do-list').entries({
+    return dm.model('to-do-item').entries({
       filter: {
-        exact: {
-          title: 'Beef'
+        title: {
+          exact: 'Beef'
         }
       }
     }).then(function(entries) {
@@ -396,6 +458,18 @@ describe('entry/entries', function() { // this is basically modelList
       expect(entries.length).to.be.at.least(4);
     });
   });
+  it('get entries, then single (tests _getTraversal)', function() {
+    return dm.model('to-do-list').resolve().then(function(model) {
+      return model.entries().then(function() {
+        return model.entry('4JMjeO737e').then(function(entry) {
+          expect(entry).to.be.ok;
+          expect(entry).to.be.instanceOf(Object);
+          expect(entry).to.have.property('value');
+          expect(entry.value).to.have.property('_id', '4JMjeO737e');
+        });
+      });
+    });
+  });
   it('get single entry', function() {
     return dm.model('to-do-item').entry('VkGhAPQ2Qe').then(function(entry) {
       expect(entry).to.be.ok;
@@ -405,7 +479,37 @@ describe('entry/entries', function() { // this is basically modelList
     });
   });
   it('get single entry, with levels', function() {
-
+    return dm.model('to-do-list').entry('4JMjeO737e', 2).then(function(entry) {
+      expect(entry).to.be.ok;
+      expect(entry).to.be.instanceOf(Object);
+      expect(entry).to.have.property('value');
+      expect(entry.value).to.have.property('_id', '4JMjeO737e');
+      expect(entry.value).to.have.property('list-items')
+        .that.is.instanceOf(Array);
+      expect(entry.value['list-items'][0]).to.have.property('_id', '4JGrCvm27e');
+    });
+  });
+  it('get single entry, with levels, with object', function() {
+    return dm.model('to-do-list').entry({id: '4JMjeO737e', levels: 2}).then(function(entry) {
+      expect(entry).to.be.ok;
+      expect(entry).to.be.instanceOf(Object);
+      expect(entry).to.have.property('value');
+      expect(entry.value).to.have.property('_id', '4JMjeO737e');
+      expect(entry.value).to.have.property('list-items')
+        .that.is.instanceOf(Array);
+      expect(entry.value['list-items'][0]).to.have.property('_id', '4JGrCvm27e');
+    });
+  });
+  it('get single entry, with levels, with object 2', function() {
+    return dm.model('to-do-list').entry({_id: '4JMjeO737e', levels: 2}).then(function(entry) {
+      expect(entry).to.be.ok;
+      expect(entry).to.be.instanceOf(Object);
+      expect(entry).to.have.property('value');
+      expect(entry.value).to.have.property('_id', '4JMjeO737e');
+      expect(entry.value).to.have.property('list-items')
+        .that.is.instanceOf(Array);
+      expect(entry.value['list-items'][0]).to.have.property('_id', '4JGrCvm27e');
+    });
   });
   it('list: get entries, list single item', function() {
     return dm.model('to-do-list').entryList({
@@ -451,7 +555,12 @@ describe('entry/entries', function() { // this is basically modelList
     });
   });
   it('create entry, 204', function() {
-
+    return dm.model('to-do-item').createEntry({
+      title: 'NewItem204',
+      description: '<p>A New Item.</p>'
+    }).then(function(entry) {
+      expect(entry).to.be.true;
+    });
   });
   it('create entry fail', function() {
     return dm.model('to-do-item').createEntry({
@@ -470,7 +579,11 @@ describe('entry/entries', function() { // this is basically modelList
     });
   });
   it('entry delete', function() {
-
+    return dm.model('to-do-item').entry('N1GJuenPEl').then(function(entry) {
+      return entry.delete();
+    }).then(function(deleted) {
+      expect(deleted).to.be.true;
+    });
   });
   it('put entry', function() {
     return dm.model('to-do-item').entry('N1GJuenPEl').then(function(entry) {
@@ -548,10 +661,27 @@ describe('anonymous user', function() {
     });
   });
   it('register, validUntil', function() {
-
+    expect(dm).to.not.have.property('accessToken');
+    return dm.registerAnonymous('2025-11-09T09:58:04.000Z').then(function(user) {
+      expect(user).to.be.ok;
+      expect(dm).to.have.property('accessToken')
+        .that.is.equal('eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJlbWFpbCI6bnVsbCwianRpIjoiN2JlYzRmMDMtMzg2ZS00OWM2LThjMmYtZjlmNDA0ZWNjYTRiIiwiaWF0IjoxNDQ5MjQwNTEyLCJleHAiOjQ2MDI4NDA1MTIsImlzcyI6ImVjX2RhdGFtYW5hZ2VyX3Nka190ZXN0c18xIiwic3ViIjoiOGVmZTE5MTktMjNhMy00ZmE2LTliZGUtMzlmYmU4NTdjYTUwIn0.inMjpMhImlO6Yy1RSycBOOVOw24Sqy7Ee7qZS9JFBYLIRA1zlvVEP7HPGEZeFnARNejpl_iuEzjLlu4DhYBLdw86IqttdbkSQi2e--RCF_UARr1b4aZnnuZ82cKifdqi_ulIQ7WkTHikOosyjRmI89nr6xJoJhD9iv-2TQ6dNJs');
+      expect(user).to.have.property('value');
+      expect(user.value).to.have.property('accountID', '8efe1919-23a3-4fa6-9bde-39fbe857ca50');
+      expect(user.value).to.have.property('exp', '2025-11-09T09:58:04.000Z');
+      expect(user.value).to.have.property('iat', '2015-12-04T14:48:32.000Z');
+      expect(user.value).to.have.property('jwt', 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJlbWFpbCI6bnVsbCwianRpIjoiN2JlYzRmMDMtMzg2ZS00OWM2LThjMmYtZjlmNDA0ZWNjYTRiIiwiaWF0IjoxNDQ5MjQwNTEyLCJleHAiOjQ2MDI4NDA1MTIsImlzcyI6ImVjX2RhdGFtYW5hZ2VyX3Nka190ZXN0c18xIiwic3ViIjoiOGVmZTE5MTktMjNhMy00ZmE2LTliZGUtMzlmYmU4NTdjYTUwIn0.inMjpMhImlO6Yy1RSycBOOVOw24Sqy7Ee7qZS9JFBYLIRA1zlvVEP7HPGEZeFnARNejpl_iuEzjLlu4DhYBLdw86IqttdbkSQi2e--RCF_UARr1b4aZnnuZ82cKifdqi_ulIQ7WkTHikOosyjRmI89nr6xJoJhD9iv-2TQ6dNJs');
+    });
   });
   it('model resolve, then register', function() {
-
+    return dm.model('to-do-list').resolve().then(function() {
+      dm.registerAnonymous().then(function(user) {
+        expect(user).to.be.ok;
+        expect(dm).to.have.property('_user');
+        expect(dm).to.have.property('accessToken')
+          .that.is.equal('eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJlbWFpbCI6bnVsbCwianRpIjoiM2EzYmQ5MzYtOWFlZS00ZWY0LTg0MjUtNjZhOGViODcyODk4IiwiaWF0IjoxNDQ5MTM2Njg0LCJleHAiOjQ2MDI3MzY2ODQsImlzcyI6ImVjX2RhdGFtYW5hZ2VyX3Nka190ZXN0c18xIiwic3ViIjoiMWNmOWUyOGUtZmE1NC00ZGVhLWJlMTQtZDlkYmNjMGMzYzY5In0.VMA0onkx4fpwBdTL9AQ2bzR4JBziY8UIavrAleIl7wj1Rh1-ZU09i-vze2sObarOZSygx74cO1uRkX37CFYj3Lf45mWPpHj-prJtfnS1xkn4KlfffTuz3VWINCorcZX-OyVeFWSexC6AwEQ9cW8FMEZPDpMLKodiFkhDUt1AIQg');
+      });
+    });
   });
   it('logout', function() {
     expect(dm).to.not.have.property('accessToken');

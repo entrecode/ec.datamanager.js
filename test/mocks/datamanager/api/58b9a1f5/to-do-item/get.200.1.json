@@ -17,7 +17,7 @@
         "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item"
       },
       "58b9a1f5:to-do-item/options": {
-        "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item{?_created,_createdFrom,_createdTo,_id,_modified,_modifiedFrom,_modifiedTo,_private,created,createdFrom,createdTo,id,modified,modifiedFrom,modifiedTo,page,private,size,sort,title,title~}",
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item{?_levels,_created,_createdFrom,_createdTo,_id,_modified,_modifiedFrom,_modifiedTo,_private,created,createdFrom,createdTo,id,modified,modifiedFrom,modifiedTo,page,private,size,sort,title,title~}",
         "templated": true
       }
     },
