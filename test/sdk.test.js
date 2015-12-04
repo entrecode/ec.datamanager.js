@@ -470,6 +470,40 @@ describe('entry/entries', function() { // this is basically modelList
       });
     });
   });
+  it('get entries, size and page', function() {
+
+  });
+  it('get entries, sort', function() { // TODO check for desc order
+
+  });
+  it('get entries, filter from', function() {
+
+  });
+  it('get entries, filter to', function() {
+
+  });
+  it('get entries, filter search', function() {
+
+  });
+  it('get entries, filter any', function() {
+
+  });
+  it('get entries, filter all', function() {
+
+  });
+  it('get entries, filter exact', function() {
+    return dm.model('to-do-item').entries({
+      filter: {
+        title: {
+          exact: 'Beef'
+        }
+      }
+    }).then(function(entries) {
+      expect(entries).to.be.ok;
+      expect(entries).to.be.instanceOf(Array);
+      expect(entries.length).to.be.equal(1);
+    });
+  });
   it('get single entry', function() {
     return dm.model('to-do-item').entry('VkGhAPQ2Qe').then(function(entry) {
       expect(entry).to.be.ok;
