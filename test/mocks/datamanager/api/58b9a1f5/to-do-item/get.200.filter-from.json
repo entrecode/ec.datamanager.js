@@ -1,0 +1,50 @@
+{
+  "qs": {
+    "createdFrom": "2015-12-02T08:00:46.511Z"
+  },
+  "req": {},
+  "res": {
+    "count": 1,
+    "total": 1,
+    "_links": {
+      "collection": {
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5"
+      },
+      "curies": {
+        "name": "58b9a1f5",
+        "href": "https://datamanager.entrecode.de/api/doc/58b9a1f5/{rel}",
+        "templated": true
+      },
+      "self": {
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?createdFrom=2015-12-02T08:00:46.511Z"
+      },
+      "58b9a1f5:to-do-item/options": {
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item{?_created,_createdFrom,_createdTo,_id,_modified,_modifiedFrom,_modifiedTo,_private,created,createdFrom,createdTo,id,modified,modifiedFrom,modifiedTo,page,private,size,sort,title,title~}",
+        "templated": true
+      }
+    },
+    "_embedded": {
+      "58b9a1f5:to-do-item": {
+        "_id": "N1GJuenPEl",
+        "_created": "2015-12-02T10:00:46.511Z",
+        "_creator": null,
+        "_modified": "2015-12-02T10:00:46.511Z",
+        "id": "N1GJuenPEl",
+        "created": "2015-12-02T10:00:46.511Z",
+        "modified": "2015-12-02T10:00:46.511Z",
+        "private": false,
+        "title": "NewItem",
+        "description": "<p>A New Item.</p>",
+        "_modelTitleField": "title",
+        "_links": {
+          "collection": {
+            "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item"
+          },
+          "self": {
+            "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?id=N1GJuenPEl"
+          }
+        }
+      }
+    }
+  }
+}

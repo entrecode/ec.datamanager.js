@@ -470,27 +470,6 @@ describe('entry/entries', function() { // this is basically modelList
       });
     });
   });
-  it('get entries, size and page', function() {
-
-  });
-  it('get entries, sort', function() { // TODO check for desc order
-
-  });
-  it('get entries, filter from', function() {
-
-  });
-  it('get entries, filter to', function() {
-
-  });
-  it('get entries, filter search', function() {
-
-  });
-  it('get entries, filter any', function() {
-
-  });
-  it('get entries, filter all', function() {
-
-  });
   it('get entries, filter exact', function() {
     return dm.model('to-do-item').entries({
       filter: {
@@ -735,7 +714,16 @@ describe('asset/assets', function() {
       expect(list.assets.length).to.be.equal(1);
     });
   });
-  it('create asset', function() {
+  it('create asset, node', function() {
+
+  });
+  it('create asset, node, multiple', function() {
+
+  });
+  it('create asset, browser', function() {
+
+  });
+  it('create asset, browser, multiple', function() {
 
   });
   it('create asset fail', function() {
@@ -871,6 +859,71 @@ describe('tag/tags', function() {
     });
   });
 });
+
+describe('missing filter options', function() {
+  var dm;
+  beforeEach(function() {
+    dm = new DataManager({
+      url: baseUrl + '58b9a1f5'
+    });
+  });
+  afterEach(function() {
+    dm = null;
+  });
+  it('get entries, size and page', function() {
+    dm.model('to-do-item').entryList({
+      size: 2,
+      page: 2
+    }).then(function(list) {
+      expect(list).to.be.ok;
+      expect(list).to.be.instanceOf(Object);
+      expect(list).to.be.have.property('count', 2);
+      expect(list).to.be.have.property('total', 5);
+    });
+  });
+  it('get entries, sort', function() {
+    dm.model('to-do-item').entries({
+      sort: 'title'
+    }).then(function(entries) {
+      expect(entries).to.be.ok;
+      expect(entries).to.be.instanceOf(Array);
+      expect(entries[0]).to.have.property('title', 'Apples')
+    });
+  });
+  it('get entries, filter from', function() {
+    dm.model('to-do-item').entries({
+      filter: {
+        created: {
+          from: '2015-12-02T08:00:46.511Z'
+        }
+      }
+    }).then(function(entries) {
+      expect(entries).to.be.ok;
+      expect(entries).to.be.instanceOf(Array);
+      expect(entries.length).to.equal(1);
+    });
+  });
+  it('get entries, filter to', function() {
+    dm.model('to-do-item').entries({
+      filter: {
+        created: {
+          to: '2015-12-02T08:00:46.511Z'
+        }
+      }
+    }).then(function(entries) {
+      expect(entries).to.be.ok;
+      expect(entries).to.be.instanceOf(Array);
+      expect(entries.length).to.equal(4);
+    });
+  });
+  it.skip('get entries, filter any (CMS-1063)', function() {
+    // TODO when CMS-1063 is done
+  });
+  it.skip('get entries, filter all (CMS-1063)', function() {
+    // TODO when CMS-1063 is done
+  });
+});
+
 describe('anonymous user', function() {
   var dm;
   beforeEach(function() {
