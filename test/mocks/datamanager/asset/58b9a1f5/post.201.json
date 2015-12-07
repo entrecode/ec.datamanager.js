@@ -1,0 +1,14 @@
+{
+  "qs": {},
+  "req": {},
+  "res": {
+    "count": 1,
+    "total": 1,
+    "_links": {
+      "ec:asset": {
+        "href": "https://datamanager.entrecode.de/asset/58b9a1f5?assetID=ad994f77-9d89-4f7d-ab98-f2947a335da1",
+        "title": "whynotboth"
+      }
+    }
+  }
+}

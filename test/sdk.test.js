@@ -714,21 +714,43 @@ describe('asset/assets', function() {
       expect(list.assets.length).to.be.equal(1);
     });
   });
-  it('create asset, node', function() {
-
-  });
-  it('create asset, node, multiple', function() {
-
-  });
-  it('create asset, browser', function() {
-
-  });
-  it('create asset, browser, multiple', function() {
-
-  });
-  it('create asset fail', function() {
-
-  });
+  if (isNode) {
+    it('create asset, node', function() {
+      return dm.createAsset(__dirname + '/whynotboth.jpg').then(function(assets) {
+        expect(assets).to.be.instanceOf(Array);
+        expect(assets.length).to.be.equal(1);
+        expect(assets[0]).to.be.instanceOf(Promise);
+        return assets[0].then(function(asset) {
+          expect(asset).to.be.ok;
+          expect(asset).to.be.instanceOf(Object);
+          expect(asset).to.have.property('value');
+          expect(asset.value).to.have.property('assetID', 'ad994f77-9d89-4f7d-ab98-f2947a335da1');
+        });
+      });
+    });
+    it('create asset, node, multiple', function() {
+      // TODO nock cannot differ request for multipart file upload. so this test receives same response as single upload
+      return dm.createAsset([__dirname + '/whynotboth.jpg', __dirname + '/whynotboth.jpg']).then(function(assets) {
+        expect(assets).to.be.instanceOf(Array);
+        expect(assets.length).to.be.equal(1);
+        expect(assets[0]).to.be.instanceOf(Promise);
+        return assets[0].then(function(asset) {
+          expect(asset).to.be.ok;
+          expect(asset).to.be.instanceOf(Object);
+          expect(asset).to.have.property('value');
+          expect(asset.value).to.have.property('assetID', 'ad994f77-9d89-4f7d-ab98-f2947a335da1');
+        });
+      });
+    });
+  }
+  if (!isNode) {
+    it('create asset, browser', function() {
+      // TODO how can this be done?
+    });
+    it('create asset, browser, multiple', function() {
+      // TODO how can this be done?
+    });
+  }
   it('delete asset', function() {
     return dm.asset('443163b2-71a9-4f2a-987b-c7c7f31c7e30').then(function(asset) {
       expect(asset).to.be.ok;
