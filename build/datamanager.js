@@ -245,6 +245,7 @@ module.exports = function(arr, obj){
 'use strict';
 
 var api                     = require('./api.js')
+  , halfred                 = require('halfred')
   , request                 = require('superagent')
   , traverson               = require('traverson')
   , TraversonJsonHalAdapter = require('traverson-hal')
@@ -268,7 +269,7 @@ traverson.registerMediaType(TraversonJsonHalAdapter.mediaType, TraversonJsonHalA
  */
 var DataManager = function(options) {
   if (!options || (!options.hasOwnProperty('url') && !options.hasOwnProperty('id'))) {
-    throw new Error('DataManager constructor requires an options object with either \'url\'  or \'id\' set.');
+    throw new Error('DataManager constructor requires an options object with either \'url\'  or \'id\' set.'); // TODO snake case error.
   }
   if (options.hasOwnProperty('url')) {
     this.url = options.url;
@@ -289,7 +290,7 @@ var DataManager = function(options) {
   this._fileUrl = this.url.replace('api/' + this.id, 'files'); // TODO relation for bestFile api
 
   if (!/^[a-f0-9]+$/i.test(this.id)) {
-    throw new Error('Invalid URL');
+    throw new Error('Invalid URL'); // TODO snake case error
   }
 
   if (options.hasOwnProperty('accessToken')) {
@@ -318,7 +319,7 @@ DataManager._fileUrl = 'https://datamanager.entrecode.de/files';
 DataManager._getFileUrl = function(assetID, locale, url) {
   return new Promise(function(resolve, reject) {
     if (!assetID) {
-      reject(new Error('No assetID provided'));
+      return reject(new Error('ec_sdk_no_assetid_provided'));
     }
     var req = request.get(url + '/' + assetID + '/url');
     if (locale) {
@@ -329,7 +330,7 @@ DataManager._getFileUrl = function(assetID, locale, url) {
         return reject(err);
       }
       if (!res.body.hasOwnProperty('url')) {
-        return reject(new Error('Could not get a valid url for asset ' + assetID));
+        return reject(new Error('ec_sdk_could_not_get_url_for_file'));
       }
       return resolve(res.body.url);
     });
@@ -350,7 +351,7 @@ DataManager._getFileUrl = function(assetID, locale, url) {
 DataManager._getImageUrl = function(assetID, size, locale, url) {
   return new Promise(function(resolve, reject) {
     if (!assetID) {
-      reject(new Error('No assetID provided'));
+      return reject(new Error('ec_sdk_no_assetid_provided'));
     }
     var req = request.get(url + '/' + assetID + '/url');
     if (locale) {
@@ -364,7 +365,7 @@ DataManager._getImageUrl = function(assetID, size, locale, url) {
         return reject(err);
       }
       if (!res.body.hasOwnProperty('url')) {
-        return reject(new Error('Could not get a valid url for asset ' + assetID));
+        return reject(new Error('ec_sdk_could_not_get_url_for_file'));
       }
       return resolve(res.body.url);
     });
@@ -385,7 +386,7 @@ DataManager._getImageUrl = function(assetID, size, locale, url) {
 DataManager._getImageThumbUrl = function(assetID, size, locale, url) {
   return new Promise(function(resolve, reject) {
     if (!assetID) {
-      reject(new Error('No assetID provided'));
+      return reject(new Error('ec_sdk_no_assetid_provided'));
     }
 
     if (size && size <= 50) {
@@ -408,7 +409,7 @@ DataManager._getImageThumbUrl = function(assetID, size, locale, url) {
         return reject(err);
       }
       if (!res.body.hasOwnProperty('url')) {
-        return reject(new Error('Could not get a valid url for asset ' + assetID));
+        return reject(new Error('ec_sdk_could_not_get_url_for_file'));
       }
       return resolve(res.body.url);
     });
@@ -494,51 +495,630 @@ DataManager.prototype.getImageThumbUrl = function(assetID, size, locale) {
   return DataManager.getImageThumbUrl(assetID, size, locale, this._fileUrl);
 };
 
-/**
- * @deprecated since 0.6.0
- */
-DataManager.prototype.getFileURL = DataManager.prototype.getFileUrl;
-
-/**
- * @deprecated since 0.6.0
- */
-DataManager.prototype.getImageURL = DataManager.prototype.getImageUrl;
-
-/**
- * @deprecated since 0.6.0
- */
-DataManager.prototype.getImageThumbURL = DataManager.prototype.getImageThumbUrl;
-
-/////////////////////////////////////////////////////
-/// we can't got beyond this, this is bat country ///
-/////////////////////////////////////////////////////
-
-DataManager.prototype.getRoot = function() {
-  var context = this;
+DataManager.prototype.modelList = function() {
+  var dm = this;
   return new Promise(function(resolve, reject) {
-    traverson.from(context.url).jsonHal().getResource(function(err, res, traversal) {
-      context.traversal = traversal;
-      if (err) {
-        reject(err);
-      } else {
-        resolve(res);
+    traverson.from(dm.url).jsonHal()
+      .withRequestOptions(dm._requestOptions())
+      .get(function(err, res, traversal) {
+        checkResponse(err, res).then(function(res) {
+          var body = JSON.parse(res.body);
+          var out = {};
+          if (body.models) {
+            for (var i = 0; i < body.models.length; i++) {
+              dm._rootTraversal = traversal;
+              out[body.models[i].title] = dm.model(body.models[i].title, body.models[i]);
+            }
+          }
+          return resolve(out);
+        }, reject);
+      });
+  });
+};
+
+DataManager.prototype.model = function(title, metadata) {
+  var dm = this;
+  return {
+    id: title,
+    title: title,
+    metadata: metadata,
+    _traversal: null,
+
+    _getTraversal: function() {
+      var model = this;
+      return new Promise(function(resolve, reject) {
+        if (model._traversal) {
+          return resolve(model._traversal);
+        }
+        if (dm._rootTraversal) {
+          dm._rootTraversal.continue().newRequest()
+            .follow(dm.id + ':' + model.title)
+            .withRequestOptions(dm._requestOptions())
+            .get(function(err, res, traversal) {
+              checkResponse(err, res).then(function() {
+                model._traversal = traversal;
+                return resolve(traversal);
+              }, reject);
+            });
+        }
+
+        traverson.from(dm.url).jsonHal()
+          .follow(dm.id + ':' + model.title)
+          .withRequestOptions(dm._requestOptions())
+          .get(function(err, res, traversal) { // TODO remove this traversal when CMS-1761 is done
+            checkResponse(err, res).then(function(res) {
+              model._traversal = traversal;
+              return resolve(traversal);
+            }, reject);
+          });
+      });
+    },
+
+    resolve: function() {
+      var model = this;
+      return new Promise(function(resolve, reject) {
+        traverson.from(dm.url).jsonHal()
+          .withRequestOptions(dm._requestOptions())
+          .get(function(err, res, traversal) {
+            checkResponse(err, res).then(function(res) {
+              var body = JSON.parse(res.body);
+              for (var i = 0; i < body.models.length; i++) {
+                if (body.models[i].title === model.title) {
+                  model.metadata = body.models[i];
+                  dm._rootTraversal = traversal;
+                  return resolve(model);
+                }
+              }
+              return reject(new Error('ec_sdk_model_not_found'));
+            }, reject);
+          });
+      });
+    },
+
+    getSchema: function(method) {
+      var model = this;
+      return new Promise(function(resolve, reject) {
+        if (!method) {
+          method = 'get';
+        }
+        method.toLowerCase();
+        if (['get', 'put', 'post'].indexOf(method) === -1) {
+          return reject(new Error('ec_sdk_invalid_method_for_schema'));
+        }
+        request
+          .get(dm.url.replace('/api/', '/api/schema/') + '/' + model.title)
+          .query({template: method})
+          .end(function(err, res) {
+            checkResponse(err, res).then(function(res) {
+              return resolve(res.body);
+            }, reject);
+          });
+      });
+    },
+
+    entryList: function(options) {
+      var model = this;
+      return this._getTraversal().then(function(traversal) {
+        return new Promise(function(resolve, reject) {
+          var t = traversal.continue().newRequest()
+            .follow(dm.id + ':' + model.title + '/options');
+          if (options) {
+            t.withTemplateParameters(optionsToQueryParameter(options));
+          }
+          t.withRequestOptions(dm._requestOptions())
+            .get(function(err, res, traversal) {
+              checkResponse(err, res).then(function(res) {
+                var body = halfred.parse(JSON.parse(res.body));
+                var entries = body.embeddedArray(dm.id + ':' + model.title);
+                if (!entries) { // single result due to filter
+                  return resolve(new Entry(body, dm, traversal));
+                }
+                var out = [];
+                for (var i in entries) {
+                  out.push(new Entry(entries[i], dm, traversal)); // TODO traversal
+                }
+                return resolve({entries: out, count: body.count, total: body.total});
+              }, reject);
+            });
+        });
+      });
+    },
+
+    entries: function(options) {
+      var model = this;
+      return new Promise(function(resolve, reject) {
+        model.entryList(options).then(function(list) {
+          if (list.hasOwnProperty('entries')) {
+            return resolve(list.entries);
+          }
+          return resolve(list);
+        }, reject);
+      });
+    },
+
+    entry: function(id, levels) {
+      var model = this;
+      return this._getTraversal().then(function(traversal) {
+        return new Promise(function(resolve, reject) {
+          if (typeof id !== 'string') {
+            levels = id.levels;
+            if (id.hasOwnProperty('id')) {
+              id = id.id;
+            } else {
+              id = id._id;
+            }
+          }
+          var t = traversal.continue().newRequest()
+            .follow(dm.id + ':' + model.title + '/options'); // TODO options
+          if (levels) {
+            t.withTemplateParameters({_id: id, _levels: levels});
+          } else {
+            t.withTemplateParameters({_id: id});
+          }
+          t.withRequestOptions(dm._requestOptions())
+            .get(function(err, res, traversal) {
+              checkResponse(err, res).then(function(res) {
+                return resolve(new Entry(halfred.parse(JSON.parse(res.body)), dm, traversal)); // TODO auth header // TODO traversal
+              }, reject);
+            });
+        });
+      });
+    },
+
+    createEntry: function(entry) {
+      var model = this;
+      return this._getTraversal().then(function(traversal) {
+        return new Promise(function(resolve, reject) {
+          traversal.continue().newRequest()
+            .follow(dm.id + ':' + model.title + '/options') // TODO options
+            .withRequestOptions(dm._requestOptions({
+              'Content-Type': 'application/json'
+            }))
+            .post(entry, function(err, res, traversal) {
+              checkResponse(err, res).then(function(res) {
+                if (res.statusCode === 204) {
+                  return resolve(true);
+                }
+                return resolve(new Entry(halfred.parse(JSON.parse(res.body)), dm, traversal));
+              }, reject);
+            });
+        });
+      });
+    },
+
+    deleteEntry: function(entryId) {
+      var model = this;
+      return this._getTraversal().then(function(traversal) {
+        return new Promise(function(resolve, reject) {
+          traversal.continue().newRequest()
+            .follow(dm.id + ':' + model.title + '/options')
+            .withTemplateParameters({_id: entryId})
+            .withRequestOptions(dm._requestOptions())
+            .delete(function(err, res) {
+              checkResponse(err, res).then(function() {
+                return resolve(true);
+              }, reject);
+            });
+        });
+      });
+    }
+  }
+};
+
+DataManager.prototype.assetList = function(options) {
+  var dm = this;
+  return new Promise(function(resolve, reject) {
+    dm._getTraversal().then(function(traversal) {
+      var t = traversal.continue().newRequest()
+        .follow('ec:api/assets', 'ec:api/assets/options'); // TODO remove options relation
+      if (options) {
+        t.withTemplateParameters(optionsToQueryParameter(options));
       }
+      t.withRequestOptions(dm._requestOptions())
+        .get(function(err, res, traversal) {
+          checkResponse(err, res).then(function(res) {
+            var body = halfred.parse(JSON.parse(res.body));
+            var assets = body.embeddedArray('ec:api/asset');
+            if (!assets) { // single result due to filter
+              return resolve(new Asset(body, dm, traversal));
+            }
+            var out = [];
+            for (var i in assets) {
+              out.push(new Asset(assets[i], dm, traversal));
+            }
+            return resolve({assets: out, count: body.count, total: body.total});
+          }, reject);
+        });
     });
   });
 };
 
-function waitUntilDataManagerIsReady(dataManager) {
+DataManager.prototype.assets = function(options) {
+  var dm = this;
   return new Promise(function(resolve, reject) {
-    if (typeof dataManager.accessToken === 'undefined') {
-      resolve(dataManager);
-    } else if (typeof dataManager.accessToken === 'object') {
-      dataManager.accessToken.then(function(b) {
-        dataManager.accessToken = b;
-        resolve(dataManager);
-      }, reject);
-    } else if (typeof dataManager.accessToken === 'string') {
-      resolve(dataManager);
+    dm.assetList(options).then(function(list) {
+      if (list.hasOwnProperty('assets')) {
+        return resolve(list.assets);
+      }
+      return resolve(list);
+    }, reject);
+  });
+};
+
+DataManager.prototype.asset = function(assetID) {
+  var dm = this;
+  return new Promise(function(resolve, reject) {
+    if (!assetID) {
+      return reject(new Error('ec_sdk_no_assetid_provided'));
     }
+    dm._getTraversal().then(function(traversal) {
+      traversal.continue().newRequest()
+        .follow('ec:api/assets', 'ec:api/assets/options') // TODO remove options relation
+        .withTemplateParameters({assetID: assetID})
+        .withRequestOptions(dm._requestOptions())
+        .get(function(err, res, traversal) {
+          checkResponse(err, res).then(function(res) {
+            return resolve(new Asset(halfred.parse(JSON.parse(res.body)), dm, traversal));
+          }, reject);
+        });
+    });
+  });
+};
+
+DataManager.prototype.createAsset = function(input) {
+  // https://blog.gaya.ninja/articles/uploading-files-superagent-in-browser/
+  var dm = this;
+  return new Promise(function(resolve, reject) {
+    dm._getTraversal().then(function(traversal) {
+      traversal.continue().newRequest()
+        .follow('ec:api/assets')
+        .getUrl(function(err, url) {
+          if (err) {
+            return resolve(err);
+          }
+          var req = request
+            .post(url);
+          if (dm.accessToken) {
+            req.set('Authorization', 'Bearer ' + dm.accessToken);
+          }
+          if (typeof input === 'string') {        // File path
+            req.attach('file', input);
+          } else if (Array.isArray(input)) {      // Array of file paths
+            for (var i in input) {
+              req.attach('file', input[i]);
+            }
+          } else {                                // FormData
+            req.send(input);
+          }
+          req.end(function(err, res) {
+            checkResponse(err, res).then(function(res) {
+              var regex = /^.*\?assetID=([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-4[0-9A-Fa-f]{3}-[89ABab][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12})$/;
+              var body = halfred.parse(res.body);
+              var assets = body.linkArray('ec:asset');
+              var out = [];
+              for (var i in assets) {
+                out.push(dm.asset(regex.exec(assets[i].href)[1]));
+              }
+              return resolve(out);
+            }, reject);
+          });
+        });
+    }, reject);
+  });
+};
+
+DataManager.prototype.tagList = function(options) {
+  var dm = this;
+  return new Promise(function(resolve, reject) {
+    dm._getTraversal().then(function(traversal) {
+      traversal.continue().newRequest()
+        .follow('ec:api/assets', 'ec:api/tags', 'ec:api/tags/options')
+        .withTemplateParameters(optionsToQueryParameter(options))
+        .withRequestOptions(dm._requestOptions())
+        .get(function(err, res, traversal) {
+          checkResponse(err, res).then(function(res) {
+            var body = halfred.parse(JSON.parse(res.body));
+            var tags = body.embeddedArray('ec:api/tag');
+            if (!tags) { // single result due to filter
+              return resolve(new Tag(body, dm, traversal));
+            }
+            var out = [];
+            for (var i in tags) {
+              out.push(new Tag(tags[i], dm, traversal));
+            }
+            return resolve({tags: out, count: body.count, total: body.total});
+          }, reject);
+        });
+    });
+  });
+};
+
+DataManager.prototype.tags = function(options) {
+  var dm = this;
+  return new Promise(function(resolve, reject) {
+    dm.tagList(options).then(function(list) {
+      if (list.hasOwnProperty('tags')) {
+        return resolve(list.tags)
+      }
+      return resolve(list);
+    }, reject);
+  });
+};
+
+DataManager.prototype.tag = function(tag) {
+  var dm = this;
+  return new Promise(function(resolve, reject) {
+    dm._getTraversal().then(function(traversal) {
+      traversal.continue().newRequest()
+        .follow('ec:api/assets', 'ec:api/tags', 'ec:api/tags/options')
+        .withTemplateParameters({tag: tag})
+        .withRequestOptions(dm._requestOptions())
+        .get(function(err, res, traversal) {
+          checkResponse(err, res).then(function(res) {
+            var body = halfred.parse(JSON.parse(res.body));
+            return resolve(new Tag(body, dm, traversal));
+          }, reject);
+        });
+    });
+  });
+};
+
+DataManager.prototype.registerAnonymous = function(validUntil) {
+  var dm = this;
+  return new Promise(function(resolve, reject) {
+    dm._getTraversal().then(function(traversal) {
+      var t = traversal.continue().newRequest()
+        .follow(dm.id + ':_auth/anonymous');
+      if (validUntil) {
+        t.withTemplateParameters({validUntil: validUntil})
+      }
+      t.post({}, function(err, res, traversal) {
+        checkResponse(err, res).then(function(res) {
+          var body = JSON.parse(res.body);
+          dm.accessToken = body.jwt;
+          dm._user = new User(true, body, dm, traversal);
+          return resolve(dm._user);
+        }, reject);
+      });
+    });
+  });
+};
+
+DataManager.prototype._getTraversal = function() {
+  var dm = this;
+  return new Promise(function(resolve, reject) {
+    if (dm._rootTraversal) {
+      return resolve(dm._rootTraversal);
+    }
+    traverson.from(dm.url).jsonHal()
+      .withRequestOptions(dm._requestOptions())
+      .get(function(err, res, traversal) {
+        checkResponse(err, res).then(function(res) {
+          dm._rootTraversal = traversal;
+          return resolve(traversal);
+        }, reject);
+      });
+  });
+};
+
+DataManager.prototype._requestOptions = function(additionalHeaders) {
+  var out = {};
+  out.headers = {};
+  if (this.accessToken) {
+    out.headers['Authorization'] = 'Bearer ' + this.accessToken;
+  }
+  if (additionalHeaders) {
+    for (var header in additionalHeaders) {
+      out.headers[header] = additionalHeaders[header];
+    }
+  }
+  return out;
+};
+
+var Entry = function(entry, dm, traversal) {
+  this.value = entry;
+  this._dm = dm;
+  this._traversal = traversal;
+
+  this.save = function() {
+    var entry = this;
+    return new Promise(function(resolve, reject) {
+      entry._getTraversal().then(function(traversal) {
+        var out = {};
+        for (var key in entry.value._original) {
+          out[key] = entry.value[key];
+        }
+        traversal.continue().newRequest()
+          .follow('self')
+          .withRequestOptions(entry._dm._requestOptions({
+            'Content-Type': 'application/json'
+          }))
+          .put(out, function(err, res, traversal) { // TODO auth header
+            checkResponse(err, res).then(function(res) {
+              if (res.statusCode === 204) {
+                return resolve(true);
+              }
+              entry.value = halfred.parse(JSON.parse(res.body));
+              entry._traversal = traversal;
+              return resolve(entry);
+            }, reject);
+          });
+      }, reject);
+    });
+  };
+
+  this.delete = function() {
+    var entry = this;
+    return new Promise(function(resolve, reject) {
+      entry._getTraversal().then(function(traversal) {
+        traversal.continue().newRequest().follow('self')
+          .withRequestOptions(entry._dm._requestOptions())
+          .delete(function(err, res) {
+            checkResponse(err, res).then(function() {
+              return resolve(true);
+            }, reject);
+          });
+      }, reject);
+    });
+  };
+
+  this._getTraversal = function() {
+    var entry = this;
+    return new Promise(function(resolve, reject) {
+      if (entry._traversal) {
+        return resolve(entry._traversal);
+      }
+      return reject(new Error('ec_sdk_could_not_get_traversal'));
+    });
+  };
+};
+
+var Asset = function(asset, dm, traversal) {
+  this.value = asset;
+  this._dm = dm;
+  this._traversal = traversal;
+
+  this.save = function() {
+    var asset = this;
+    return new Promise(function(resolve, reject) {
+      asset._getTraversal().then(function(traversal) {
+        var out = {};
+        for (var key in asset.value._original) {
+          out[key] = asset.value[key];
+        }
+        traversal.continue().newRequest()
+          .follow('self')
+          .withRequestOptions(asset._dm._requestOptions({
+            'Content-Type': 'application/json'
+          }))
+          .put(out, function(err, res, traversal) {
+            checkResponse(err, res).then(function(res) {
+              if (res.statusCode === 204) {
+                return resolve(true);
+              }
+              asset.value = halfred.parse(JSON.parse(res.body));
+              asset._traversal = traversal;
+              return resolve(asset);
+            }, reject);
+          });
+      }, reject);
+    });
+  };
+
+  this.delete = function() {
+    var asset = this;
+    return new Promise(function(resolve, reject) {
+      asset._getTraversal().then(function(traversal) {
+        traversal.continue().newRequest()
+          .follow('self')
+          .withRequestOptions(asset._dm._requestOptions())
+          .delete(function(err, res) {
+            checkResponse(err, res).then(function() {
+              return resolve(true);
+            }, reject);
+          });
+      });
+    });
+  };
+
+  this._getTraversal = function() {
+    var asset = this;
+    return new Promise(function(resolve, reject) {
+      if (asset._traversal) {
+        return resolve(traversal);
+      }
+      return reject(new Error('ec_sdk_could_not_get_traversal'));
+    });
+  }
+};
+
+var User = function(isAnon, user, dm, traversal) {
+  this.value = user;
+  this._isAnon = isAnon;
+  this._dm = dm;
+  this._traversal = traversal;
+
+  this.logout = function() {
+    var user = this;
+    return new Promise(function(resolve, reject) {
+      if (user._isAnon) {
+        user._dm.accessToken = undefined;
+        user._dm._user = undefined;
+        return resolve();
+      }
+      return reject(new Error('ec_sdk_user_not_logged_out'));
+    });
+  }
+};
+
+var Tag = function(tag, dm, traversal) {
+  this.value = tag;
+  this._dm = dm;
+  this._traversal = traversal;
+
+  this.save = function() {
+    var tag = this;
+    return new Promise(function(resolve, reject) {
+      tag._getTraversal().then(function(traversal) {
+        var out = {};
+        for (var key in tag.value._original) {
+          out[key] = tag.value[key];
+        }
+        traversal.continue().newRequest()
+          .follow('self')
+          .withRequestOptions(tag._dm._requestOptions({
+            'Content-Type': 'application/json'
+          }))
+          .put(out, function(err, res, traversal) {
+            checkResponse(err, res).then(function(res) {
+              if (res.statusCode === 204) {
+                return resolve(true);
+              }
+              tag.value = halfred.parse(JSON.parse(res.body));
+              tag._traversal = traversal;
+              return resolve(tag);
+            }, reject);
+          });
+      }, reject);
+    });
+  };
+
+  this.delete = function() {
+    var tag = this;
+    return new Promise(function(resolve, reject) {
+      tag._getTraversal().then(function(traversal) {
+        traversal.continue().newRequest()
+          .follow('self')
+          .withRequestOptions(tag._dm._requestOptions())
+          .delete(function(err, res) {
+            checkResponse(err, res).then(function() {
+              return resolve(true);
+            }, reject);
+          });
+      });
+    });
+  };
+
+  this._getTraversal = function() {
+    var tag = this;
+    return new Promise(function(resolve, reject) {
+      if (tag._traversal) {
+        return resolve(tag._traversal);
+      }
+      return reject(new Error('ec_sdk_could_not_get_traversal'));
+    });
+  }
+};
+
+function checkResponse(err, res) {
+  return new Promise(function(resolve, reject) {
+    if (err) {
+      return reject(err);
+    }
+    if (res.statusCode >= 200 && res.statusCode <= 299) {
+      return resolve(res);
+    }
+    return reject(JSON.parse(res.body));
   });
 }
 
@@ -552,9 +1132,6 @@ function optionsToQueryParameter(options) {
   }
   if (options && options.hasOwnProperty('sort') && Array.isArray(options.sort)) {
     query.sort = options.sort.join(',');
-  }
-  if (options && options.hasOwnProperty('levels')) {
-    query._levels = options.levels;
   }
   if (options && options.hasOwnProperty('filter')) {
     for (var key in options.filter) {
@@ -584,445 +1161,21 @@ function optionsToQueryParameter(options) {
   return query;
 }
 
-DataManager.prototype.authHeader = function() {
-  return this.accessToken ? {Authorization: 'Bearer ' + this.accessToken} : {};
-};
+// TODO registerPW
+// TODO anonToPW
+// TODO loginAnon
+// TODO loginPW
+// TODO logoutPW
 
-DataManager.prototype.modelList = function() {
-  return waitUntilDataManagerIsReady(this).then(function(dataManager) {
-    return api.get(dataManager.url, dataManager.authHeader(), {},
-      function(data) {
-        var body = JSON.parse(data);
-        var listOfModels = {};
-        if (body.models) {
-          for (var i = 0; i < body.models.length; i++) {
-            listOfModels[body.models[i].title] = dataManager.model(body.models[i].title, body.models[i].titleField, body.models[i].hexColor);
-          }
-        }
-        return listOfModels;
-      });
-  });
-};
-
-DataManager.prototype.model = function(modelID, title, color) {
-  var thisDataManager = this;
-  var url = thisDataManager.url + modelID;
-  var shortID = thisDataManager.id;
-  return {
-    id: modelID,
-    titleField: title || 'id',
-    hexColor: color || '#ffffff',
-
-    createEntry: function(object) {
-      return waitUntilDataManagerIsReady(thisDataManager).then(function(thisDataManager) {
-        return api.post(url, thisDataManager.authHeader(), {}, object, function(data) {
-          if (data.length === 0) {
-            return data;
-          }
-          var body = JSON.parse(data);
-          if (body.hasOwnProperty('status') && body.hasOwnProperty('code') && body.hasOwnProperty('title')) {
-            // is error
-            return body;
-          }
-          if (body.hasOwnProperty('_embedded') && body._embedded.hasOwnProperty(shortID + ':' + modelID)) {
-            // is successful
-            return new Entry(body._embedded[shortID + ':' + modelID], 'Bearer ' + thisDataManager.accessToken, shortID, modelID);
-          }
-          if (!body.hasOwnProperty('count') && !body.hasOwnProperty('total')) {
-            return new Entry(body, 'Bearer ' + thisDataManager.accessToken, shortID, modelID);
-          }
-          return body;
-        });
-      });
-    },
-
-    deleteEntry: function(entryID) {
-      return waitUntilDataManagerIsReady(thisDataManager).then(function(thisDataManager) {
-        return api.delete(url, thisDataManager.authHeader(), {id: entryID});
-      });
-    },
-
-    entries: function(options) {
-      return waitUntilDataManagerIsReady(thisDataManager).then(function(thisDataManager) {
-        return api.get(url, thisDataManager.authHeader(), optionsToQueryParameter(options), function(data) {
-          var body = JSON.parse(data);
-          if (body.hasOwnProperty('status') && body.hasOwnProperty('code') && body.hasOwnProperty('title')) {
-            // is error
-            return body;
-          }
-          if (body.hasOwnProperty('_embedded') && body._embedded.hasOwnProperty((shortID + ':' + modelID))) {
-            if (!Array.isArray(body._embedded[shortID + ':' + modelID])) {
-              body._embedded[shortID + ':' + modelID] = [body._embedded[shortID + ':' + modelID]];
-            }
-            var out = [];
-            for (var key in body._embedded[shortID + ':' + modelID]) {
-              if (body._embedded[shortID + ':' + modelID].hasOwnProperty(key)) {
-                out.push(new Entry(body._embedded[shortID + ':' + modelID][key], 'Bearer ' + thisDataManager.accessToken, shortID, modelID));
-              }
-            }
-            return out;
-          }
-          return [];
-        });
-      });
-    },
-
-    entryList: function(options) {
-      return api.get(url, thisDataManager.authHeader(), optionsToQueryParameter(options), function(data) {
-        var body = JSON.parse(data);
-        if (body.hasOwnProperty('status') && body.hasOwnProperty('code') && body.hasOwnProperty('title')) {
-          // is error
-          return body;
-        }
-        if (body.hasOwnProperty('_embedded') && body._embedded.hasOwnProperty((shortID + ':' + modelID))) {
-          if (!Array.isArray(body._embedded[shortID + ':' + modelID])) {
-            body._embedded[shortID + ':' + modelID] = [body._embedded[shortID + ':' + modelID]];
-          }
-          var out = [];
-          for (var key in body._embedded[shortID + ':' + modelID]) {
-            if (body._embedded[shortID + ':' + modelID].hasOwnProperty(key)) {
-              out.push(new Entry(body._embedded[shortID + ':' + modelID][key], 'Bearer ' + thisDataManager.accessToken, shortID, modelID));
-            }
-          }
-          return {
-            entries: out, count: body.count, total: body.total
-          };
-        }
-        return {entries: [], count: 0, total: 0};
-      });
-    },
-
-    entry: function(entryIDOrOptionsObject) {
-      return waitUntilDataManagerIsReady(thisDataManager).then(function(thisDataManager) {
-        if (typeof entryIDOrOptionsObject === 'object') {
-          var id = entryIDOrOptionsObject.id;
-          delete entryIDOrOptionsObject.id;
-          entryIDOrOptionsObject = optionsToQueryParameter(entryIDOrOptionsObject);
-          entryIDOrOptionsObject.id = id;
-        } else {
-          entryIDOrOptionsObject = {id: entryIDOrOptionsObject};
-        }
-        return api.get(url, thisDataManager.authHeader(), entryIDOrOptionsObject,
-          function(data) {
-            var body = JSON.parse(data);
-            if (body.hasOwnProperty('status') && body.hasOwnProperty('code') && body.hasOwnProperty('title')) {
-              // is error
-              return body;
-            }
-            if (body.hasOwnProperty('_embedded') && body._embedded.hasOwnProperty((shortID + ':' + modelID))) {
-              return new Entry(body._embedded[shortID + ':' + modelID], 'Bearer ' + thisDataManager.accessToken, shortID, modelID);
-            }
-            if (!body.hasOwnProperty('count') && !body.hasOwnProperty('total')) {
-              return new Entry(body, 'Bearer ' + thisDataManager.accessToken, shortID, modelID);
-            }
-            return body;
-          }
-        );
-      });
-    },
-
-    getSchema: function(method) {
-      if (!method) {
-        method = 'get';
-      }
-      method.toLowerCase();
-      if (['get', 'put', 'post'].indexOf(method) === -1) {
-        throw new Error('invalid value for method. Allowed values: get, put, post');
-      }
-      return api.get(replaceLastOccurrence(url, '/api', '/api/schema'), {}, {template: method}, JSON.parse);
-    }
-  };
-};
-
-DataManager.prototype.user = function(userID) {
-  return this.model('user').entry(userID);
-};
-
-DataManager.prototype.register = function() {
-  var context = this;
-  return new Promise(function(resolve, reject) {
-    waitUntilDataManagerIsReady(context).then(function(dataManager) {
-      return dataManager.getRoot();
-    }).then(function(rootResponse) {
-      if (!rootResponse._links.hasOwnProperty(context.id + ':_auth/anonymous')) {
-        return Promise.reject('no_anonymous_users');
-      }
-      return api.post(rootResponse._links[context.id + ':_auth/anonymous'].href.substr(0, rootResponse._links[context.id + ':_auth/anonymous'].href.indexOf('{')), null, null, null, function(data) {
-        return JSON.parse(data);
-      });
-    }).then(function(response) {
-      if (response.hasOwnProperty('jwt')) {
-        context.accessToken = response.jwt;
-        resolve(response);
-      } else if (response.hasOwnProperty('status') && response.hasOwnProperty('code') && response.hasOwnProperty('title')) {
-        reject(response);
-      }
-    }).catch(reject);
-  });
-  //return this.model('user').createEntry({private: true});
-};
-
-DataManager.prototype.assets = function(options) {
-  return waitUntilDataManagerIsReady(this).then(function(thisDataManager) {
-    var authHeaderValue = 'Bearer ' + thisDataManager.accessToken;
-    return api.get(thisDataManager.assetUrl,
-      thisDataManager.authHeader(),
-      optionsToQueryParameter(options),
-      function(data) {
-        var body = JSON.parse(data);
-        if (body.hasOwnProperty('status') && body.hasOwnProperty('code') && body.hasOwnProperty('title')) {
-          // is error
-          return body;
-        }
-        if (body.hasOwnProperty('_embedded') && body._embedded.hasOwnProperty('ec:api/asset')) {
-          if (!Array.isArray(body._embedded['ec:api/asset'])) {
-            body._embedded['ec:api/asset'] = [body._embedded['ec:api/asset']];
-          }
-          var out = [];
-          for (var key in body._embedded['ec:api/asset']) {
-            if (body._embedded['ec:api/asset'].hasOwnProperty(key)) {
-              out.push(new Asset(body._embedded['ec:api/asset'][key], authHeaderValue))
-            }
-          }
-          return out;
-        }
-        return [];
-      });
-  });
-};
-
-DataManager.prototype.assetList = function(options) {
-  return waitUntilDataManagerIsReady(this).then(function(thisDataManager) {
-    var authHeaderValue = 'Bearer ' + thisDataManager.accessToken;
-    return api.get(thisDataManager.assetUrl,
-      thisDataManager.authHeader(),
-      optionsToQueryParameter(options),
-      function(data) {
-        var body = JSON.parse(data);
-        if (body.hasOwnProperty('status') && body.hasOwnProperty('code') && body.hasOwnProperty('title')) {
-          // is error
-          return body;
-        }
-        if (body.hasOwnProperty('_embedded') && body._embedded.hasOwnProperty('ec:api/asset')) {
-          if (!Array.isArray(body._embedded['ec:api/asset'])) {
-            body._embedded['ec:api/asset'] = [body._embedded['ec:api/asset']];
-          }
-          var out = [];
-          for (var key in body._embedded['ec:api/asset']) {
-            if (body._embedded['ec:api/asset'].hasOwnProperty(key)) {
-              out.push(new Asset(body._embedded['ec:api/asset'][key], authHeaderValue))
-            }
-          }
-          return {
-            assets: out, count: body.count, total: body.total
-          };
-        }
-        return {assets: [], count: 0, total: 0};
-      });
-  });
-};
-
-DataManager.prototype.asset = function(assetID) {
-  return waitUntilDataManagerIsReady(this).then(function(thisDataManager) {
-    return api.get(thisDataManager.assetUrl, thisDataManager.authHeader(), {assetID: assetID},
-      function(data) {
-        var body = JSON.parse(data);
-        if (body.hasOwnProperty('status') && body.hasOwnProperty('code') && body.hasOwnProperty('title')) {
-          // is error
-          return body;
-        }
-        return new Asset(body, 'Bearer ' + thisDataManager.accessToken);
-      }
-    );
-  });
-};
-
-DataManager.prototype.createAsset = function(input) {
-  return waitUntilDataManagerIsReady(this).then(function(thisDataManager) {
-    if (typeof input === 'string') {
-      return new Promise(function(resolve, reject) {
-        var r = request('POST', thisDataManager.assetUrl);
-        if (thisDataManager.accessToken) {
-          r.set('Authorization', 'Bearer ' + thisDataManager.accessToken);
-        }
-        r.attach('file', input)
-          .end(function(err, res) {
-            if (err) {
-              return reject(err);
-            }
-
-            if (res.status >= 200 && res.status < 300) {
-              if (res.body.hasOwnProperty('_links') && res.body._links.hasOwnProperty('ec:asset')) {
-                if (!Array.isArray(res.body._links['ec:asset'])) {
-                  res.body._links['ec:asset'] = [res.body._links['ec:asset']];
-                }
-
-                var regex = /^.*\?assetID=([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-4[0-9A-Fa-f]{3}-[89ABab][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12})$/;
-                var out = [];
-                for (var key in res.body._links['ec:asset']) {
-                  if (res.body._links['ec:asset'].hasOwnProperty(key)) {
-                    var id = regex.exec(res.body._links['ec:asset'][key].href)[1];
-                    out.push(thisDataManager.asset(id));
-                  }
-                }
-                return resolve(out);
-              }
-
-              return resolve(res.body);
-            } else {
-              return reject(res.body);
-            }
-          });
-      });
-    } else if (typeof input === 'object') {
-      // either form data or readable input stream. send direktly.
-      return api.post(thisDataManager.assetUrl, thisDataManager.authHeader(), {}, input, function(data) {
-        var body = JSON.parse(data);
-        if (body.hasOwnProperty('status') && body.hasOwnProperty('code') && body.hasOwnProperty('title')) {
-          // is error
-          return body;
-        }
-        if (body.hasOwnProperty('_links') && body._links.hasOwnProperty('ec:asset')) {
-          if (!Array.isArray(body._links['ec:asset'])) {
-            body._links['ec:asset'] = [body._links['ec:asset']];
-          }
-
-          var regex = /^.*\?assetID=([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-4[0-9A-Fa-f]{3}-[89ABab][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12})$/;
-          var out = [];
-          for (var key in body._links['ec:asset']) {
-            if (body._links['ec:asset'].hasOwnProperty(key)) {
-              var id = regex.exec(body._links['ec:asset'][key].href)[1];
-              out.push(thisDataManager.asset(id));
-            }
-          }
-          return out;
-        }
-      });
-    }
-  });
-};
-
-DataManager.prototype.tags = function(options) {
-  return waitUntilDataManagerIsReady(this).then(function(thisDataManager) {
-    var authHeaderValue = 'Bearer ' + thisDataManager.accessToken;
-    return api.get(thisDataManager.tagUrl,
-      thisDataManager.authHeader(),
-      optionsToQueryParameter(options),
-      function(data) {
-        var body = JSON.parse(data);
-        if (body.hasOwnProperty('status') && body.hasOwnProperty('code') && body.hasOwnProperty('title')) {
-          // is error
-          return body;
-        }
-        if (body.hasOwnProperty('_embedded') && body._embedded.hasOwnProperty('ec:api/tag')) {
-          if (!Array.isArray(body._embedded['ec:api/tag'])) {
-            body._embedded['ec:api/tag'] = [body._embedded['ec:api/tag']];
-          }
-          var out = [];
-          for (var key in body._embedded['ec:api/tag']) {
-            if (body._embedded['ec:api/tag'].hasOwnProperty(key)) {
-              out.push(new Tag(body._embedded['ec:api/tag'][key], authHeaderValue));
-            }
-          }
-          return out;
-        }
-        return [];
-      });
-  });
-};
-
-DataManager.prototype.tag = function(tag) {
-  return waitUntilDataManagerIsReady(this).then(function(thisDataManager) {
-    return api.get(thisDataManager.tagUrl, thisDataManager.authHeader(), {tag: tag},
-      function(data) {
-        var body = JSON.parse(data);
-        if (body.hasOwnProperty('status') && body.hasOwnProperty('code') && body.hasOwnProperty('title')) {
-          // is error
-          return body;
-        }
-        return new Tag(body, 'Bearer ' + thisDataManager.accessToken);
-      }
-    );
-  });
-};
+// TODO 2016
+// TODO oauth
+// TODO pwReset
+// TODO eMailAvail
+// TODO eMAilChange
 
 module.exports = DataManager;
 
-var Entry = function(entry, authHeaderValue, shortID, modelID) {
-  this.value = entry;
-  this.authHeaderValue = authHeaderValue;
-  this.save = function() {
-    return api.put(this.value._links.self.href, authHeaderValue ? {Authorization: authHeaderValue} : null, null, this.value, function(data) {
-      if (data.length === 0) {
-        return data;
-      }
-      var body = JSON.parse(data);
-      if (body.hasOwnProperty('status') && body.hasOwnProperty('code') && body.hasOwnProperty('title')) {
-        // is error
-        return body;
-      }
-      if (body.hasOwnProperty('_embedded') && body._embedded.hasOwnProperty((shortID + ':' + modelID))) {
-        return new Entry(body._embedded[shortID + ':' + modelID], authHeaderValue, shortID, modelID);
-      }
-      if (!body.hasOwnProperty('count') && !body.hasOwnProperty('total')) {
-        return new Entry(body, authHeaderValue, shortID, modelID);
-      }
-      return body;
-    });
-  };
-  this.delete = function() {
-    return api.delete(this.value._links.self.href, authHeaderValue ? {Authorization: authHeaderValue} : null);
-  };
-};
-
-var Asset = function(asset, authHeaderValue) {
-  this.value = asset;
-  this.authHeaderValue = authHeaderValue;
-  this.save = function() {
-    return api.put(this.value._links.self.href, authHeaderValue ? {Authorization: authHeaderValue} : null, null, this.value, function(data) {
-      var body = JSON.parse(data);
-      if (body.hasOwnProperty('status') && body.hasOwnProperty('code') && body.hasOwnProperty('title')) {
-        // is error
-        return body;
-      }
-      return new Asset(body, authHeaderValue);
-    });
-  };
-  this.delete = function() {
-    return api.delete(this.value._links.self.href, authHeaderValue ? {Authorization: authHeaderValue} : null);
-  };
-};
-
-var Tag = function(tag, authHeaderValue) {
-  this.value = tag;
-  this.authHeaderValue = authHeaderValue;
-  this.save = function() {
-    return api.put(this.value._links.self.href, authHeaderValue ? {Authorization: authHeaderValue} : null, null, this.value, function(data) {
-      var body = JSON.parse(data);
-      if (body.hasOwnProperty('status') && body.hasOwnProperty('code') && body.hasOwnProperty('title')) {
-        // is error
-        return body;
-      }
-      return new Tag(body, authHeaderValue);
-    });
-  };
-  this.delete = function() {
-    return api.delete(this.value._links.self.href, authHeaderValue ? {Authorization: authHeaderValue} : null);
-  }
-};
-
-function replaceLastOccurrence(str, search, replace) {
-  var n = str.lastIndexOf(search);
-  if (n >= 0 && n + search.length <= str.length) {
-    str = str.substring(0, n) + replace + str.substring(n + search.length);
-  }
-  return str;
-}
-DataManager.prototype.__helpers = {
-  replaceLastOccurrence: replaceLastOccurrence
-};
-
-},{"./api.js":5,"es6-promise":19,"superagent":20,"traverson":67,"traverson-hal":23}],5:[function(require,module,exports){
+},{"./api.js":5,"es6-promise":19,"halfred":20,"superagent":24,"traverson":71,"traverson-hal":27}],5:[function(require,module,exports){
 'use strict';
 
 /* wrapper for HTTP Requests around axios */
@@ -2917,6 +3070,413 @@ module.exports = {
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"_process":1}],20:[function(require,module,exports){
+var Parser = require('./lib/parser')
+  , Resource = require('./lib/resource')
+  , validationFlag = false;
+
+module.exports = {
+
+  parse: function(unparsed) {
+    return new Parser().parse(unparsed, validationFlag);
+  },
+
+  enableValidation: function(flag) {
+    validationFlag = (flag != null) ? flag : true;
+  },
+
+  disableValidation: function() {
+    validationFlag = false;
+  },
+
+  Resource: Resource
+
+};
+
+},{"./lib/parser":22,"./lib/resource":23}],21:[function(require,module,exports){
+'use strict';
+
+/*
+ * A very naive copy-on-write immutable stack. Since the size of the stack
+ * is equal to the depth of the embedded resources for one HAL resource, the bad
+ * performance for the copy-on-write approach is probably not a problem at all.
+ * Might be replaced by a smarter solution later. Or not. Whatever.
+ */
+function ImmutableStack() {
+  if (arguments.length >= 1) {
+    this._array = arguments[0];
+  } else {
+    this._array = [];
+  }
+}
+
+ImmutableStack.prototype.array = function() {
+  return this._array;
+};
+
+ImmutableStack.prototype.isEmpty = function(array) {
+  return this._array.length === 0;
+};
+
+ImmutableStack.prototype.push = function(element) {
+  var array = this._array.slice(0);
+  array.push(element);
+  return new ImmutableStack(array);
+};
+
+ImmutableStack.prototype.pop = function() {
+  var array = this._array.slice(0, this._array.length - 1);
+  return new ImmutableStack(array);
+};
+
+ImmutableStack.prototype.peek = function() {
+  if (this.isEmpty()) {
+    throw new Error('can\'t peek on empty stack');
+  }
+  return this._array[this._array.length - 1];
+};
+
+module.exports = ImmutableStack;
+
+},{}],22:[function(require,module,exports){
+'use strict';
+
+var Resource = require('./resource')
+  , Stack = require('./immutable_stack');
+
+var linkSpec = {
+  href: { required: true, defaultValue: null },
+  templated: { required: false, defaultValue: false },
+  type: { required: false, defaultValue: null },
+  deprecation: { required: false, defaultValue: null },
+  name: { required: false, defaultValue: null },
+  profile: { required: false, defaultValue: null },
+  title: { required: false, defaultValue: null },
+  hreflang: { required: false, defaultValue: null }
+};
+
+function Parser() {
+}
+
+Parser.prototype.parse = function parse(unparsed, validationFlag) {
+  var validation = validationFlag ? [] : null;
+  return _parse(unparsed, validation, new Stack());
+};
+
+function _parse(unparsed, validation, path) {
+  if (unparsed == null) {
+    return unparsed;
+  }
+  var allLinkArrays = parseLinks(unparsed._links, validation,
+      path.push('_links'));
+  var curies = parseCuries(allLinkArrays);
+  var allEmbeddedArrays = parseEmbeddedResourcess(unparsed._embedded,
+      validation, path.push('_embedded'));
+  var resource = new Resource(allLinkArrays, curies, allEmbeddedArrays,
+      validation);
+  copyNonHalProperties(unparsed, resource);
+  resource._original = unparsed;
+  return resource;
+}
+
+function parseLinks(links, validation, path) {
+  links = parseHalProperty(links, parseLink, validation, path);
+  if (links == null || links.self == null) {
+    // No links at all? Then it implictly misses the self link which it SHOULD
+    // have according to spec
+    reportValidationIssue('Resource does not have a self link', validation,
+        path);
+  }
+  return links;
+}
+
+function parseCuries(linkArrays) {
+  if (linkArrays) {
+    return linkArrays.curies;
+  } else {
+    return [];
+  }
+}
+
+function parseEmbeddedResourcess(original, parentValidation, path) {
+  var embedded = parseHalProperty(original, identity, parentValidation, path);
+  if (embedded == null) {
+    return embedded;
+  }
+  Object.keys(embedded).forEach(function(key) {
+    embedded[key] = embedded[key].map(function(embeddedElement) {
+      var childValidation = parentValidation != null ? [] : null;
+      var embeddedResource = _parse(embeddedElement, childValidation,
+          path.push(key));
+      embeddedResource._original = embeddedElement;
+      return embeddedResource;
+    });
+  });
+  return embedded;
+}
+
+/*
+ * Copy over non-hal properties (everything that is not _links or _embedded)
+ * to the parsed resource.
+ */
+function copyNonHalProperties(unparsed, resource) {
+  Object.keys(unparsed).forEach(function(key) {
+    if (key !== '_links' && key !== '_embedded') {
+      resource[key] = unparsed[key];
+    }
+  });
+}
+
+/*
+ * Processes one of the two main hal properties, that is _links or _embedded.
+ * Each sub-property is turned into a single element array if it isn't already
+ * an array. processingFunction is applied to each array element.
+ */
+function parseHalProperty(property, processingFunction, validation, path) {
+  if (property == null) {
+    return property;
+  }
+
+  // create a shallow copy of the _links/_embedded object
+  var copy = {};
+
+  // normalize each link/each embedded object and put it into our copy
+  Object.keys(property).forEach(function(key) {
+    copy[key] = arrayfy(key, property[key], processingFunction,
+        validation, path);
+  });
+  return copy;
+}
+
+function arrayfy(key, object, fn, validation, path) {
+  if (isArray(object)) {
+    return object.map(function(element) {
+      return fn(key, element, validation, path);
+    });
+  } else {
+    return [fn(key, object, validation, path)];
+  }
+}
+
+
+function parseLink(linkKey, link, validation, path) {
+  if (!isObject(link)) {
+    throw new Error('Link object is not an actual object: ' + link +
+      ' [' + typeof link + ']');
+  }
+
+  // create a shallow copy of the link object
+  var copy = shallowCopy(link);
+
+  // add missing properties mandated by spec and do generic validation
+  Object.keys(linkSpec).forEach(function(key) {
+    if (copy[key] == null) {
+      if (linkSpec[key].required) {
+        reportValidationIssue('Link misses required property ' + key + '.',
+            validation, path.push(linkKey));
+      }
+      if (linkSpec[key].defaultValue != null) {
+        copy[key] = linkSpec[key].defaultValue;
+      }
+    }
+  });
+
+  // check more inter-property relations mandated by spec
+  if (copy.deprecation) {
+    log('Warning: Link ' + pathToString(path.push(linkKey)) +
+        ' is deprecated, see ' + copy.deprecation);
+  }
+  if (copy.templated !== true && copy.templated !== false) {
+    copy.templated = false;
+  }
+
+  if (!validation) {
+    return copy;
+  }
+  if (copy.href && copy.href.indexOf('{') >= 0 && !copy.templated) {
+    reportValidationIssue('Link seems to be an URI template ' +
+        'but its "templated" property is not set to true.', validation,
+        path.push(linkKey));
+  }
+  return copy;
+}
+
+function isArray(o) {
+  return Object.prototype.toString.call(o) === '[object Array]';
+}
+
+function isObject(o) {
+  return typeof o === 'object';
+}
+
+function identity(key, object) {
+  return object;
+}
+
+function reportValidationIssue(message, validation, path) {
+  if (validation) {
+    validation.push({
+      path: pathToString(path),
+      message: message
+    });
+  }
+}
+
+// TODO fix this ad hoc mess - does ie support console.log as of ie9?
+function log(message) {
+  if (typeof console !== 'undefined' && typeof console.log === 'function') {
+    console.log(message);
+  }
+}
+
+function shallowCopy(source) {
+  var copy = {};
+  Object.keys(source).forEach(function(key) {
+    copy[key] = source[key];
+  });
+  return copy;
+}
+
+function pathToString(path) {
+  var s = '$.';
+  for (var i = 0; i < path.array().length; i++) {
+    s += path.array()[i] + '.';
+  }
+  s = s.substring(0, s.length - 1);
+  return s;
+}
+
+module.exports = Parser;
+
+},{"./immutable_stack":21,"./resource":23}],23:[function(require,module,exports){
+'use strict';
+
+function Resource(links, curies, embedded, validationIssues) {
+  var self = this;
+  this._links = links || {};
+  this._initCuries(curies);
+  this._embedded = embedded || {};
+  this._validation = validationIssues || [];
+}
+
+Resource.prototype._initCuries = function(curies) {
+  this._curiesMap = {};
+  if (!curies) {
+    this._curies = [];
+  } else {
+    this._curies = curies;
+    for (var i = 0; i < this._curies.length; i++) {
+      var curie = this._curies[i];
+      this._curiesMap[curie.name] = curie;
+    }
+  }
+  this._preResolveCuries();
+};
+
+Resource.prototype._preResolveCuries = function() {
+  this._resolvedCuriesMap = {};
+  for (var i = 0; i < this._curies.length; i++) {
+    var curie = this._curies[i];
+    if (!curie.name) {
+      continue;
+    }
+    for (var rel in this._links) {
+      if (rel !== 'curies') {
+        this._preResolveCurie(curie, rel);
+      }
+    }
+  }
+};
+
+Resource.prototype._preResolveCurie = function(curie, rel) {
+  var link = this._links[rel];
+  var prefixAndReference = rel.split(/:(.+)/);
+  var candidate = prefixAndReference[0];
+  if (curie.name === candidate) {
+    if (curie.templated && prefixAndReference.length >= 1) {
+      // TODO resolving templated CURIES should use a small uri template
+      // lib, not coded here ad hoc
+      var href = curie.href.replace(/(.*){(.*)}(.*)/, '$1' +
+          prefixAndReference[1] + '$3');
+      this._resolvedCuriesMap[href] = rel;
+    } else {
+      this._resolvedCuriesMap[curie.href] = rel;
+    }
+  }
+};
+
+Resource.prototype.allLinkArrays = function() {
+  return this._links;
+};
+
+Resource.prototype.linkArray = function(key) {
+  return propertyArray(this._links, key);
+};
+
+Resource.prototype.link = function(key, index) {
+  return elementOfPropertyArray(this._links, key, index);
+};
+
+Resource.prototype.hasCuries = function(key) {
+  return this._curies.length > 0;
+};
+
+Resource.prototype.curieArray = function(key) {
+  return this._curies;
+};
+
+Resource.prototype.curie = function(name) {
+  return this._curiesMap[name];
+};
+
+Resource.prototype.reverseResolveCurie = function(fullUrl) {
+  return this._resolvedCuriesMap[fullUrl];
+};
+
+Resource.prototype.allEmbeddedResourceArrays = function () {
+  return this._embedded;
+};
+
+Resource.prototype.embeddedResourceArray = function(key) {
+  return propertyArray(this._embedded, key);
+};
+
+Resource.prototype.embeddedResource = function(key, index) {
+  return elementOfPropertyArray(this._embedded, key, index);
+};
+
+Resource.prototype.original = function() {
+  return this._original;
+};
+
+function propertyArray(object, key) {
+  return object != null ? object[key] : null;
+}
+
+function elementOfPropertyArray(object, key, index) {
+  index = index || 0;
+  var array = propertyArray(object, key);
+  if (array != null && array.length >= 1) {
+    return array[index];
+  }
+  return null;
+}
+
+Resource.prototype.validationIssues = function() {
+  return this._validation;
+};
+
+// alias definitions
+Resource.prototype.allLinks = Resource.prototype.allLinkArrays;
+Resource.prototype.allEmbeddedArrays =
+    Resource.prototype.allEmbeddedResources =
+    Resource.prototype.allEmbeddedResourceArrays;
+Resource.prototype.embeddedArray = Resource.prototype.embeddedResourceArray;
+Resource.prototype.embedded = Resource.prototype.embeddedResource;
+Resource.prototype.validation = Resource.prototype.validationIssues;
+
+module.exports = Resource;
+
+},{}],24:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -4075,7 +4635,7 @@ request.put = function(url, data, fn){
 
 module.exports = request;
 
-},{"emitter":21,"reduce":22}],21:[function(require,module,exports){
+},{"emitter":25,"reduce":26}],25:[function(require,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -4241,7 +4801,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],22:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 
 /**
  * Reduce `arr` with `fn`.
@@ -4266,7 +4826,7 @@ module.exports = function(arr, fn, initial){
   
   return curr;
 };
-},{}],23:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 'use strict';
 
 var halfred = require('halfred');
@@ -4590,7 +5150,7 @@ JsonHalAdapter.prototype._handleHeader = function(httpResponse, link) {
 
 module.exports = JsonHalAdapter;
 
-},{"halfred":24}],24:[function(require,module,exports){
+},{"halfred":28}],28:[function(require,module,exports){
 var Parser = require('./lib/parser')
   , validationFlag = false;
 
@@ -4609,391 +5169,13 @@ module.exports = {
   }
 };
 
-},{"./lib/parser":26}],25:[function(require,module,exports){
-'use strict';
-
-/*
- * A very naive copy-on-write immutable stack. Since the size of the stack
- * is equal to the depth of the embedded resources for one HAL resource, the bad
- * performance for the copy-on-write approach is probably not a problem at all.
- * Might be replaced by a smarter solution later. Or not. Whatever.
- */
-function ImmutableStack() {
-  if (arguments.length >= 1) {
-    this._array = arguments[0];
-  } else {
-    this._array = [];
-  }
-}
-
-ImmutableStack.prototype.array = function() {
-  return this._array;
-};
-
-ImmutableStack.prototype.isEmpty = function(array) {
-  return this._array.length === 0;
-};
-
-ImmutableStack.prototype.push = function(element) {
-  var array = this._array.slice(0);
-  array.push(element);
-  return new ImmutableStack(array);
-};
-
-ImmutableStack.prototype.pop = function() {
-  var array = this._array.slice(0, this._array.length - 1);
-  return new ImmutableStack(array);
-};
-
-ImmutableStack.prototype.peek = function() {
-  if (this.isEmpty()) {
-    throw new Error('can\'t peek on empty stack');
-  }
-  return this._array[this._array.length - 1];
-};
-
-module.exports = ImmutableStack;
-
-},{}],26:[function(require,module,exports){
-'use strict';
-
-var Resource = require('./resource')
-  , Stack = require('./immutable_stack');
-
-var linkSpec = {
-  href: { required: true, defaultValue: null },
-  templated: { required: false, defaultValue: false },
-  type: { required: false, defaultValue: null },
-  deprecation: { required: false, defaultValue: null },
-  name: { required: false, defaultValue: null },
-  profile: { required: false, defaultValue: null },
-  title: { required: false, defaultValue: null },
-  hreflang: { required: false, defaultValue: null }
-};
-
-function Parser() {
-}
-
-Parser.prototype.parse = function parse(unparsed, validationFlag) {
-  var validation = validationFlag ? [] : null;
-  return _parse(unparsed, validation, new Stack());
-};
-
-function _parse(unparsed, validation, path) {
-  if (unparsed == null) {
-    return unparsed;
-  }
-  var allLinkArrays = parseLinks(unparsed._links, validation,
-      path.push('_links'));
-  var curies = parseCuries(allLinkArrays);
-  var allEmbeddedArrays = parseEmbeddedResourcess(unparsed._embedded,
-      validation, path.push('_embedded'));
-  var resource = new Resource(allLinkArrays, curies, allEmbeddedArrays,
-      validation);
-  copyNonHalProperties(unparsed, resource);
-  resource._original = unparsed;
-  return resource;
-}
-
-function parseLinks(links, validation, path) {
-  links = parseHalProperty(links, parseLink, validation, path);
-  if (links == null || links.self == null) {
-    // No links at all? Then it implictly misses the self link which it SHOULD
-    // have according to spec
-    reportValidationIssue('Resource does not have a self link', validation,
-        path);
-  }
-  return links;
-}
-
-function parseCuries(linkArrays) {
-  if (linkArrays) {
-    return linkArrays.curies;
-  } else {
-    return [];
-  }
-}
-
-function parseEmbeddedResourcess(original, parentValidation, path) {
-  var embedded = parseHalProperty(original, identity, parentValidation, path);
-  if (embedded == null) {
-    return embedded;
-  }
-  Object.keys(embedded).forEach(function(key) {
-    embedded[key] = embedded[key].map(function(embeddedElement) {
-      var childValidation = parentValidation != null ? [] : null;
-      var embeddedResource = _parse(embeddedElement, childValidation,
-          path.push(key));
-      embeddedResource._original = embeddedElement;
-      return embeddedResource;
-    });
-  });
-  return embedded;
-}
-
-/*
- * Copy over non-hal properties (everything that is not _links or _embedded)
- * to the parsed resource.
- */
-function copyNonHalProperties(unparsed, resource) {
-  Object.keys(unparsed).forEach(function(key) {
-    if (key !== '_links' && key !== '_embedded') {
-      resource[key] = unparsed[key];
-    }
-  });
-}
-
-/*
- * Processes one of the two main hal properties, that is _links or _embedded.
- * Each sub-property is turned into a single element array if it isn't already
- * an array. processingFunction is applied to each array element.
- */
-function parseHalProperty(property, processingFunction, validation, path) {
-  if (property == null) {
-    return property;
-  }
-
-  // create a shallow copy of the _links/_embedded object
-  var copy = {};
-
-  // normalize each link/each embedded object and put it into our copy
-  Object.keys(property).forEach(function(key) {
-    copy[key] = arrayfy(key, property[key], processingFunction,
-        validation, path);
-  });
-  return copy;
-}
-
-function arrayfy(key, object, fn, validation, path) {
-  if (isArray(object)) {
-    return object.map(function(element) {
-      return fn(key, element, validation, path);
-    });
-  } else {
-    return [fn(key, object, validation, path)];
-  }
-}
-
-
-function parseLink(linkKey, link, validation, path) {
-  if (!isObject(link)) {
-    throw new Error('Link object is not an actual object: ' + link +
-      ' [' + typeof link + ']');
-  }
-
-  // create a shallow copy of the link object
-  var copy = shallowCopy(link);
-
-  // add missing properties mandated by spec and do generic validation
-  Object.keys(linkSpec).forEach(function(key) {
-    if (copy[key] == null) {
-      if (linkSpec[key].required) {
-        reportValidationIssue('Link misses required property ' + key + '.',
-            validation, path.push(linkKey));
-      }
-      if (linkSpec[key].defaultValue != null) {
-        copy[key] = linkSpec[key].defaultValue;
-      }
-    }
-  });
-
-  // check more inter-property relations mandated by spec
-  if (copy.deprecation) {
-    log('Warning: Link ' + pathToString(path.push(linkKey)) +
-        ' is deprecated, see ' + copy.deprecation);
-  }
-  if (copy.templated !== true && copy.templated !== false) {
-    copy.templated = false;
-  }
-
-  if (!validation) {
-    return copy;
-  }
-  if (copy.href && copy.href.indexOf('{') >= 0 && !copy.templated) {
-    reportValidationIssue('Link seems to be an URI template ' +
-        'but its "templated" property is not set to true.', validation,
-        path.push(linkKey));
-  }
-  return copy;
-}
-
-function isArray(o) {
-  return Object.prototype.toString.call(o) === '[object Array]';
-}
-
-function isObject(o) {
-  return typeof o === 'object';
-}
-
-function identity(key, object) {
-  return object;
-}
-
-function reportValidationIssue(message, validation, path) {
-  if (validation) {
-    validation.push({
-      path: pathToString(path),
-      message: message
-    });
-  }
-}
-
-// TODO fix this ad hoc mess - does ie support console.log as of ie9?
-function log(message) {
-  if (typeof console !== 'undefined' && typeof console.log === 'function') {
-    console.log(message);
-  }
-}
-
-function shallowCopy(source) {
-  var copy = {};
-  Object.keys(source).forEach(function(key) {
-    copy[key] = source[key];
-  });
-  return copy;
-}
-
-function pathToString(path) {
-  var s = '$.';
-  for (var i = 0; i < path.array().length; i++) {
-    s += path.array()[i] + '.';
-  }
-  s = s.substring(0, s.length - 1);
-  return s;
-}
-
-module.exports = Parser;
-
-},{"./immutable_stack":25,"./resource":27}],27:[function(require,module,exports){
-'use strict';
-
-function Resource(links, curies, embedded, validationIssues) {
-  var self = this;
-  this._links = links || {};
-  this._initCuries(curies);
-  this._embedded = embedded || {};
-  this._validation = validationIssues || [];
-}
-
-Resource.prototype._initCuries = function(curies) {
-  this._curiesMap = {};
-  if (!curies) {
-    this._curies = [];
-  } else {
-    this._curies = curies;
-    for (var i = 0; i < this._curies.length; i++) {
-      var curie = this._curies[i];
-      this._curiesMap[curie.name] = curie;
-    }
-  }
-  this._preResolveCuries();
-};
-
-Resource.prototype._preResolveCuries = function() {
-  this._resolvedCuriesMap = {};
-  for (var i = 0; i < this._curies.length; i++) {
-    var curie = this._curies[i];
-    if (!curie.name) {
-      continue;
-    }
-    for (var rel in this._links) {
-      if (rel !== 'curies') {
-        this._preResolveCurie(curie, rel);
-      }
-    }
-  }
-};
-
-Resource.prototype._preResolveCurie = function(curie, rel) {
-  var link = this._links[rel];
-  var prefixAndReference = rel.split(/:(.+)/);
-  var candidate = prefixAndReference[0];
-  if (curie.name === candidate) {
-    if (curie.templated && prefixAndReference.length >= 1) {
-      // TODO resolving templated CURIES should use a small uri template
-      // lib, not coded here ad hoc
-      var href = curie.href.replace(/(.*){(.*)}(.*)/, '$1' +
-          prefixAndReference[1] + '$3');
-      this._resolvedCuriesMap[href] = rel;
-    } else {
-      this._resolvedCuriesMap[curie.href] = rel;
-    }
-  }
-};
-
-Resource.prototype.allLinkArrays = function() {
-  return this._links;
-};
-
-Resource.prototype.linkArray = function(key) {
-  return propertyArray(this._links, key);
-};
-
-Resource.prototype.link = function(key, index) {
-  return elementOfPropertyArray(this._links, key, index);
-};
-
-Resource.prototype.hasCuries = function(key) {
-  return this._curies.length > 0;
-};
-
-Resource.prototype.curieArray = function(key) {
-  return this._curies;
-};
-
-Resource.prototype.curie = function(name) {
-  return this._curiesMap[name];
-};
-
-Resource.prototype.reverseResolveCurie = function(fullUrl) {
-  return this._resolvedCuriesMap[fullUrl];
-};
-
-Resource.prototype.allEmbeddedResourceArrays = function () {
-  return this._embedded;
-};
-
-Resource.prototype.embeddedResourceArray = function(key) {
-  return propertyArray(this._embedded, key);
-};
-
-Resource.prototype.embeddedResource = function(key, index) {
-  return elementOfPropertyArray(this._embedded, key, index);
-};
-
-Resource.prototype.original = function() {
-  return this._original;
-};
-
-function propertyArray(object, key) {
-  return object != null ? object[key] : null;
-}
-
-function elementOfPropertyArray(object, key, index) {
-  index = index || 0;
-  var array = propertyArray(object, key);
-  if (array != null && array.length >= 1) {
-    return array[index];
-  }
-  return null;
-}
-
-Resource.prototype.validationIssues = function() {
-  return this._validation;
-};
-
-// alias definitions
-Resource.prototype.allLinks = Resource.prototype.allLinkArrays;
-Resource.prototype.allEmbeddedArrays =
-    Resource.prototype.allEmbeddedResources =
-    Resource.prototype.allEmbeddedResourceArrays;
-Resource.prototype.embeddedArray = Resource.prototype.embeddedResourceArray;
-Resource.prototype.embedded = Resource.prototype.embeddedResource;
-Resource.prototype.validation = Resource.prototype.validationIssues;
-
-module.exports = Resource;
-
-},{}],28:[function(require,module,exports){
+},{"./lib/parser":30}],29:[function(require,module,exports){
+arguments[4][21][0].apply(exports,arguments)
+},{"dup":21}],30:[function(require,module,exports){
+arguments[4][22][0].apply(exports,arguments)
+},{"./immutable_stack":29,"./resource":31,"dup":22}],31:[function(require,module,exports){
+arguments[4][23][0].apply(exports,arguments)
+},{"dup":23}],32:[function(require,module,exports){
 'use strict';
 
 // TODO Replace by a proper lightweight logging module, suited for the browser
@@ -5044,7 +5226,7 @@ minilog.enable = function() {
 
 module.exports = minilog;
 
-},{}],29:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -5056,7 +5238,7 @@ module.exports = {
   }
 };
 
-},{}],30:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 'use strict';
 
 var superagent = require('superagent');
@@ -5182,7 +5364,7 @@ function handleResponse(callback) {
 
 module.exports = new Request();
 
-},{"superagent":20}],31:[function(require,module,exports){
+},{"superagent":24}],35:[function(require,module,exports){
 'use strict';
 
 /*
@@ -5226,7 +5408,7 @@ var _s = {
 
 module.exports = _s;
 
-},{}],32:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 'use strict';
 
 var resolveUrl = require('resolve-url');
@@ -5235,7 +5417,7 @@ exports.resolve = function(from, to) {
   return resolveUrl(from, to);
 };
 
-},{"resolve-url":65}],33:[function(require,module,exports){
+},{"resolve-url":69}],37:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -5273,7 +5455,7 @@ exports.abortError = function abortError() {
   return error;
 };
 
-},{"minilog":28}],34:[function(require,module,exports){
+},{"minilog":32}],38:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -5409,7 +5591,7 @@ function createTraversalHandle(t) {
   };
 }
 
-},{"./abort_traversal":33,"./http_requests":36,"./is_continuation":37,"./transforms/apply_transforms":43,"./transforms/check_http_status":44,"./transforms/continuation_to_doc":45,"./transforms/continuation_to_response":46,"./transforms/convert_embedded_doc_to_response":47,"./transforms/execute_http_request":49,"./transforms/execute_last_http_request":50,"./transforms/extract_doc":51,"./transforms/extract_response":52,"./transforms/extract_url":53,"./transforms/fetch_last_resource":54,"./transforms/parse":57,"./walker":63,"minilog":28}],35:[function(require,module,exports){
+},{"./abort_traversal":37,"./http_requests":40,"./is_continuation":41,"./transforms/apply_transforms":47,"./transforms/check_http_status":48,"./transforms/continuation_to_doc":49,"./transforms/continuation_to_response":50,"./transforms/convert_embedded_doc_to_response":51,"./transforms/execute_http_request":53,"./transforms/execute_last_http_request":54,"./transforms/extract_doc":55,"./transforms/extract_response":56,"./transforms/extract_url":57,"./transforms/fetch_last_resource":58,"./transforms/parse":61,"./walker":67,"minilog":32}],39:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6054,7 +6236,7 @@ function shallowCloneArray(array) {
 
 module.exports = Builder;
 
-},{"./abort_traversal":33,"./actions":34,"./media_type_registry":39,"./media_types":40,"./merge_recursive":41,"minilog":28,"request":30,"util":29}],36:[function(require,module,exports){
+},{"./abort_traversal":37,"./actions":38,"./media_type_registry":43,"./media_types":44,"./merge_recursive":45,"minilog":32,"request":34,"util":33}],40:[function(require,module,exports){
 (function (process){
 'use strict';
 var minilog = require('minilog')
@@ -6160,14 +6342,14 @@ exports.executeHttpRequest = function(t, request, method, callback) {
 };
 
 }).call(this,require('_process'))
-},{"./abort_traversal":33,"./transforms/detect_content_type":48,"./transforms/get_options_for_step":56,"_process":1,"minilog":28}],37:[function(require,module,exports){
+},{"./abort_traversal":37,"./transforms/detect_content_type":52,"./transforms/get_options_for_step":60,"_process":1,"minilog":32}],41:[function(require,module,exports){
 'use strict';
 
 module.exports = function isContinuation(t) {
   return t.continuation && t.step && t.step.response;
 };
 
-},{}],38:[function(require,module,exports){
+},{}],42:[function(require,module,exports){
 'use strict';
 
 var jsonpathLib = require('JSONPath')
@@ -6271,7 +6453,7 @@ JsonAdapter.prototype._handleHeader = function(httpResponse, link) {
 
 module.exports = JsonAdapter;
 
-},{"JSONPath":64,"minilog":28,"underscore.string":31}],39:[function(require,module,exports){
+},{"JSONPath":68,"minilog":32,"underscore.string":35}],43:[function(require,module,exports){
 'use strict';
 
 var mediaTypes = require('./media_types');
@@ -6290,7 +6472,7 @@ exports.register(mediaTypes.CONTENT_NEGOTIATION,
     require('./negotiation_adapter'));
 exports.register(mediaTypes.JSON, require('./json_adapter'));
 
-},{"./json_adapter":38,"./media_types":40,"./negotiation_adapter":42}],40:[function(require,module,exports){
+},{"./json_adapter":42,"./media_types":44,"./negotiation_adapter":46}],44:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -6299,7 +6481,7 @@ module.exports = {
   JSON_HAL: 'application/hal+json',
 };
 
-},{}],41:[function(require,module,exports){
+},{}],45:[function(require,module,exports){
 'use strict';
 
 // TODO Maybe replace with https://github.com/Raynos/xtend
@@ -6336,7 +6518,7 @@ function merge(obj1, obj2, key) {
 
 module.exports = mergeRecursive;
 
-},{}],42:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 'use strict';
 
 function NegotiationAdapter(log) {}
@@ -6347,7 +6529,7 @@ NegotiationAdapter.prototype.findNextStep = function(doc, link) {
 
 module.exports = NegotiationAdapter;
 
-},{}],43:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 (function (process){
 /* jshint loopfunc: true */
 'use strict';
@@ -6389,7 +6571,7 @@ function applyTransforms(transforms, t, callback) {
 module.exports = applyTransforms;
 
 }).call(this,require('_process'))
-},{"_process":1,"minilog":28}],44:[function(require,module,exports){
+},{"_process":1,"minilog":32}],48:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6443,7 +6625,7 @@ function httpError(url, httpStatus, body) {
   return error;
 }
 
-},{"../is_continuation":37,"minilog":28}],45:[function(require,module,exports){
+},{"../is_continuation":41,"minilog":32}],49:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6465,7 +6647,7 @@ module.exports = function continuationToDoc(t) {
   return true;
 };
 
-},{"../is_continuation":37,"minilog":28}],46:[function(require,module,exports){
+},{"../is_continuation":41,"minilog":32}],50:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6490,7 +6672,7 @@ module.exports = function continuationToResponse(t) {
   return true;
 };
 
-},{"../is_continuation":37,"./convert_embedded_doc_to_response":47,"minilog":28}],47:[function(require,module,exports){
+},{"../is_continuation":41,"./convert_embedded_doc_to_response":51,"minilog":32}],51:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6510,7 +6692,7 @@ module.exports = function convertEmbeddedDocToResponse(t) {
   return true;
 };
 
-},{"minilog":28}],48:[function(require,module,exports){
+},{"minilog":32}],52:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6536,7 +6718,7 @@ module.exports = function detectContentType(t, callback) {
   return true;
 };
 
-},{"../media_type_registry":39,"minilog":28}],49:[function(require,module,exports){
+},{"../media_type_registry":43,"minilog":32}],53:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6578,7 +6760,7 @@ executeLastHttpRequest.isAsync = true;
 
 module.exports = executeLastHttpRequest;
 
-},{"../abort_traversal":33,"../http_requests":36,"minilog":28}],50:[function(require,module,exports){
+},{"../abort_traversal":37,"../http_requests":40,"minilog":32}],54:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6607,7 +6789,7 @@ executeLastHttpRequest.isAsync = true;
 
 module.exports = executeLastHttpRequest;
 
-},{"../abort_traversal":33,"../http_requests":36,"minilog":28}],51:[function(require,module,exports){
+},{"../abort_traversal":37,"../http_requests":40,"minilog":32}],55:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6636,7 +6818,7 @@ module.exports = function extractDoc(t) {
   return false;
 };
 
-},{"minilog":28}],52:[function(require,module,exports){
+},{"minilog":32}],56:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6666,7 +6848,7 @@ module.exports = function extractDoc(t) {
   return false;
 };
 
-},{"minilog":28}],53:[function(require,module,exports){
+},{"minilog":32}],57:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6696,7 +6878,7 @@ module.exports = function extractDoc(t) {
   }
 };
 
-},{"minilog":28,"url":32}],54:[function(require,module,exports){
+},{"minilog":32,"url":36}],58:[function(require,module,exports){
 'use strict';
 
 // TODO Only difference to lib/transform/fetch_resource is the continuation
@@ -6734,7 +6916,7 @@ fetchLastResource.isAsync = true;
 
 module.exports = fetchLastResource;
 
-},{"../abort_traversal":33,"../http_requests":36,"minilog":28}],55:[function(require,module,exports){
+},{"../abort_traversal":37,"../http_requests":40,"minilog":32}],59:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -6792,7 +6974,7 @@ function fetchViaHttp(t, callback) {
 module.exports = fetchResource;
 
 }).call(this,require('_process'))
-},{"../abort_traversal":33,"../http_requests":36,"../is_continuation":37,"_process":1,"minilog":28}],56:[function(require,module,exports){
+},{"../abort_traversal":37,"../http_requests":40,"../is_continuation":41,"_process":1,"minilog":32}],60:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6808,7 +6990,7 @@ module.exports = function getOptionsForStep(t) {
   return options;
 };
 
-},{"minilog":28,"util":29}],57:[function(require,module,exports){
+},{"minilog":32,"util":33}],61:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6859,7 +7041,7 @@ function jsonError(url, body) {
   return error;
 }
 
-},{"../is_continuation":37,"minilog":28}],58:[function(require,module,exports){
+},{"../is_continuation":41,"minilog":32}],62:[function(require,module,exports){
 'use strict';
 
 var isContinuation = require('../is_continuation');
@@ -6874,7 +7056,7 @@ module.exports = function resetLastStep(t) {
   return true;
 };
 
-},{"../is_continuation":37}],59:[function(require,module,exports){
+},{"../is_continuation":41}],63:[function(require,module,exports){
 'use strict';
 
 var isContinuation = require('../is_continuation');
@@ -6889,7 +7071,7 @@ module.exports = function resetLastStep(t) {
   return true;
 };
 
-},{"../is_continuation":37}],60:[function(require,module,exports){
+},{"../is_continuation":41}],64:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6922,7 +7104,7 @@ module.exports = function resolveNextUrl(t) {
   return true;
 };
 
-},{"minilog":28,"underscore.string":31,"url":32}],61:[function(require,module,exports){
+},{"minilog":32,"underscore.string":35,"url":36}],65:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6955,7 +7137,7 @@ module.exports = function resolveUriTemplate(t) {
 
 
 
-},{"minilog":28,"underscore.string":31,"url-template":66,"util":29}],62:[function(require,module,exports){
+},{"minilog":32,"underscore.string":35,"url-template":70,"util":33}],66:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6994,7 +7176,7 @@ function findNextStep(t, link) {
   }
 }
 
-},{"minilog":28}],63:[function(require,module,exports){
+},{"minilog":32}],67:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -7071,7 +7253,7 @@ function isAborted(t) {
   return t.aborted;
 }
 
-},{"./abort_traversal":33,"./is_continuation":37,"./transforms/apply_transforms":43,"./transforms/check_http_status":44,"./transforms/fetch_resource":55,"./transforms/parse":57,"./transforms/reset_continuation":58,"./transforms/reset_last_step":59,"./transforms/resolve_next_url":60,"./transforms/resolve_uri_template":61,"./transforms/switch_to_next_step":62,"minilog":28}],64:[function(require,module,exports){
+},{"./abort_traversal":37,"./is_continuation":41,"./transforms/apply_transforms":47,"./transforms/check_http_status":48,"./transforms/fetch_resource":59,"./transforms/parse":61,"./transforms/reset_continuation":62,"./transforms/reset_last_step":63,"./transforms/resolve_next_url":64,"./transforms/resolve_uri_template":65,"./transforms/switch_to_next_step":66,"minilog":32}],68:[function(require,module,exports){
 /* JSONPath 0.8.0 - XPath for JSON
  *
  * Copyright (c) 2007 Stefan Goessner (goessner.net)
@@ -7245,7 +7427,7 @@ function jsonPath(obj, expr, arg) {
 }
 })(typeof exports === 'undefined' ? this['jsonPath'] = {} : exports, typeof require == "undefined" ? null : require);
 
-},{"vm":2}],65:[function(require,module,exports){
+},{"vm":2}],69:[function(require,module,exports){
 // Copyright 2014 Simon Lydell
 // X11 (“MIT”) Licensed. (See LICENSE.)
 
@@ -7294,7 +7476,7 @@ void (function(root, factory) {
 
 }));
 
-},{}],66:[function(require,module,exports){
+},{}],70:[function(require,module,exports){
 (function (root, factory) {
     if (typeof exports === 'object') {
         module.exports = factory();
@@ -7475,7 +7657,7 @@ void (function(root, factory) {
   return new UrlTemplate();
 }));
 
-},{}],67:[function(require,module,exports){
+},{}],71:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -7549,7 +7731,7 @@ exports.registerMediaType = mediaTypeRegistry.register;
 exports.mediaTypes = mediaTypes;
 
 }).call(this,require('_process'))
-},{"./lib/builder":35,"./lib/media_type_registry":39,"./lib/media_types":40,"_process":1,"minilog":28}],"ec.datamanager.js":[function(require,module,exports){
+},{"./lib/builder":39,"./lib/media_type_registry":43,"./lib/media_types":44,"_process":1,"minilog":32}],"ec.datamanager.js":[function(require,module,exports){
 'use strict';
 
 module.exports = require('./lib/DataManager');
