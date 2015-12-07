@@ -545,6 +545,20 @@ describe('entry/entries', function() { // this is basically modelList
       expect(entry.value['list-items'][0]).to.have.property('_id', '4JGrCvm27e');
     });
   });
+  it('single result on list', function() {
+    return dm.model('to-do-item').entries({
+      filter: {
+        _id: {
+          exact: 'VkGhAPQ2Qe'
+        }
+      }
+    }).then(function(entry) {
+      expect(entry).to.be.ok;
+      expect(entry).to.be.instanceOf(Object);
+      expect(entry).to.have.property('value');
+      expect(entry.value).to.have.property('_id', 'VkGhAPQ2Qe');
+    });
+  });
   it('list: get entries, list single item', function() {
     return dm.model('to-do-list').entryList({
       filter: {
@@ -643,7 +657,7 @@ describe('asset/assets', function() {
   afterEach(function() {
     dm = null;
   });
-  it('get assets, list multiple item', function() {
+  it('get assets, list multiple items', function() {
     return dm.assets().then(function(assets) {
       expect(assets).to.be.ok;
       expect(assets).to.be.instanceOf(Array);
@@ -665,6 +679,28 @@ describe('asset/assets', function() {
   });
   it('get single asset', function() {
     return dm.asset('443163b2-71a9-4f2a-987b-c7c7f31c7e30').then(function(asset) {
+      expect(asset).to.be.ok;
+      expect(asset).to.be.instanceOf(Object);
+      expect(asset).to.have.property('value');
+      expect(asset.value).to.have.property('assetID', '443163b2-71a9-4f2a-987b-c7c7f31c7e30');
+    });
+  });
+  it('no assetID provided', function() {
+    return dm.asset().then(function(result) {
+      throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+    }).catch(function(err) {
+      expect(err).to.be.ok;
+      expect(err).to.have.property('message', 'ec_sdk_no_assetid_provided');
+    });
+  });
+  it('single result on list', function() {
+    return dm.assets({
+      filter: {
+        assetID: {
+          exact: '443163b2-71a9-4f2a-987b-c7c7f31c7e30'
+        }
+      }
+    }).then(function(asset) {
       expect(asset).to.be.ok;
       expect(asset).to.be.instanceOf(Object);
       expect(asset).to.have.property('value');
