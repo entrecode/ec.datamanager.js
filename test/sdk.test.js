@@ -771,6 +771,106 @@ describe('asset/assets', function() {
   });
 });
 
+describe('tag/tags', function() {
+  var dm;
+  beforeEach(function() {
+    dm = new DataManager({
+      url: baseUrl + '58b9a1f5',
+      accessToken: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJlbWFpbCI6bnVsbCwianRpIjoiM2EzYmQ5MzYtOWFlZS00ZWY0LTg0MjUtNjZhOGViODcyODk4IiwiaWF0IjoxNDQ5MTM2Njg0LCJleHAiOjQ2MDI3MzY2ODQsImlzcyI6ImVjX2RhdGFtYW5hZ2VyX3Nka190ZXN0c18xIiwic3ViIjoiMWNmOWUyOGUtZmE1NC00ZGVhLWJlMTQtZDlkYmNjMGMzYzY5In0.VMA0onkx4fpwBdTL9AQ2bzR4JBziY8UIavrAleIl7wj1Rh1-ZU09i-vze2sObarOZSygx74cO1uRkX37CFYj3Lf45mWPpHj-prJtfnS1xkn4KlfffTuz3VWINCorcZX-OyVeFWSexC6AwEQ9cW8FMEZPDpMLKodiFkhDUt1AIQg'
+    });
+  });
+  afterEach(function() {
+    dm = null;
+  });
+  it('get tags, list multiple items', function() {
+    return dm.tags().then(function(tags) {
+      expect(tags).to.be.ok;
+      expect(tags).to.be.instanceOf(Array);
+      expect(tags.length).to.be.equal(2);
+    });
+  });
+  it('get tags, list single item', function() {
+    return dm.tags({
+      filter: {
+        tag: {
+          search: 'meme'
+        }
+      }
+    }).then(function(tags) {
+      expect(tags).to.be.ok;
+      expect(tags).to.be.instanceOf(Array);
+      expect(tags.length).to.be.equal(1);
+    });
+  });
+  it('get single tag', function() {
+    return dm.tag('work-memes').then(function(tag) {
+      expect(tag).to.be.ok;
+      expect(tag).to.be.instanceOf(Object);
+      expect(tag).to.have.property('value');
+      expect(tag.value).to.have.property('tag', 'work-memes');
+      expect(tag.value).to.have.property('count', 2);
+    });
+  });
+  it('single result on list', function() {
+    return dm.tags({
+      filter: {
+        tag: {
+          exact: 'work-memes'
+        }
+      }
+    }).then(function(tag) {
+      expect(tag).to.be.ok;
+      expect(tag).to.be.instanceOf(Object);
+      expect(tag).to.have.property('value');
+      expect(tag.value).to.have.property('tag', 'work-memes');
+      expect(tag.value).to.have.property('count', 2);
+    });
+  });
+  it('list: get tags, list multiple items', function() {
+    return dm.tagList().then(function(list) {
+      expect(list).to.be.ok;
+      expect(list).to.be.instanceOf(Object);
+      expect(list).to.have.property('tags');
+      expect(list.tags).to.be.instanceOf(Array);
+      expect(list.tags.length).to.be.equal(2);
+    });
+  });
+  it('list: get tags, list single item', function() {
+    return dm.tagList({
+      filter: {
+        tag: {
+          search: 'meme'
+        }
+      }
+    }).then(function(list) {
+      expect(list).to.be.ok;
+      expect(list).to.be.instanceOf(Object);
+      expect(list).to.have.property('tags');
+      expect(list.tags).to.be.instanceOf(Array);
+      expect(list.tags.length).to.be.equal(1);
+    });
+  });
+  it('delete tag', function() {
+    return dm.tag('work-memes').then(function(tag) {
+      return tag.delete().then(function(deleted) {
+        expect(deleted).to.be.true;
+      });
+    });
+  });
+  it('put tag', function() {
+    return dm.tag('work-memes').then(function(tag) {
+      expect(tag).to.be.ok;
+      expect(tag).to.have.property('value');
+      expect(tag.value).to.have.property('tag', 'work-memes');
+      tag.value.tag = 'workmemes';
+      return tag.save().then(function(tag) {
+        expect(tag).to.be.ok;
+        expect(tag).to.have.property('value');
+        expect(tag.value).to.have.property('tag', 'workmemes');
+      });
+    });
+  });
+});
 describe('anonymous user', function() {
   var dm;
   beforeEach(function() {
