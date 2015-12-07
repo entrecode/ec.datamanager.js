@@ -31,7 +31,7 @@ module.exports = function(config) {
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
     reporters: ['dots', 'bamboo'],
 
-    bambooReporter:{
+    bambooReporter: {
       filename: 'test/results.json' //optional, defaults to "mocha.json"
     },
 
@@ -48,21 +48,12 @@ module.exports = function(config) {
     // enable / disable watching file and executing tests whenever any file changes
     autoWatch: false,
 
-    // you can define custom flags
-    customLaunchers: {
-      Chrome_without_security: {
-        base: 'Chrome',
-        flags: ['--disable-web-security --disable-cache']
-      },
-      PhantomJS_without_security: {
-        base: 'PhantomJS',
-        flags: ['--web-security=no']
-      }
-    },
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-    browsers: ['Chrome_without_security'],
-    //browsers: ['PhantomJS'],
+    browsers: ['Chrome'],
+    //browsers: ['Firefox'], // install launcher
+    //browsers: ['Safari'],  // install launcher
+    //browsers: ['PhantomJS'],  // install launcher
 
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits

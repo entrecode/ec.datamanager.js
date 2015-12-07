@@ -9,7 +9,7 @@
   },
   "scripts": {
     "test": "mocha test",
-    "test-travis": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec ./test/*",
+    "test-travis": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec \"test/**/*.test.js\"",
     "build": "grunt build"
   },
   "repository": {
@@ -51,7 +51,6 @@
     "karma-chai-plugins": "0.6.1",
     "karma-chrome-launcher": "0.2.1",
     "karma-mocha": "0.2.1",
-    "karma-phantomjs-launcher": "0.2.1",
     "lodash": "3.10.1",
     "mocha": "2.3.4",
     "mocha-bamboo-reporter": "1.1.0",
@@ -59,7 +58,6 @@
     "walk": "2.3.9"
   },
   "dependencies": {
-    "axios": "0.7.0",
     "es6-promise": "3.0.2",
     "halfred": "^1.0.0",
     "superagent": "1.4.0",

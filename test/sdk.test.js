@@ -905,7 +905,9 @@ describe('missing filter options', function() {
   });
   it('get entries, sort', function() {
     dm.model('to-do-item').entries({
-      sort: 'title'
+      sort: [
+        'title'
+      ]
     }).then(function(entries) {
       expect(entries).to.be.ok;
       expect(entries).to.be.instanceOf(Array);
