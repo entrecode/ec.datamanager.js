@@ -608,13 +608,19 @@ DataManager.prototype.model = function(title, metadata) {
             .get(function(err, res, traversal) {
               checkResponse(err, res).then(function(res) {
                 var body = halfred.parse(JSON.parse(res.body));
-                var entries = body.embeddedArray(dm.id + ':' + model.title);
-                if (!entries) { // single result due to filter
-                  return resolve(new Entry(body, dm, model, traversal));
+                // empty list due to filter
+                if (body.hasOwnProperty('count') && body.count === 0 && body.hasOwnProperty('total') && body.total === 0) {
+                  return resolve({entries: [], count: 0, total: 0});
                 }
+                var entries = body.embeddedArray(dm.id + ':' + model.title);
+                // single result due to filter
                 var out = [];
-                for (var i in entries) {
-                  out.push(new Entry(entries[i], dm, model, traversal)); // TODO traversal
+                if (!entries) {
+                  out.push(new Entry(body, dm, model, traversal));
+                } else {
+                  for (var i in entries) {
+                    out.push(new Entry(entries[i], dm, model, traversal));
+                  }
                 }
                 return resolve({entries: out, count: body.count, total: body.total});
               }, reject);
@@ -717,13 +723,17 @@ DataManager.prototype.assetList = function(options) {
         .get(function(err, res, traversal) {
           checkResponse(err, res).then(function(res) {
             var body = halfred.parse(JSON.parse(res.body));
-            var assets = body.embeddedArray('ec:api/asset');
-            if (!assets) { // single result due to filter
-              return resolve(new Asset(body, dm, traversal));
+            if (body.hasOwnProperty('count') && body.count === 0 && body.hasOwnProperty('total') && body.total === 0) {
+              return resolve({assets: [], count: 0, total: 0});
             }
+            var assets = body.embeddedArray('ec:api/asset');
             var out = [];
-            for (var i in assets) {
-              out.push(new Asset(assets[i], dm, traversal));
+            if (!assets) { // single result due to filter
+              out.push(new Asset(body, dm, traversal));
+            } else {
+              for (var i in assets) {
+                out.push(new Asset(assets[i], dm, traversal));
+              }
             }
             return resolve({assets: out, count: body.count, total: body.total});
           }, reject);
@@ -817,13 +827,17 @@ DataManager.prototype.tagList = function(options) {
         .get(function(err, res, traversal) {
           checkResponse(err, res).then(function(res) {
             var body = halfred.parse(JSON.parse(res.body));
-            var tags = body.embeddedArray('ec:api/tag');
-            if (!tags) { // single result due to filter
-              return resolve(new Tag(body, dm, traversal));
+            if (body.hasOwnProperty('count') && body.count === 0 && body.hasOwnProperty('total') && body.total === 0) {
+              return resolve({tags: [], count: 0, total: 0});
             }
+            var tags = body.embeddedArray('ec:api/tag');
             var out = [];
-            for (var i in tags) {
-              out.push(new Tag(tags[i], dm, traversal));
+            if (!tags) { // single result due to filter
+              out.push(new Tag(body, dm, traversal));
+            } else {
+              for (var i in tags) {
+                out.push(new Tag(tags[i], dm, traversal));
+              }
             }
             return resolve({tags: out, count: body.count, total: body.total});
           }, reject);
