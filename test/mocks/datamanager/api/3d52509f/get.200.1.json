@@ -1,0 +1,29 @@
+{
+  "qs": {},
+  "req": {},
+  "res": {
+    "dataManagerID": "768823d9-e015-4452-b8f3-6061133c5775",
+    "models": [
+      {
+        "title": "single",
+        "modelID": "35f3e34d-4f68-4d28-a369-ed6ab66bc93e",
+        "titleField": "loop",
+        "hexColor": "#d23738",
+      }
+    ],
+    "_links": {
+      "curies": {
+        "name": "3d52509f",
+        "href": "https://datamanager.entrecode.de/api/doc/3d52509f/relation/{rel}",
+        "templated": true
+      },
+      "3d52509f:single": {
+        "href": "https://datamanager.entrecode.de/api/3d52509f/single",
+        "name": "single list"
+      },
+      "ec:api/assets": {
+        "href": "https://datamanager.entrecode.de/asset/3d52509f"
+      }
+    }
+  }
+}

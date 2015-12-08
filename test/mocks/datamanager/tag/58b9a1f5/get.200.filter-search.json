@@ -1,0 +1,43 @@
+{
+  "qs": {
+    "tag~": "meme"
+  },
+  "req": {},
+  "res": {
+    "count": 1,
+    "total": 1,
+    "_links": {
+      "curies": {
+        "href": "https://doc.entrecode.de/data_manager/#relation-{rel}",
+        "templated": true
+      },
+      "ec:api/assets": {
+        "href": "https://datamanager.entrecode.de/asset/58b9a1f5"
+      },
+      "ec:api/tags/options": {
+        "href": "https://datamanager.entrecode.de/tag/58b9a1f5{?dataManagerID,page,size,sort,tag,tag~}",
+        "templated": true
+      },
+      "self": {
+        "href": "https://datamanager.entrecode.de/tag/58b9a1f5?tag~=meme"
+      }
+    },
+    "_embedded": {
+      "ec:api/tag": {
+        "count": 2,
+        "tag": "work-memes",
+        "_links": {
+          "collection": {
+            "href": "https://datamanager.entrecode.de/tag/58b9a1f5"
+          },
+          "ec:api/assets/with-tag": {
+            "href": "https://datamanager.entrecode.de/tag/58b9a1f5?tag=work-memes"
+          },
+          "self": {
+            "href": "https://datamanager.entrecode.de/tag/58b9a1f5?tag=work-memes"
+          }
+        }
+      }
+    }
+  }
+}

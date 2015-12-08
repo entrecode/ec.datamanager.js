@@ -1,0 +1,25 @@
+{
+  "qs": {
+    "tag": "work-memes"
+  },
+  "req": {},
+  "res": {
+    "count": 2,
+    "tag": "work-memes",
+    "_links": {
+      "collection": {
+        "href": "https://datamanager.entrecode.de/tag/58b9a1f5"
+      },
+      "ec:api/assets/with-tag": {
+        "href": "https://datamanager.entrecode.de/tag/58b9a1f5?tag=work-memes"
+      },
+      "self": {
+        "href": "https://datamanager.entrecode.de/tag/58b9a1f5?tag=work-memes"
+      },
+      "curies": {
+        "href": "https://doc.entrecode.de/data_manager/#relation-{rel}",
+        "templated": true
+      }
+    }
+  }
+}

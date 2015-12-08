@@ -1,0 +1,100 @@
+{
+  "qs": {
+    "assetID": "ad994f77-9d89-4f7d-ab98-f2947a335da1"
+  },
+  "req": {},
+  "res": {
+    "assetID": "ad994f77-9d89-4f7d-ab98-f2947a335da1",
+    "created": "2015-12-07T12:25:01.459Z",
+    "files": [
+      {
+        "url": "https://cdn2.entrecode.de/files/58b9a1f5/qu2-7L-AD9htTRNck5O-rRca_200_thumb.jpg",
+        "mimetype": "image/jpeg",
+        "size": 7814,
+        "resolution": {
+          "width": 200,
+          "height": 200
+        },
+        "locale": null,
+        "created": "2015-12-07T12:25:01.732+00:00",
+        "modified": "2015-12-07T12:25:01.732+00:00",
+        "assetID": "ad994f77-9d89-4f7d-ab98-f2947a335da1"
+      },
+      {
+        "url": "https://cdn2.entrecode.de/files/58b9a1f5/qu2-7L-AD9htTRNck5O-rRca_100_thumb.jpg",
+        "mimetype": "image/jpeg",
+        "size": 3410,
+        "resolution": {
+          "width": 100,
+          "height": 100
+        },
+        "locale": null,
+        "created": "2015-12-07T12:25:01.718+00:00",
+        "modified": "2015-12-07T12:25:01.718+00:00",
+        "assetID": "ad994f77-9d89-4f7d-ab98-f2947a335da1"
+      },
+      {
+        "url": "https://cdn2.entrecode.de/files/58b9a1f5/qu2-7L-AD9htTRNck5O-rRca_256.jpg",
+        "mimetype": "image/jpeg",
+        "size": 9025,
+        "resolution": {
+          "width": 256,
+          "height": 159
+        },
+        "locale": null,
+        "created": "2015-12-07T12:25:01.759+00:00",
+        "modified": "2015-12-07T12:25:01.759+00:00",
+        "assetID": "ad994f77-9d89-4f7d-ab98-f2947a335da1"
+      },
+      {
+        "url": "https://cdn2.entrecode.de/files/58b9a1f5/qu2-7L-AD9htTRNck5O-rRca.jpg",
+        "mimetype": "image/jpeg",
+        "size": 31781,
+        "resolution": {
+          "width": 419,
+          "height": 261
+        },
+        "locale": null,
+        "created": "2015-12-07T12:25:01.44+00:00",
+        "modified": "2015-12-07T12:25:01.44+00:00",
+        "assetID": "ad994f77-9d89-4f7d-ab98-f2947a335da1"
+      },
+      {
+        "url": "https://cdn2.entrecode.de/files/58b9a1f5/qu2-7L-AD9htTRNck5O-rRca_50_thumb.jpg",
+        "mimetype": "image/jpeg",
+        "size": 1594,
+        "resolution": {
+          "width": 50,
+          "height": 50
+        },
+        "locale": null,
+        "created": "2015-12-07T12:25:01.731+00:00",
+        "modified": "2015-12-07T12:25:01.731+00:00",
+        "assetID": "ad994f77-9d89-4f7d-ab98-f2947a335da1"
+      }
+    ],
+    "tags": [],
+    "title": "whynotboth",
+    "type": "image",
+    "_links": {
+      "collection": {
+        "href": "https://datamanager.entrecode.de/asset/58b9a1f5"
+      },
+      "ec:asset/best-file": {
+        "href": "https://datamanager.entrecode.de/files/ad994f77-9d89-4f7d-ab98-f2947a335da1{?size,thumb}",
+        "templated": true
+      },
+      "self": {
+        "href": "https://datamanager.entrecode.de/asset/58b9a1f5?assetID=ad994f77-9d89-4f7d-ab98-f2947a335da1",
+        "title": "whynotboth"
+      },
+      "ec:api/asset/creator": {
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5/user?id=1cf9e28e-fa54-4dea-be14-d9dbcc0c3c69"
+      },
+      "curies": {
+        "href": "https://doc.entrecode.de/data_manager/#relation-{rel}",
+        "templated": true
+      }
+    }
+  }
+}

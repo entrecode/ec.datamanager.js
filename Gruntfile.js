@@ -13,18 +13,21 @@ module.exports = function(grunt) {
     express: {
       options: {
         port: 54815,
-        output: 'Test Server running on.*'
+        output: 'Testserver started an listening on port*'
         // Override defaults here
       },
       test: {
         options: {
-          script: 'node_modules/ec.appcms-mock.js/server.js'
+          script: 'test/mocks/mockserver.js'
         }
       }
     },
     run: {
       coverage: {
-        exec: 'istanbul cover _mocha -- --recursive -R spec '
+        exec: 'istanbul cover _mocha -- -R spec "test/**/*.test.js"'
+      },
+      openCoverage: {
+        exec: 'open coverage/lcov-report/index.html'
       },
       browserify: {
         exec: 'browserify -r ./index.js:ec.datamanager.js -s DataManager -o ./build/datamanager.js'
@@ -33,7 +36,7 @@ module.exports = function(grunt) {
     uglify: {
       datamanagerjs: {
         files: {
-          './build/datamanager.js': ['./build/datamanager.js']
+          './build/datamanager.min.js': ['./build/datamanager.js']
         }
       }
     },
@@ -54,12 +57,12 @@ module.exports = function(grunt) {
     },
     mochaTest: {
       test: {
-        src: ['test/*.js']
+        src: ['test/**/*.test.js']
       }
     },
     karma: {
       test: {
-        configFile: 'karma.conf.js'
+        configFile: 'test/karma.conf.js'
       }
     }
   });
@@ -69,8 +72,8 @@ module.exports = function(grunt) {
   grunt.registerTask('mockserver-stop', ['express:test:stop']);
   grunt.registerTask('test-backend', 'mochaTest');
   grunt.registerTask('test-frontend', ['build', 'mockserver', 'karma:test', 'mockserver-stop']);
-  //grunt.registerTask('test-frontend', ['mockserver', 'karma:test', 'mockserver-stop']);
   grunt.registerTask('build', ['run:browserify', 'uglify']);
-  //grunt.registerTask('build', ['run:browserify']);
   grunt.registerTask('test', ['test-backend', 'test-frontend']);
+  grunt.registerTask('coverage', ['coverage-bamboo', 'run:openCoverage']);
+  grunt.registerTask('coverage-bamboo', ['run:coverage']);
 };

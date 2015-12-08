@@ -1,0 +1,115 @@
+{
+  "qs": {
+    "template": "get"
+  },
+  "req": {},
+  "res": {
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "https://datamanager.entrecode.de/api/schema/58b9a1f5/to-do-item",
+    "type": "object",
+    "allOf": [
+      {
+        "$ref": "https://entrecode.de/schema/hal#definitions/halResource"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "_links": {
+            "$ref": "https://entrecode.de/schema/hal#_links"
+          },
+          "_id": {
+            "type": "string",
+            "pattern": "^[0-9A-Za-z-_]{7,14}$",
+            "title": "id",
+            "description": "Unique identifier for this entry."
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9A-Za-z-_]{7,14}$",
+            "title": "id",
+            "description": "Unique identifier for this entry."
+          },
+          "private": {
+            "type": "boolean",
+            "description": "Indicates if an entry was posted private."
+          },
+          "_created": {
+            "type": "string",
+            "format": "date-time",
+            "title": "datetime",
+            "description": "Timestamp of the creation of this entry."
+          },
+          "created": {
+            "type": "string",
+            "format": "date-time",
+            "title": "datetime",
+            "description": "Timestamp of the creation of this entry."
+          },
+          "_creator": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "title": "account",
+            "description": "Creator of this entry."
+          },
+          "creator": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "title": "account",
+            "description": "Creator of this entry."
+          },
+          "_modified": {
+            "type": "string",
+            "format": "date-time",
+            "title": "datetime",
+            "description": "Timestamp of the last modification of this entry."
+          },
+          "modified": {
+            "type": "string",
+            "format": "date-time",
+            "title": "datetime",
+            "description": "Timestamp of the last modification of this entry."
+          },
+          "_modelTitleField": {
+            "type": "string",
+            "description": "Indicates which field is the title field of the model."
+          },
+          "title": {
+            "type": "string",
+            "title": "text",
+            "description": "Title of the list item"
+          },
+          "description": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "formattedText",
+            "description": "Describes the to do item"
+          },
+          "_assets_description": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-4[0-9A-Fa-f]{3}-[89ABab][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12}$"
+            }
+          }
+        },
+        "required": [
+          "_id",
+          "_created",
+          "_modified",
+          "_modelTitleField",
+          "title"
+        ]
+      }
+    ]
+  }
+}

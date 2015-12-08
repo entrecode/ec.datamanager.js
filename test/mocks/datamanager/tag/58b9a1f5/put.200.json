@@ -1,0 +1,54 @@
+{
+  "qs": {
+    "tag": "work-memes"
+  },
+  "req": {
+    "count": 2,
+    "tag": "workmemes",
+    "_links": {
+      "collection": [
+        {
+          "href": "https://datamanager.entrecode.de/tag/58b9a1f5",
+          "templated": false
+        }
+      ],
+      "ec:api/assets/with-tag": [
+        {
+          "href": "https://datamanager.entrecode.de/tag/58b9a1f5?tag=work-memes",
+          "templated": false
+        }
+      ],
+      "self": [
+        {
+          "href": "https://datamanager.entrecode.de/tag/58b9a1f5?tag=work-memes",
+          "templated": false
+        }
+      ],
+      "curies": [
+        {
+          "href": "https://doc.entrecode.de/data_manager/#relation-{rel}",
+          "templated": true
+        }
+      ]
+    }
+  },
+  "res": {
+    "count": 2,
+    "tag": "workmemes",
+    "_links": {
+      "collection": {
+        "href": "https://datamanager.entrecode.de/tag/58b9a1f5"
+      },
+      "ec:api/assets/with-tag": {
+        "href": "https://datamanager.entrecode.de/tag/58b9a1f5?tag=workmemes"
+      },
+      "self": {
+        "href": "https://datamanager.entrecode.de/tag/58b9a1f5?tag=workmemes"
+      },
+      "curies": {
+        "href": "https://doc.entrecode.de/data_manager/#relation-{rel}",
+        "templated": true
+      }
+    }
+  }
+}

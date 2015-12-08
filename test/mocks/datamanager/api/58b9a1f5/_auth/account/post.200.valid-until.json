@@ -1,0 +1,12 @@
+{
+  "qs": {
+    "validUntil": "2025-11-09T09:58:04.000Z"
+  },
+  "req": {},
+  "res": {
+    "jwt": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJlbWFpbCI6bnVsbCwianRpIjoiN2JlYzRmMDMtMzg2ZS00OWM2LThjMmYtZjlmNDA0ZWNjYTRiIiwiaWF0IjoxNDQ5MjQwNTEyLCJleHAiOjQ2MDI4NDA1MTIsImlzcyI6ImVjX2RhdGFtYW5hZ2VyX3Nka190ZXN0c18xIiwic3ViIjoiOGVmZTE5MTktMjNhMy00ZmE2LTliZGUtMzlmYmU4NTdjYTUwIn0.inMjpMhImlO6Yy1RSycBOOVOw24Sqy7Ee7qZS9JFBYLIRA1zlvVEP7HPGEZeFnARNejpl_iuEzjLlu4DhYBLdw86IqttdbkSQi2e--RCF_UARr1b4aZnnuZ82cKifdqi_ulIQ7WkTHikOosyjRmI89nr6xJoJhD9iv-2TQ6dNJs",
+    "accountID": "8efe1919-23a3-4fa6-9bde-39fbe857ca50",
+    "iat": "2015-12-04T14:48:32.000Z",
+    "exp": "2025-11-09T09:58:04.000Z"
+  }
+}
