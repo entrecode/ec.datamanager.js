@@ -1,0 +1,35 @@
+{
+  "qs": {
+    "_id": "V1EXdcJHl"
+  },
+  "req": {},
+  "res": {
+    "_id": "V1EXdcJHl",
+    "_created": "2015-12-08T09:55:15.171Z",
+    "_creator": null,
+    "_modified": "2015-12-08T09:55:15.171Z",
+    "id": "V1EXdcJHl",
+    "created": "2015-12-08T09:55:15.171Z",
+    "modified": "2015-12-08T09:55:15.171Z",
+    "private": false,
+    "title": "Single Item List",
+    "list-items": [
+      "N1GJuenPEl"
+    ],
+    "description": "",
+    "_modelTitleField": "title",
+    "_links": {
+      "collection": {
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-list"
+      },
+      "self": {
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-list?id=V1EXdcJHl"
+      },
+      "58b9a1f5:to-do-list/list-items": {
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?id=N1GJuenPEl",
+        "name": "to-do-item",
+        "title": "NewItem"
+      }
+    }
+  }
+}

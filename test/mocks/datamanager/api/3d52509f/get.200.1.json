@@ -7,8 +7,8 @@
       {
         "title": "single",
         "modelID": "35f3e34d-4f68-4d28-a369-ed6ab66bc93e",
-        "titleField": "_id",
-        "hexColor": "#d23738"
+        "titleField": "loop",
+        "hexColor": "#d23738",
       }
     ],
     "_links": {

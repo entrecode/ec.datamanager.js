@@ -623,6 +623,22 @@ describe('entry/entries', function() { // this is basically modelList
       expect(entry.value).to.have.property('description', '<p>New Description.</p>');
     });
   });
+  it('get link title', function() {
+    return dm.model('to-do-list').entry('4JMjeO737e').then(function(entry) {
+      var title = entry.getTitle('list-items');
+      expect(title).to.be.instanceOf(Array);
+      expect(title.length).to.be.equal(3);
+      expect(title[0]).to.be.equal('Bananas');
+      expect(title[1]).to.be.equal('Oranges');
+      expect(title[2]).to.be.equal('Apples');
+    });
+  });
+  it('get link title single link', function() {
+    return dm.model('to-do-list').entry('V1EXdcJHl').then(function(entry){
+      var title = entry.getTitle('list-items');
+      expect(title).to.be.equal('NewItem');
+    });
+  });
 });
 
 describe('asset/assets', function() {
