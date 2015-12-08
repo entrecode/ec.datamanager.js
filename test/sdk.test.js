@@ -745,7 +745,7 @@ describe('asset/assets', function() {
       });
     });
     it('create asset, node, multiple', function() {
-      // TODO nock cannot differ request for multipart file upload. so this test receives same response as single upload
+      // nock cannot differ request for multipart file upload. so this test receives same response as single upload
       return dm.createAsset([__dirname + '/whynotboth.jpg', __dirname + '/whynotboth.jpg']).then(function(assets) {
         expect(assets).to.be.instanceOf(Array);
         expect(assets.length).to.be.equal(1);
