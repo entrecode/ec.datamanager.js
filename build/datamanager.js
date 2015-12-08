@@ -610,11 +610,11 @@ DataManager.prototype.model = function(title, metadata) {
                 var body = halfred.parse(JSON.parse(res.body));
                 var entries = body.embeddedArray(dm.id + ':' + model.title);
                 if (!entries) { // single result due to filter
-                  return resolve(new Entry(body, dm, traversal));
+                  return resolve(new Entry(body, dm, model, traversal));
                 }
                 var out = [];
                 for (var i in entries) {
-                  out.push(new Entry(entries[i], dm, traversal)); // TODO traversal
+                  out.push(new Entry(entries[i], dm, model, traversal)); // TODO traversal
                 }
                 return resolve({entries: out, count: body.count, total: body.total});
               }, reject);
@@ -657,7 +657,7 @@ DataManager.prototype.model = function(title, metadata) {
           t.withRequestOptions(dm._requestOptions())
             .get(function(err, res, traversal) {
               checkResponse(err, res).then(function(res) {
-                return resolve(new Entry(halfred.parse(JSON.parse(res.body)), dm, traversal)); // TODO auth header // TODO traversal
+                return resolve(new Entry(halfred.parse(JSON.parse(res.body)), dm, model, traversal)); // TODO auth header // TODO traversal
               }, reject);
             });
         });
@@ -678,7 +678,7 @@ DataManager.prototype.model = function(title, metadata) {
                 if (res.statusCode === 204) {
                   return resolve(true);
                 }
-                return resolve(new Entry(halfred.parse(JSON.parse(res.body)), dm, traversal));
+                return resolve(new Entry(halfred.parse(JSON.parse(res.body)), dm, model, traversal));
               }, reject);
             });
         });
@@ -914,9 +914,10 @@ DataManager.prototype._requestOptions = function(additionalHeaders) {
   return out;
 };
 
-var Entry = function(entry, dm, traversal) {
+var Entry = function(entry, dm, model, traversal) {
   this.value = entry;
   this._dm = dm;
+  this._model = model;
   this._traversal = traversal;
 
   this.save = function() {
@@ -924,7 +925,7 @@ var Entry = function(entry, dm, traversal) {
     return new Promise(function(resolve, reject) {
       entry._getTraversal().then(function(traversal) {
         var out = {};
-        for (var key in entry.value._original) {
+        for (var key in entry.value.original()) {
           out[key] = entry.value[key];
         }
         traversal.continue().newRequest()
@@ -961,6 +962,26 @@ var Entry = function(entry, dm, traversal) {
     });
   };
 
+  /**
+   * Returns the title of a given property of this entry. Only works for linked types.
+   * @param {String} property The name of the property of interest.
+   * @returns {String|Array}
+   */
+  this.getTitle = function(property) {
+    var links = this.value.linkArray(this._dm.id + ':' + this._model.title + '/' + property);
+    if (!links) {
+      return undefined;
+    }
+    if (links.length === 1) {
+      return links[0].title;
+    }
+    var out = [];
+    for (var i in links) {
+      out.push(links[i].title);
+    }
+    return out;
+  };
+
   this._getTraversal = function() {
     var entry = this;
     return new Promise(function(resolve, reject) {
@@ -982,7 +1003,7 @@ var Asset = function(asset, dm, traversal) {
     return new Promise(function(resolve, reject) {
       asset._getTraversal().then(function(traversal) {
         var out = {};
-        for (var key in asset.value._original) {
+        for (var key in asset.value.original()) {
           out[key] = asset.value[key];
         }
         traversal.continue().newRequest()
@@ -1060,7 +1081,7 @@ var Tag = function(tag, dm, traversal) {
     return new Promise(function(resolve, reject) {
       tag._getTraversal().then(function(traversal) {
         var out = {};
-        for (var key in tag.value._original) {
+        for (var key in tag.value.original()) {
           out[key] = tag.value[key];
         }
         traversal.continue().newRequest()
