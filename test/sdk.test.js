@@ -531,11 +531,24 @@ describe('entry/entries', function() { // this is basically modelList
           exact: 'VkGhAPQ2Qe'
         }
       }
-    }).then(function(entry) {
-      expect(entry).to.be.ok;
-      expect(entry).to.be.instanceOf(Object);
-      expect(entry).to.have.property('value');
-      expect(entry.value).to.have.property('_id', 'VkGhAPQ2Qe');
+    }).then(function(entries) {
+      expect(entries).to.be.ok;
+      expect(entries).to.be.instanceOf(Array);
+      expect(entries[0]).to.be.instanceOf(Object);
+      expect(entries[0]).to.have.property('value');
+      expect(entries[0].value).to.have.property('_id', 'VkGhAPQ2Qe');
+    });
+  });
+  it('empty result on list', function() {
+    return dm.model('to-do-item').entries({
+      filter: {
+        title: {
+          exact: 'asdfasdf'
+        }
+      }
+    }).then(function(entries) {
+      expect(entries).to.be.instanceOf(Array);
+      expect(entries.length).to.be.equal(0)
     });
   });
   it('list: get entries, list single item', function() {
@@ -634,7 +647,7 @@ describe('entry/entries', function() { // this is basically modelList
     });
   });
   it('get link title single link', function() {
-    return dm.model('to-do-list').entry('V1EXdcJHl').then(function(entry){
+    return dm.model('to-do-list').entry('V1EXdcJHl').then(function(entry) {
       var title = entry.getTitle('list-items');
       expect(title).to.be.equal('NewItem');
     });
@@ -695,12 +708,16 @@ describe('asset/assets', function() {
           exact: '443163b2-71a9-4f2a-987b-c7c7f31c7e30'
         }
       }
-    }).then(function(asset) {
-      expect(asset).to.be.ok;
-      expect(asset).to.be.instanceOf(Object);
-      expect(asset).to.have.property('value');
-      expect(asset.value).to.have.property('assetID', '443163b2-71a9-4f2a-987b-c7c7f31c7e30');
+    }).then(function(assets) {
+      expect(assets).to.be.ok;
+      expect(assets).to.be.instanceOf(Array);
+      expect(assets[0]).to.be.instanceOf(Object);
+      expect(assets[0]).to.have.property('value');
+      expect(assets[0].value).to.have.property('assetID', '443163b2-71a9-4f2a-987b-c7c7f31c7e30');
     });
+  });
+  it('empty result on list', function() {
+    // TODO
   });
   it('list: get asset, list single item', function() {
     return dm.assetList().then(function(list) {
@@ -844,13 +861,17 @@ describe('tag/tags', function() {
           exact: 'work-memes'
         }
       }
-    }).then(function(tag) {
-      expect(tag).to.be.ok;
-      expect(tag).to.be.instanceOf(Object);
-      expect(tag).to.have.property('value');
-      expect(tag.value).to.have.property('tag', 'work-memes');
-      expect(tag.value).to.have.property('count', 2);
+    }).then(function(tags) {
+      expect(tags).to.be.ok;
+      expect(tags).to.be.instanceOf(Array);
+      expect(tags[0]).to.be.instanceOf(Object);
+      expect(tags[0]).to.have.property('value');
+      expect(tags[0].value).to.have.property('tag', 'work-memes');
+      expect(tags[0].value).to.have.property('count', 2);
     });
+  });
+  it('empty result on list', function() {
+    // TODO
   });
   it('list: get tags, list multiple items', function() {
     return dm.tagList().then(function(list) {
