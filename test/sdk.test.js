@@ -80,7 +80,7 @@ describe('tests for working mocks', function() {
 });
 
 describe('datamanager constructor', function() {
-  it('create datamanager from url', function(done) {
+  it('from url', function(done) {
     var dm = new DataManager({
       url: 'https://datamanager.entrecode.de/api/58b9a1f5/'
     });
@@ -88,7 +88,7 @@ describe('datamanager constructor', function() {
     expect(dm).to.have.property('url', 'https://datamanager.entrecode.de/api/58b9a1f5');
     return done();
   });
-  it('create datamanager from url without trailing slash', function(done) {
+  it('from url without trailing slash', function(done) {
     var dm = new DataManager({
       url: 'https://datamanager.entrecode.de/api/58b9a1f5'
     });
@@ -96,7 +96,7 @@ describe('datamanager constructor', function() {
     expect(dm).to.have.property('url', 'https://datamanager.entrecode.de/api/58b9a1f5');
     return done();
   });
-  it('create datamanager from url and accessToken', function(done) {
+  it('from url and accessToken', function(done) {
     var dm = new DataManager({
       url: 'https://datamanager.entrecode.de/api/58b9a1f5/',
       accessToken: 'test'
@@ -107,7 +107,7 @@ describe('datamanager constructor', function() {
     expect(dm).to.have.property('accessToken', 'test');
     return done();
   });
-  it('create datamanager from id', function(done) {
+  it('from id', function(done) {
     var dm = new DataManager({
       id: '58b9a1f5'
     });
@@ -115,7 +115,7 @@ describe('datamanager constructor', function() {
     expect(dm).to.have.property('url', 'https://datamanager.entrecode.de/api/58b9a1f5');
     return done();
   });
-  it('create datamanager from id and accessToken', function(done) {
+  it('from id and accessToken', function(done) {
     var dm = new DataManager({
       id: '58b9a1f5',
       accessToken: 'test'
@@ -124,6 +124,17 @@ describe('datamanager constructor', function() {
     expect(dm).to.have.property('url', 'https://datamanager.entrecode.de/api/58b9a1f5');
     expect(dm).to.have.property('id', '58b9a1f5');
     expect(dm).to.have.property('accessToken', 'test');
+    return done();
+  });
+  it('from id and clientID', function(done) {
+    var dm = new DataManager({
+      id: '58b9a1f5',
+      clientID: 'test'
+    });
+    expect(dm).to.be.instanceOf(DataManager);
+    expect(dm).to.have.property('url', 'https://datamanager.entrecode.de/api/58b9a1f5');
+    expect(dm).to.have.property('id', '58b9a1f5');
+    expect(dm).to.have.property('clientID', 'test');
     return done();
   });
   it('fails if illegal url is given', function(done) {
