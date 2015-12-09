@@ -1087,3 +1087,98 @@ describe('anonymous user', function() {
     });
   });
 });
+
+describe('get auth links', function() {
+  var dm;
+  beforeEach(function() {
+    dm = new DataManager({
+      url: baseUrl + '58b9a1f5'
+    });
+  });
+  afterEach(function() {
+    dm = null;
+  });
+  it('anonymous', function() {
+    return dm.getAuthLink('anonymous').then(function(url) {
+      expect(url).to.be.equal(baseUrl+ '58b9a1f5/_auth/account');
+    });
+  });
+  it('anonymous with validUntil', function() {
+    return dm.getAuthLink('anonymous', {validUntil: '2025-11-09T09:58:04.000Z'}).then(function(url) {
+      expect(url).to.be.equal(baseUrl + '58b9a1f5/_auth/account?validUntil=2025-11-09T09%3A58%3A04.000Z');
+    });
+  });
+  it('signup', function() {
+    return dm.getAuthLink('signup', {clientID: 'testClient'}).then(function(url) {
+      expect(url).to.be.equal(baseUrl + '58b9a1f5/_auth/signup?clientID=testClient');
+    });
+  });
+  it('login', function() {
+    return dm.getAuthLink('login', {clientID: 'testClient'}).then(function(url) {
+      expect(url).to.be.equal(baseUrl + '58b9a1f5/_auth/login?clientID=testClient');
+    });
+  });
+  it('password reset', function() {
+    return dm.getAuthLink('password-reset', {clientID: 'testClient', email: 'some@mail.com'}).then(function(url) {
+      expect(url).to.be.equal(baseUrl + '58b9a1f5/_auth/password-reset?clientID=testClient&email=some%40mail.com');
+    });
+  });
+  it('email available', function() {
+    return dm.getAuthLink('email-available', {email: 'some@mail.com'}).then(function(url) {
+      expect(url).to.be.equal(baseUrl + '58b9a1f5/_auth/email?email=some%40mail.com');
+    });
+  });
+  it('public key', function() {
+    return dm.getAuthLink('public-key.pem').then(function(url) {
+      expect(url).to.be.equal(baseUrl + '58b9a1f5/_auth/public-key.pem');
+    });
+  });
+  it('not available', function() {
+    return dm.getAuthLink('not-available').then(function(result) {
+      throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+    }).catch(function(err) {
+      expect(err).to.be.ok;
+    });
+  });
+  it('clientID from dm', function() {
+    dm.clientID = 'testClient';
+    return dm.getAuthLink('login').then(function(url) {
+      expect(url).to.be.equal(baseUrl + '58b9a1f5/_auth/login?clientID=testClient');
+    });
+  });
+  it('overwrite clientID from dm', function() {
+    dm.clientID = 'testDMClient';
+    return dm.getAuthLink('login', {clientID: 'testClient'}).then(function(url) {
+      expect(url).to.be.equal(baseUrl + '58b9a1f5/_auth/login?clientID=testClient');
+    });
+  });
+});
+
+describe('auth helper', function() {
+  var dm;
+  beforeEach(function() {
+    dm = new DataManager({
+      url: baseUrl + '58b9a1f5'
+    });
+  });
+  afterEach(function() {
+    dm = null;
+  });
+  it('email available', function() {
+    return dm.emailAvailable('available@entrecode.de').then(function(available) {
+      expect(available).to.be.true;
+    });
+  });
+  it('email not available', function() {
+    return dm.emailAvailable('not-available@entrecode.de').then(function(available) {
+      expect(available).to.be.false;
+    });
+  });
+  it('email malformed', function() {
+    return dm.emailAvailable('malformed').then(function(result) {
+      throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+    }).catch(function(err) {
+      expect(err).to.be.ok;
+    });
+  });
+});
