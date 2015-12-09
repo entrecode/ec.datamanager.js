@@ -647,6 +647,13 @@ describe('entry/entries', function() { // this is basically modelList
       expect(entry.value).to.have.property('description', '<p>New Description.</p>');
     });
   });
+  it('put entry, 204', function() {
+    return dm.model('to-do-item').entry('VkGhAPQ2Qe').then(function(entry) {
+      return entry.save();
+    }).then(function(saved) {
+      expect(saved).to.be.true;
+    });
+  });
   it('get link title', function() {
     return dm.model('to-do-list').entry('4JMjeO737e').then(function(entry) {
       var title = entry.getTitle('list-items');
@@ -728,7 +735,16 @@ describe('asset/assets', function() {
     });
   });
   it('empty result on list', function() {
-    // TODO
+    return dm.assets({
+      filter: {
+        title: {
+          exact: 'hello'
+        }
+      }
+    }).then(function(entries) {
+      expect(entries).to.be.instanceOf(Array);
+      expect(entries.length).to.be.equal(0)
+    });
   });
   it('list: get asset, list single item', function() {
     return dm.assetList().then(function(list) {
@@ -823,6 +839,9 @@ describe('asset/assets', function() {
       });
     });
   });
+  it('put asset, 204', function() {
+    // TODO
+  });
 });
 
 describe('tag/tags', function() {
@@ -882,7 +901,16 @@ describe('tag/tags', function() {
     });
   });
   it('empty result on list', function() {
-    // TODO
+    return dm.tags({
+      filter: {
+        tag: {
+          search: 'buh'
+        }
+      }
+    }).then(function(entries) {
+      expect(entries).to.be.instanceOf(Array);
+      expect(entries.length).to.be.equal(0)
+    });
   });
   it('list: get tags, list multiple items', function() {
     return dm.tagList().then(function(list) {
@@ -927,6 +955,9 @@ describe('tag/tags', function() {
         expect(tag.value).to.have.property('tag', 'workmemes');
       });
     });
+  });
+  it('put tag, 204', function() {
+    // TODO
   });
 });
 
