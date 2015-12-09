@@ -23,10 +23,10 @@
         "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-list"
       },
       "self": {
-        "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-list?id=V1EXdcJHl"
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-list?_id=V1EXdcJHl"
       },
       "58b9a1f5:to-do-list/list-items": {
-        "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?id=N1GJuenPEl",
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?_id=N1GJuenPEl",
         "name": "to-do-item",
         "title": "NewItem"
       }

@@ -23,6 +23,10 @@
       },
       "ec:api/assets": {
         "href": "https://datamanager.entrecode.de/asset/3d52509f"
+      },
+      "3d52509f:_auth/public-key.pem": {
+        "name": "Public key for JWT validation",
+        "href": "https://datamanager.entrecode.de/api/3d52509f/_auth/public-key.pem"
       }
     }
   }
