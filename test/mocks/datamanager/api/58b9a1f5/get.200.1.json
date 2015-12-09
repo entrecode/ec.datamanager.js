@@ -38,6 +38,30 @@
         "name": "Register new anonymous account (POST)",
         "href": "https://datamanager.entrecode.de/api/58b9a1f5/_auth/account{?validUntil}",
         "templated": true
+      },
+      "58b9a1f5:_auth/signup": {
+        "name": "Register new account (POST)",
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5/_auth/signup{?clientID,invite}",
+        "templated": true
+      },
+      "58b9a1f5:_auth/login": {
+        "name": "Sign in to an existing account",
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5/_auth/login{?clientID}",
+        "templated": true
+      },
+      "58b9a1f5:_auth/password-reset": {
+        "name": "Request a password reset",
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5/_auth/password-reset{?clientID,email}",
+        "templated": true
+      },
+      "58b9a1f5:_auth/email-available": {
+        "name": "Test if given email is already registered",
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5/_auth/email{?email}",
+        "templated": true
+      },
+      "58b9a1f5:_auth/public-key.pem": {
+        "name": "Public key for JWT validation",
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5/_auth/public-key.pem"
       }
     }
   }

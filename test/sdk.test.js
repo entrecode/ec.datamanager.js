@@ -80,7 +80,7 @@ describe('tests for working mocks', function() {
 });
 
 describe('datamanager constructor', function() {
-  it('create datamanager from url', function(done) {
+  it('from url', function(done) {
     var dm = new DataManager({
       url: 'https://datamanager.entrecode.de/api/58b9a1f5/'
     });
@@ -88,7 +88,7 @@ describe('datamanager constructor', function() {
     expect(dm).to.have.property('url', 'https://datamanager.entrecode.de/api/58b9a1f5');
     return done();
   });
-  it('create datamanager from url without trailing slash', function(done) {
+  it('from url without trailing slash', function(done) {
     var dm = new DataManager({
       url: 'https://datamanager.entrecode.de/api/58b9a1f5'
     });
@@ -96,7 +96,7 @@ describe('datamanager constructor', function() {
     expect(dm).to.have.property('url', 'https://datamanager.entrecode.de/api/58b9a1f5');
     return done();
   });
-  it('create datamanager from url and accessToken', function(done) {
+  it('from url and accessToken', function(done) {
     var dm = new DataManager({
       url: 'https://datamanager.entrecode.de/api/58b9a1f5/',
       accessToken: 'test'
@@ -107,7 +107,7 @@ describe('datamanager constructor', function() {
     expect(dm).to.have.property('accessToken', 'test');
     return done();
   });
-  it('create datamanager from id', function(done) {
+  it('from id', function(done) {
     var dm = new DataManager({
       id: '58b9a1f5'
     });
@@ -115,7 +115,7 @@ describe('datamanager constructor', function() {
     expect(dm).to.have.property('url', 'https://datamanager.entrecode.de/api/58b9a1f5');
     return done();
   });
-  it('create datamanager from id and accessToken', function(done) {
+  it('from id and accessToken', function(done) {
     var dm = new DataManager({
       id: '58b9a1f5',
       accessToken: 'test'
@@ -124,6 +124,17 @@ describe('datamanager constructor', function() {
     expect(dm).to.have.property('url', 'https://datamanager.entrecode.de/api/58b9a1f5');
     expect(dm).to.have.property('id', '58b9a1f5');
     expect(dm).to.have.property('accessToken', 'test');
+    return done();
+  });
+  it('from id and clientID', function(done) {
+    var dm = new DataManager({
+      id: '58b9a1f5',
+      clientID: 'test'
+    });
+    expect(dm).to.be.instanceOf(DataManager);
+    expect(dm).to.have.property('url', 'https://datamanager.entrecode.de/api/58b9a1f5');
+    expect(dm).to.have.property('id', '58b9a1f5');
+    expect(dm).to.have.property('clientID', 'test');
     return done();
   });
   it('fails if illegal url is given', function(done) {
@@ -636,6 +647,13 @@ describe('entry/entries', function() { // this is basically modelList
       expect(entry.value).to.have.property('description', '<p>New Description.</p>');
     });
   });
+  it('put entry, 204', function() {
+    return dm.model('to-do-item').entry('VkGhAPQ2Qe').then(function(entry) {
+      return entry.save();
+    }).then(function(saved) {
+      expect(saved).to.be.true;
+    });
+  });
   it('get link title', function() {
     return dm.model('to-do-list').entry('4JMjeO737e').then(function(entry) {
       var title = entry.getTitle('list-items');
@@ -717,7 +735,16 @@ describe('asset/assets', function() {
     });
   });
   it('empty result on list', function() {
-    // TODO
+    return dm.assets({
+      filter: {
+        title: {
+          exact: 'hello'
+        }
+      }
+    }).then(function(entries) {
+      expect(entries).to.be.instanceOf(Array);
+      expect(entries.length).to.be.equal(0)
+    });
   });
   it('list: get asset, list single item', function() {
     return dm.assetList().then(function(list) {
@@ -762,7 +789,7 @@ describe('asset/assets', function() {
       });
     });
     it('create asset, node, multiple', function() {
-      // TODO nock cannot differ request for multipart file upload. so this test receives same response as single upload
+      // nock cannot differ request for multipart file upload. so this test receives same response as single upload
       return dm.createAsset([__dirname + '/whynotboth.jpg', __dirname + '/whynotboth.jpg']).then(function(assets) {
         expect(assets).to.be.instanceOf(Array);
         expect(assets.length).to.be.equal(1);
@@ -811,6 +838,9 @@ describe('asset/assets', function() {
         expect(asset.value).to.have.property('title', 'brum');
       });
     });
+  });
+  it('put asset, 204', function() {
+    // TODO
   });
 });
 
@@ -871,7 +901,16 @@ describe('tag/tags', function() {
     });
   });
   it('empty result on list', function() {
-    // TODO
+    return dm.tags({
+      filter: {
+        tag: {
+          search: 'buh'
+        }
+      }
+    }).then(function(entries) {
+      expect(entries).to.be.instanceOf(Array);
+      expect(entries.length).to.be.equal(0)
+    });
   });
   it('list: get tags, list multiple items', function() {
     return dm.tagList().then(function(list) {
@@ -916,6 +955,9 @@ describe('tag/tags', function() {
         expect(tag.value).to.have.property('tag', 'workmemes');
       });
     });
+  });
+  it('put tag, 204', function() {
+    // TODO
   });
 });
 
@@ -1042,6 +1084,101 @@ describe('anonymous user', function() {
         expect(dm).to.have.property('accessToken', undefined);
         expect(dm).to.have.property('_user', undefined);
       });
+    });
+  });
+});
+
+describe('get auth links', function() {
+  var dm;
+  beforeEach(function() {
+    dm = new DataManager({
+      url: baseUrl + '58b9a1f5'
+    });
+  });
+  afterEach(function() {
+    dm = null;
+  });
+  it('anonymous', function() {
+    return dm.getAuthLink('anonymous').then(function(url) {
+      expect(url).to.be.equal(baseUrl+ '58b9a1f5/_auth/account');
+    });
+  });
+  it('anonymous with validUntil', function() {
+    return dm.getAuthLink('anonymous', {validUntil: '2025-11-09T09:58:04.000Z'}).then(function(url) {
+      expect(url).to.be.equal(baseUrl + '58b9a1f5/_auth/account?validUntil=2025-11-09T09%3A58%3A04.000Z');
+    });
+  });
+  it('signup', function() {
+    return dm.getAuthLink('signup', {clientID: 'testClient'}).then(function(url) {
+      expect(url).to.be.equal(baseUrl + '58b9a1f5/_auth/signup?clientID=testClient');
+    });
+  });
+  it('login', function() {
+    return dm.getAuthLink('login', {clientID: 'testClient'}).then(function(url) {
+      expect(url).to.be.equal(baseUrl + '58b9a1f5/_auth/login?clientID=testClient');
+    });
+  });
+  it('password reset', function() {
+    return dm.getAuthLink('password-reset', {clientID: 'testClient', email: 'some@mail.com'}).then(function(url) {
+      expect(url).to.be.equal(baseUrl + '58b9a1f5/_auth/password-reset?clientID=testClient&email=some%40mail.com');
+    });
+  });
+  it('email available', function() {
+    return dm.getAuthLink('email-available', {email: 'some@mail.com'}).then(function(url) {
+      expect(url).to.be.equal(baseUrl + '58b9a1f5/_auth/email?email=some%40mail.com');
+    });
+  });
+  it('public key', function() {
+    return dm.getAuthLink('public-key.pem').then(function(url) {
+      expect(url).to.be.equal(baseUrl + '58b9a1f5/_auth/public-key.pem');
+    });
+  });
+  it('not available', function() {
+    return dm.getAuthLink('not-available').then(function(result) {
+      throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+    }).catch(function(err) {
+      expect(err).to.be.ok;
+    });
+  });
+  it('clientID from dm', function() {
+    dm.clientID = 'testClient';
+    return dm.getAuthLink('login').then(function(url) {
+      expect(url).to.be.equal(baseUrl + '58b9a1f5/_auth/login?clientID=testClient');
+    });
+  });
+  it('overwrite clientID from dm', function() {
+    dm.clientID = 'testDMClient';
+    return dm.getAuthLink('login', {clientID: 'testClient'}).then(function(url) {
+      expect(url).to.be.equal(baseUrl + '58b9a1f5/_auth/login?clientID=testClient');
+    });
+  });
+});
+
+describe('auth helper', function() {
+  var dm;
+  beforeEach(function() {
+    dm = new DataManager({
+      url: baseUrl + '58b9a1f5'
+    });
+  });
+  afterEach(function() {
+    dm = null;
+  });
+  it('email available', function() {
+    return dm.emailAvailable('available@entrecode.de').then(function(available) {
+      expect(available).to.be.true;
+    });
+  });
+  it('email not available', function() {
+    return dm.emailAvailable('not-available@entrecode.de').then(function(available) {
+      expect(available).to.be.false;
+    });
+  });
+  it('email malformed', function() {
+    return dm.emailAvailable('malformed').then(function(result) {
+      throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+    }).catch(function(err) {
+      expect(err).to.be.ok;
     });
   });
 });

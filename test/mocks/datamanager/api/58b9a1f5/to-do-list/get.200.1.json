@@ -44,20 +44,20 @@
             "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-list"
           },
           "self": {
-            "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-list?id=4JMjeO737e"
+            "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-list?_id=4JMjeO737e"
           },
           "58b9a1f5:to-do-list/list-items": [
             {
               "title": "Bananas",
-              "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?id=4JGrCvm27e"
+              "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?_id=4JGrCvm27e"
             },
             {
               "title": "Oranges",
-              "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?id=V1G2TvQnXx"
+              "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?_id=V1G2TvQnXx"
             },
             {
               "title": "Apples",
-              "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?id=VkM8aPQnQe"
+              "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?_id=VkM8aPQnQe"
             }
           ]
         }

@@ -2,8 +2,7 @@
   "qs": {
     "_id": "VkGhAPQ2Qe"
   },
-  "req": {},
-  "res": {
+  "req": {
     "_id": "VkGhAPQ2Qe",
     "_created": "2015-11-23T16:03:08.108Z",
     "_creator": null,
@@ -16,12 +15,19 @@
     "description": null,
     "_modelTitleField": "title",
     "_links": {
-      "collection": {
-        "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item"
-      },
-      "self": {
-        "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?_id=VkGhAPQ2Qe"
-      }
+      "collection": [
+        {
+          "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item",
+          "templated": false
+        }
+      ],
+      "self": [
+        {
+          "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?_id=VkGhAPQ2Qe",
+          "templated": false
+        }
+      ]
     }
-  }
+  },
+  "res": {}
 }

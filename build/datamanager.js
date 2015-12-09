@@ -285,7 +285,6 @@ var DataManager = function(options) {
     this.id = this.url.split('/').reverse()[0];
   }
 
-  this.tagUrl = this.url.replace('api/' + this.id, 'tag' + this.id); // TODO relation for tag api
   this._fileUrl = this.url.replace('api/' + this.id, 'files'); // TODO relation for bestFile api
 
   if (!/^[a-f0-9]+$/i.test(this.id)) {
@@ -294,6 +293,9 @@ var DataManager = function(options) {
 
   if (options.hasOwnProperty('accessToken')) {
     this.accessToken = options.accessToken;
+  }
+  if (options.hasOwnProperty('clientID')) {
+    this.clientID = options.clientID;
   }
 };
 
@@ -633,10 +635,7 @@ DataManager.prototype.model = function(title, metadata) {
       var model = this;
       return new Promise(function(resolve, reject) {
         model.entryList(options).then(function(list) {
-          if (list.hasOwnProperty('entries')) {
-            return resolve(list.entries);
-          }
-          return resolve(list);
+          return resolve(list.entries);
         }, reject);
       });
     },
@@ -663,7 +662,7 @@ DataManager.prototype.model = function(title, metadata) {
           t.withRequestOptions(dm._requestOptions())
             .get(function(err, res, traversal) {
               checkResponse(err, res).then(function(res) {
-                return resolve(new Entry(halfred.parse(JSON.parse(res.body)), dm, model, traversal)); // TODO auth header // TODO traversal
+                return resolve(new Entry(halfred.parse(JSON.parse(res.body)), dm, model, traversal));
               }, reject);
             });
         });
@@ -746,10 +745,7 @@ DataManager.prototype.assets = function(options) {
   var dm = this;
   return new Promise(function(resolve, reject) {
     dm.assetList(options).then(function(list) {
-      if (list.hasOwnProperty('assets')) {
-        return resolve(list.assets);
-      }
-      return resolve(list);
+      return resolve(list.assets);
     }, reject);
   });
 };
@@ -850,10 +846,7 @@ DataManager.prototype.tags = function(options) {
   var dm = this;
   return new Promise(function(resolve, reject) {
     dm.tagList(options).then(function(list) {
-      if (list.hasOwnProperty('tags')) {
-        return resolve(list.tags)
-      }
-      return resolve(list);
+      return resolve(list.tags)
     }, reject);
   });
 };
@@ -893,6 +886,50 @@ DataManager.prototype.registerAnonymous = function(validUntil) {
           return resolve(dm._user);
         }, reject);
       });
+    });
+  });
+};
+
+DataManager.prototype.getAuthLink = function(relation, templateParameter) {
+  var dm = this;
+  return new Promise(function(resolve, reject) {
+    if (dm.clientID) {
+      if (!templateParameter) {
+        templateParameter = {};
+      }
+      if (!templateParameter.hasOwnProperty('clientID')) {
+        templateParameter.clientID = dm.clientID;
+      }
+    }
+
+    dm._getTraversal().then(function(traversal) {
+      var t = traversal.continue().newRequest()
+        .follow(dm.id + ':_auth/' + relation);
+      if (templateParameter) {
+        t.withTemplateParameters(templateParameter);
+      }
+      t.getUrl(function(err, url) {
+        if (err) {
+          return reject(err);
+        }
+        return resolve(url);
+      });
+    }, reject);
+  });
+};
+
+DataManager.prototype.emailAvailable = function(email) {
+  var dm = this;
+  return new Promise(function(resolve, reject) {
+    dm._getTraversal().then(function(traversal) {
+      traversal.continue().newRequest()
+        .follow(dm.id + ':_auth/email-available')
+        .withTemplateParameters({email: email})
+        .get(function(err, res) {
+          checkResponse(err, res).then(function(res) {
+            return resolve(JSON.parse(res.body).available);
+          }, reject);
+        });
     });
   });
 };
@@ -947,7 +984,7 @@ var Entry = function(entry, dm, model, traversal) {
           .withRequestOptions(entry._dm._requestOptions({
             'Content-Type': 'application/json'
           }))
-          .put(out, function(err, res, traversal) { // TODO auth header
+          .put(out, function(err, res, traversal) {
             checkResponse(err, res).then(function(res) {
               if (res.statusCode === 204) {
                 return resolve(true);
@@ -1194,18 +1231,6 @@ function optionsToQueryParameter(options) {
   }
   return query;
 }
-
-// TODO registerPW
-// TODO anonToPW
-// TODO loginAnon
-// TODO loginPW
-// TODO logoutPW
-
-// TODO 2016
-// TODO oauth
-// TODO pwReset
-// TODO eMailAvail
-// TODO eMAilChange
 
 module.exports = DataManager;
 

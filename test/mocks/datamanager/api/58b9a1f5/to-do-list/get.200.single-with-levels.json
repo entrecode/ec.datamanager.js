@@ -32,7 +32,7 @@
             "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item"
           },
           "self": {
-            "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?id=4JGrCvm27e"
+            "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?_id=4JGrCvm27e"
           },
           "ec:model": {
             "href": "https://datamanager.entrecode.de/model?modelID=6d33e556-b5bf-4925-9962-8a1852e712d2"
@@ -56,7 +56,7 @@
             "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item"
           },
           "self": {
-            "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?id=V1G2TvQnXx"
+            "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?_id=V1G2TvQnXx"
           },
           "ec:model": {
             "href": "https://datamanager.entrecode.de/model?modelID=6d33e556-b5bf-4925-9962-8a1852e712d2"
@@ -80,7 +80,7 @@
             "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item"
           },
           "self": {
-            "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?id=VkM8aPQnQe"
+            "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?_id=VkM8aPQnQe"
           },
           "ec:model": {
             "href": "https://datamanager.entrecode.de/model?modelID=6d33e556-b5bf-4925-9962-8a1852e712d2"
@@ -95,24 +95,24 @@
         "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-list"
       },
       "self": {
-        "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-list?id=4JMjeO737e"
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-list?_id=4JMjeO737e"
       },
       "ec:model": {
         "href": "https://datamanager.entrecode.de/model?modelID=f3b43060-463f-4321-bf90-b60dc9c8ad0d"
       },
       "58b9a1f5:to-do-list/list-items": [
         {
-          "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?id=4JGrCvm27e",
+          "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?_id=4JGrCvm27e",
           "name": "to-do-item",
           "title": "Bananas"
         },
         {
-          "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?id=V1G2TvQnXx",
+          "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?_id=V1G2TvQnXx",
           "name": "to-do-item",
           "title": "Oranges"
         },
         {
-          "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?id=VkM8aPQnQe",
+          "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?_id=VkM8aPQnQe",
           "name": "to-do-item",
           "title": "Apples"
         }
