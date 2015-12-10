@@ -189,7 +189,6 @@ if (isNode) {
         throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
       }).catch(function(err) {
         expect(err).to.be.ok;
-        console.log(err);
         expect(err).to.have.property('message', 'ec_sdk_could_not_get_url_for_file');
       });
     });
@@ -961,7 +960,7 @@ describe('tag/tags', function() {
   });
 });
 
-describe('missing filter options', function() {
+describe('filter options', function() {
   var dm;
   beforeEach(function() {
     dm = new DataManager({
@@ -1027,158 +1026,201 @@ describe('missing filter options', function() {
   });
 });
 
-describe('anonymous user', function() {
-  var dm;
-  beforeEach(function() {
-    dm = new DataManager({
-      url: baseUrl + '58b9a1f5'
+describe('user management', function() {
+  describe('anonymous user', function() {
+    var dm;
+    beforeEach(function() {
+      dm = new DataManager({
+        url: baseUrl + '58b9a1f5'
+      });
     });
-  });
-  afterEach(function() {
-    dm = null;
-  });
-  it('register', function() {
-    expect(dm).to.not.have.property('accessToken');
-    return dm.registerAnonymous().then(function(user) {
-      expect(user).to.be.ok;
-      expect(dm).to.have.property('accessToken')
-        .that.is.equal('eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJlbWFpbCI6bnVsbCwianRpIjoiM2EzYmQ5MzYtOWFlZS00ZWY0LTg0MjUtNjZhOGViODcyODk4IiwiaWF0IjoxNDQ5MTM2Njg0LCJleHAiOjQ2MDI3MzY2ODQsImlzcyI6ImVjX2RhdGFtYW5hZ2VyX3Nka190ZXN0c18xIiwic3ViIjoiMWNmOWUyOGUtZmE1NC00ZGVhLWJlMTQtZDlkYmNjMGMzYzY5In0.VMA0onkx4fpwBdTL9AQ2bzR4JBziY8UIavrAleIl7wj1Rh1-ZU09i-vze2sObarOZSygx74cO1uRkX37CFYj3Lf45mWPpHj-prJtfnS1xkn4KlfffTuz3VWINCorcZX-OyVeFWSexC6AwEQ9cW8FMEZPDpMLKodiFkhDUt1AIQg');
-      expect(user).to.have.property('value');
-      expect(user.value).to.have.property('accountID', '1cf9e28e-fa54-4dea-be14-d9dbcc0c3c69');
-      expect(user.value).to.have.property('exp', '2115-11-09T09:58:04.000Z');
-      expect(user.value).to.have.property('iat', '2015-12-03T09:58:04.000Z');
-      expect(user.value).to.have.property('jwt', 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJlbWFpbCI6bnVsbCwianRpIjoiM2EzYmQ5MzYtOWFlZS00ZWY0LTg0MjUtNjZhOGViODcyODk4IiwiaWF0IjoxNDQ5MTM2Njg0LCJleHAiOjQ2MDI3MzY2ODQsImlzcyI6ImVjX2RhdGFtYW5hZ2VyX3Nka190ZXN0c18xIiwic3ViIjoiMWNmOWUyOGUtZmE1NC00ZGVhLWJlMTQtZDlkYmNjMGMzYzY5In0.VMA0onkx4fpwBdTL9AQ2bzR4JBziY8UIavrAleIl7wj1Rh1-ZU09i-vze2sObarOZSygx74cO1uRkX37CFYj3Lf45mWPpHj-prJtfnS1xkn4KlfffTuz3VWINCorcZX-OyVeFWSexC6AwEQ9cW8FMEZPDpMLKodiFkhDUt1AIQg');
+    afterEach(function() {
+      dm = null;
     });
-  });
-  it('register, validUntil', function() {
-    expect(dm).to.not.have.property('accessToken');
-    return dm.registerAnonymous('2025-11-09T09:58:04.000Z').then(function(user) {
-      expect(user).to.be.ok;
-      expect(dm).to.have.property('accessToken')
-        .that.is.equal('eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJlbWFpbCI6bnVsbCwianRpIjoiN2JlYzRmMDMtMzg2ZS00OWM2LThjMmYtZjlmNDA0ZWNjYTRiIiwiaWF0IjoxNDQ5MjQwNTEyLCJleHAiOjQ2MDI4NDA1MTIsImlzcyI6ImVjX2RhdGFtYW5hZ2VyX3Nka190ZXN0c18xIiwic3ViIjoiOGVmZTE5MTktMjNhMy00ZmE2LTliZGUtMzlmYmU4NTdjYTUwIn0.inMjpMhImlO6Yy1RSycBOOVOw24Sqy7Ee7qZS9JFBYLIRA1zlvVEP7HPGEZeFnARNejpl_iuEzjLlu4DhYBLdw86IqttdbkSQi2e--RCF_UARr1b4aZnnuZ82cKifdqi_ulIQ7WkTHikOosyjRmI89nr6xJoJhD9iv-2TQ6dNJs');
-      expect(user).to.have.property('value');
-      expect(user.value).to.have.property('accountID', '8efe1919-23a3-4fa6-9bde-39fbe857ca50');
-      expect(user.value).to.have.property('exp', '2025-11-09T09:58:04.000Z');
-      expect(user.value).to.have.property('iat', '2015-12-04T14:48:32.000Z');
-      expect(user.value).to.have.property('jwt', 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJlbWFpbCI6bnVsbCwianRpIjoiN2JlYzRmMDMtMzg2ZS00OWM2LThjMmYtZjlmNDA0ZWNjYTRiIiwiaWF0IjoxNDQ5MjQwNTEyLCJleHAiOjQ2MDI4NDA1MTIsImlzcyI6ImVjX2RhdGFtYW5hZ2VyX3Nka190ZXN0c18xIiwic3ViIjoiOGVmZTE5MTktMjNhMy00ZmE2LTliZGUtMzlmYmU4NTdjYTUwIn0.inMjpMhImlO6Yy1RSycBOOVOw24Sqy7Ee7qZS9JFBYLIRA1zlvVEP7HPGEZeFnARNejpl_iuEzjLlu4DhYBLdw86IqttdbkSQi2e--RCF_UARr1b4aZnnuZ82cKifdqi_ulIQ7WkTHikOosyjRmI89nr6xJoJhD9iv-2TQ6dNJs');
+    it('register', function() {
+      expect(dm).to.not.have.property('accessToken');
+      return dm.registerAnonymous().then(function(user) {
+        expect(user).to.be.ok;
+        expect(dm).to.have.property('accessToken')
+          .that.is.equal('eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJlbWFpbCI6bnVsbCwianRpIjoiM2EzYmQ5MzYtOWFlZS00ZWY0LTg0MjUtNjZhOGViODcyODk4IiwiaWF0IjoxNDQ5MTM2Njg0LCJleHAiOjQ2MDI3MzY2ODQsImlzcyI6ImVjX2RhdGFtYW5hZ2VyX3Nka190ZXN0c18xIiwic3ViIjoiMWNmOWUyOGUtZmE1NC00ZGVhLWJlMTQtZDlkYmNjMGMzYzY5In0.VMA0onkx4fpwBdTL9AQ2bzR4JBziY8UIavrAleIl7wj1Rh1-ZU09i-vze2sObarOZSygx74cO1uRkX37CFYj3Lf45mWPpHj-prJtfnS1xkn4KlfffTuz3VWINCorcZX-OyVeFWSexC6AwEQ9cW8FMEZPDpMLKodiFkhDUt1AIQg');
+        expect(user).to.have.property('value');
+        expect(user.value).to.have.property('accountID', '1cf9e28e-fa54-4dea-be14-d9dbcc0c3c69');
+        expect(user.value).to.have.property('exp', '2115-11-09T09:58:04.000Z');
+        expect(user.value).to.have.property('iat', '2015-12-03T09:58:04.000Z');
+        expect(user.value).to.have.property('jwt', 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJlbWFpbCI6bnVsbCwianRpIjoiM2EzYmQ5MzYtOWFlZS00ZWY0LTg0MjUtNjZhOGViODcyODk4IiwiaWF0IjoxNDQ5MTM2Njg0LCJleHAiOjQ2MDI3MzY2ODQsImlzcyI6ImVjX2RhdGFtYW5hZ2VyX3Nka190ZXN0c18xIiwic3ViIjoiMWNmOWUyOGUtZmE1NC00ZGVhLWJlMTQtZDlkYmNjMGMzYzY5In0.VMA0onkx4fpwBdTL9AQ2bzR4JBziY8UIavrAleIl7wj1Rh1-ZU09i-vze2sObarOZSygx74cO1uRkX37CFYj3Lf45mWPpHj-prJtfnS1xkn4KlfffTuz3VWINCorcZX-OyVeFWSexC6AwEQ9cW8FMEZPDpMLKodiFkhDUt1AIQg');
+      });
     });
-  });
-  it('model resolve, then register', function() {
-    return dm.model('to-do-list').resolve().then(function() {
-      dm.registerAnonymous().then(function(user) {
+    it('register, validUntil', function() {
+      expect(dm).to.not.have.property('accessToken');
+      return dm.registerAnonymous('2025-11-09T09:58:04.000Z').then(function(user) {
+        expect(user).to.be.ok;
+        expect(dm).to.have.property('accessToken')
+          .that.is.equal('eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJlbWFpbCI6bnVsbCwianRpIjoiN2JlYzRmMDMtMzg2ZS00OWM2LThjMmYtZjlmNDA0ZWNjYTRiIiwiaWF0IjoxNDQ5MjQwNTEyLCJleHAiOjQ2MDI4NDA1MTIsImlzcyI6ImVjX2RhdGFtYW5hZ2VyX3Nka190ZXN0c18xIiwic3ViIjoiOGVmZTE5MTktMjNhMy00ZmE2LTliZGUtMzlmYmU4NTdjYTUwIn0.inMjpMhImlO6Yy1RSycBOOVOw24Sqy7Ee7qZS9JFBYLIRA1zlvVEP7HPGEZeFnARNejpl_iuEzjLlu4DhYBLdw86IqttdbkSQi2e--RCF_UARr1b4aZnnuZ82cKifdqi_ulIQ7WkTHikOosyjRmI89nr6xJoJhD9iv-2TQ6dNJs');
+        expect(user).to.have.property('value');
+        expect(user.value).to.have.property('accountID', '8efe1919-23a3-4fa6-9bde-39fbe857ca50');
+        expect(user.value).to.have.property('exp', '2025-11-09T09:58:04.000Z');
+        expect(user.value).to.have.property('iat', '2015-12-04T14:48:32.000Z');
+        expect(user.value).to.have.property('jwt', 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJlbWFpbCI6bnVsbCwianRpIjoiN2JlYzRmMDMtMzg2ZS00OWM2LThjMmYtZjlmNDA0ZWNjYTRiIiwiaWF0IjoxNDQ5MjQwNTEyLCJleHAiOjQ2MDI4NDA1MTIsImlzcyI6ImVjX2RhdGFtYW5hZ2VyX3Nka190ZXN0c18xIiwic3ViIjoiOGVmZTE5MTktMjNhMy00ZmE2LTliZGUtMzlmYmU4NTdjYTUwIn0.inMjpMhImlO6Yy1RSycBOOVOw24Sqy7Ee7qZS9JFBYLIRA1zlvVEP7HPGEZeFnARNejpl_iuEzjLlu4DhYBLdw86IqttdbkSQi2e--RCF_UARr1b4aZnnuZ82cKifdqi_ulIQ7WkTHikOosyjRmI89nr6xJoJhD9iv-2TQ6dNJs');
+      });
+    });
+    it('model resolve, then register', function() {
+      return dm.model('to-do-list').resolve().then(function() {
+        dm.registerAnonymous().then(function(user) {
+          expect(user).to.be.ok;
+          expect(dm).to.have.property('_user');
+          expect(dm).to.have.property('accessToken')
+            .that.is.equal('eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJlbWFpbCI6bnVsbCwianRpIjoiM2EzYmQ5MzYtOWFlZS00ZWY0LTg0MjUtNjZhOGViODcyODk4IiwiaWF0IjoxNDQ5MTM2Njg0LCJleHAiOjQ2MDI3MzY2ODQsImlzcyI6ImVjX2RhdGFtYW5hZ2VyX3Nka190ZXN0c18xIiwic3ViIjoiMWNmOWUyOGUtZmE1NC00ZGVhLWJlMTQtZDlkYmNjMGMzYzY5In0.VMA0onkx4fpwBdTL9AQ2bzR4JBziY8UIavrAleIl7wj1Rh1-ZU09i-vze2sObarOZSygx74cO1uRkX37CFYj3Lf45mWPpHj-prJtfnS1xkn4KlfffTuz3VWINCorcZX-OyVeFWSexC6AwEQ9cW8FMEZPDpMLKodiFkhDUt1AIQg');
+        });
+      });
+    });
+    it('logout', function() {
+      expect(dm).to.not.have.property('accessToken');
+      return dm.registerAnonymous().then(function(user) {
         expect(user).to.be.ok;
         expect(dm).to.have.property('_user');
         expect(dm).to.have.property('accessToken')
           .that.is.equal('eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJlbWFpbCI6bnVsbCwianRpIjoiM2EzYmQ5MzYtOWFlZS00ZWY0LTg0MjUtNjZhOGViODcyODk4IiwiaWF0IjoxNDQ5MTM2Njg0LCJleHAiOjQ2MDI3MzY2ODQsImlzcyI6ImVjX2RhdGFtYW5hZ2VyX3Nka190ZXN0c18xIiwic3ViIjoiMWNmOWUyOGUtZmE1NC00ZGVhLWJlMTQtZDlkYmNjMGMzYzY5In0.VMA0onkx4fpwBdTL9AQ2bzR4JBziY8UIavrAleIl7wj1Rh1-ZU09i-vze2sObarOZSygx74cO1uRkX37CFYj3Lf45mWPpHj-prJtfnS1xkn4KlfffTuz3VWINCorcZX-OyVeFWSexC6AwEQ9cW8FMEZPDpMLKodiFkhDUt1AIQg');
+        return user.logout().then(function() {
+          expect(dm).to.have.property('accessToken', undefined);
+          expect(dm).to.have.property('_user', undefined);
+        });
       });
     });
   });
-  it('logout', function() {
-    expect(dm).to.not.have.property('accessToken');
-    return dm.registerAnonymous().then(function(user) {
-      expect(user).to.be.ok;
-      expect(dm).to.have.property('_user');
-      expect(dm).to.have.property('accessToken')
-        .that.is.equal('eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJlbWFpbCI6bnVsbCwianRpIjoiM2EzYmQ5MzYtOWFlZS00ZWY0LTg0MjUtNjZhOGViODcyODk4IiwiaWF0IjoxNDQ5MTM2Njg0LCJleHAiOjQ2MDI3MzY2ODQsImlzcyI6ImVjX2RhdGFtYW5hZ2VyX3Nka190ZXN0c18xIiwic3ViIjoiMWNmOWUyOGUtZmE1NC00ZGVhLWJlMTQtZDlkYmNjMGMzYzY5In0.VMA0onkx4fpwBdTL9AQ2bzR4JBziY8UIavrAleIl7wj1Rh1-ZU09i-vze2sObarOZSygx74cO1uRkX37CFYj3Lf45mWPpHj-prJtfnS1xkn4KlfffTuz3VWINCorcZX-OyVeFWSexC6AwEQ9cW8FMEZPDpMLKodiFkhDUt1AIQg');
-      return user.logout().then(function() {
-        expect(dm).to.have.property('accessToken', undefined);
-        expect(dm).to.have.property('_user', undefined);
+  describe('get auth links', function() {
+    var dm;
+    beforeEach(function() {
+      dm = new DataManager({
+        url: baseUrl + '58b9a1f5'
+      });
+    });
+    afterEach(function() {
+      dm = null;
+    });
+    it('anonymous', function() {
+      return dm.getAuthLink('anonymous').then(function(url) {
+        expect(url).to.be.equal(baseUrl + '58b9a1f5/_auth/account');
+      });
+    });
+    it('anonymous with validUntil', function() {
+      return dm.getAuthLink('anonymous', {validUntil: '2025-11-09T09:58:04.000Z'}).then(function(url) {
+        expect(url).to.be.equal(baseUrl + '58b9a1f5/_auth/account?validUntil=2025-11-09T09%3A58%3A04.000Z');
+      });
+    });
+    it('signup', function() {
+      return dm.getAuthLink('signup', {clientID: 'testClient'}).then(function(url) {
+        expect(url).to.be.equal(baseUrl + '58b9a1f5/_auth/signup?clientID=testClient');
+      });
+    });
+    it('login', function() {
+      return dm.getAuthLink('login', {clientID: 'testClient'}).then(function(url) {
+        expect(url).to.be.equal(baseUrl + '58b9a1f5/_auth/login?clientID=testClient');
+      });
+    });
+    it('password reset', function() {
+      return dm.getAuthLink('password-reset', {clientID: 'testClient', email: 'some@mail.com'}).then(function(url) {
+        expect(url).to.be.equal(baseUrl + '58b9a1f5/_auth/password-reset?clientID=testClient&email=some%40mail.com');
+      });
+    });
+    it('email available', function() {
+      return dm.getAuthLink('email-available', {email: 'some@mail.com'}).then(function(url) {
+        expect(url).to.be.equal(baseUrl + '58b9a1f5/_auth/email?email=some%40mail.com');
+      });
+    });
+    it('public key', function() {
+      return dm.getAuthLink('public-key.pem').then(function(url) {
+        expect(url).to.be.equal(baseUrl + '58b9a1f5/_auth/public-key.pem');
+      });
+    });
+    it('not available', function() {
+      return dm.getAuthLink('not-available').then(function(result) {
+        throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+      }).catch(function(err) {
+        expect(err).to.be.ok;
+      });
+    });
+    it('clientID from dm', function() {
+      dm.clientID = 'testClient';
+      return dm.getAuthLink('login').then(function(url) {
+        expect(url).to.be.equal(baseUrl + '58b9a1f5/_auth/login?clientID=testClient');
+      });
+    });
+    it('overwrite clientID from dm', function() {
+      dm.clientID = 'testDMClient';
+      return dm.getAuthLink('login', {clientID: 'testClient'}).then(function(url) {
+        expect(url).to.be.equal(baseUrl + '58b9a1f5/_auth/login?clientID=testClient');
       });
     });
   });
-});
-
-describe('get auth links', function() {
-  var dm;
-  beforeEach(function() {
-    dm = new DataManager({
-      url: baseUrl + '58b9a1f5'
+  describe('auth helper', function() {
+    var dm;
+    beforeEach(function() {
+      dm = new DataManager({
+        url: baseUrl + '58b9a1f5'
+      });
+    });
+    afterEach(function() {
+      dm = null;
+    });
+    it('email available', function() {
+      return dm.emailAvailable('available@entrecode.de').then(function(available) {
+        expect(available).to.be.true;
+      });
+    });
+    it('email not available', function() {
+      return dm.emailAvailable('not-available@entrecode.de').then(function(available) {
+        expect(available).to.be.false;
+      });
+    });
+    it('email malformed', function() {
+      return dm.emailAvailable('malformed').then(function(result) {
+        throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+      }).catch(function(err) {
+        expect(err).to.be.ok;
+      });
     });
   });
-  afterEach(function() {
-    dm = null;
-  });
-  it('anonymous', function() {
-    return dm.getAuthLink('anonymous').then(function(url) {
-      expect(url).to.be.equal(baseUrl+ '58b9a1f5/_auth/account');
+  describe('account and datamanager info', function() {
+    var dm;
+    beforeEach(function() {
+      dm = new DataManager({
+        url: baseUrl + '58b9a1f5'
+      });
     });
-  });
-  it('anonymous with validUntil', function() {
-    return dm.getAuthLink('anonymous', {validUntil: '2025-11-09T09:58:04.000Z'}).then(function(url) {
-      expect(url).to.be.equal(baseUrl + '58b9a1f5/_auth/account?validUntil=2025-11-09T09%3A58%3A04.000Z');
+    afterEach(function() {
+      dm = null;
     });
-  });
-  it('signup', function() {
-    return dm.getAuthLink('signup', {clientID: 'testClient'}).then(function(url) {
-      expect(url).to.be.equal(baseUrl + '58b9a1f5/_auth/signup?clientID=testClient');
+    it('account info', function() {
+      dm.accessToken = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJlbWFpbCI6bnVsbCwianRpIjoiM2EzYmQ5MzYtOWFlZS00ZWY0LTg0MjUtNjZhOGViODcyODk4IiwiaWF0IjoxNDQ5MTM2Njg0LCJleHAiOjQ2MDI3MzY2ODQsImlzcyI6ImVjX2RhdGFtYW5hZ2VyX3Nka190ZXN0c18xIiwic3ViIjoiMWNmOWUyOGUtZmE1NC00ZGVhLWJlMTQtZDlkYmNjMGMzYzY5In0.VMA0onkx4fpwBdTL9AQ2bzR4JBziY8UIavrAleIl7wj1Rh1-ZU09i-vze2sObarOZSygx74cO1uRkX37CFYj3Lf45mWPpHj-prJtfnS1xkn4KlfffTuz3VWINCorcZX-OyVeFWSexC6AwEQ9cW8FMEZPDpMLKodiFkhDUt1AIQg';
+      return dm.account().then(function(account) {
+        expect(account).to.be.ok;
+        expect(account).to.have.property('accountID', 'c631bba1-a36b-4977-9b42-2c14f51b653c');
+        expect(account).to.have.property('pending', false);
+        expect(account).to.have.property('hasPassword', false);
+        expect(account).to.have.property('roles')
+          .that.is.instanceOf(Array);
+        expect(account.roles[0]).to.have.property('roleID', '2f705a26-e320-4b58-84e8-b7e37887c938');
+        expect(account.roles[0]).to.have.property('name', 'Anonymous Users');
+      });
     });
-  });
-  it('login', function() {
-    return dm.getAuthLink('login', {clientID: 'testClient'}).then(function(url) {
-      expect(url).to.be.equal(baseUrl + '58b9a1f5/_auth/login?clientID=testClient');
+    it('account info failes without login', function() {
+      return dm.account().then(function(result) {
+        throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+      }).catch(function(err){
+        expect(err).to.be.ok;
+        expect(err).to.have.property('message', 'ec_sdk_not_logged_in');
+      });
     });
-  });
-  it('password reset', function() {
-    return dm.getAuthLink('password-reset', {clientID: 'testClient', email: 'some@mail.com'}).then(function(url) {
-      expect(url).to.be.equal(baseUrl + '58b9a1f5/_auth/password-reset?clientID=testClient&email=some%40mail.com');
-    });
-  });
-  it('email available', function() {
-    return dm.getAuthLink('email-available', {email: 'some@mail.com'}).then(function(url) {
-      expect(url).to.be.equal(baseUrl + '58b9a1f5/_auth/email?email=some%40mail.com');
-    });
-  });
-  it('public key', function() {
-    return dm.getAuthLink('public-key.pem').then(function(url) {
-      expect(url).to.be.equal(baseUrl + '58b9a1f5/_auth/public-key.pem');
-    });
-  });
-  it('not available', function() {
-    return dm.getAuthLink('not-available').then(function(result) {
-      throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
-    }).catch(function(err) {
-      expect(err).to.be.ok;
-    });
-  });
-  it('clientID from dm', function() {
-    dm.clientID = 'testClient';
-    return dm.getAuthLink('login').then(function(url) {
-      expect(url).to.be.equal(baseUrl + '58b9a1f5/_auth/login?clientID=testClient');
-    });
-  });
-  it('overwrite clientID from dm', function() {
-    dm.clientID = 'testDMClient';
-    return dm.getAuthLink('login', {clientID: 'testClient'}).then(function(url) {
-      expect(url).to.be.equal(baseUrl + '58b9a1f5/_auth/login?clientID=testClient');
-    });
-  });
-});
-
-describe('auth helper', function() {
-  var dm;
-  beforeEach(function() {
-    dm = new DataManager({
-      url: baseUrl + '58b9a1f5'
-    });
-  });
-  afterEach(function() {
-    dm = null;
-  });
-  it('email available', function() {
-    return dm.emailAvailable('available@entrecode.de').then(function(available) {
-      expect(available).to.be.true;
-    });
-  });
-  it('email not available', function() {
-    return dm.emailAvailable('not-available@entrecode.de').then(function(available) {
-      expect(available).to.be.false;
-    });
-  });
-  it('email malformed', function() {
-    return dm.emailAvailable('malformed').then(function(result) {
-      throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
-    }).catch(function(err) {
-      expect(err).to.be.ok;
+    it('datamanager info', function() {
+      return dm.resolve().then(function(datamanager) {
+        expect(datamanager).to.be.ok;
+        expect(datamanager).to.have.property('metadata')
+          .that.is.instanceOf(Object);
+        expect(datamanager.metadata).to.have.property('title', 'ec.datamanager-sdk-tests-1');
+        expect(datamanager.metadata).to.have.property('description', 'This Data Manager contains test data for the ec.datamanager javascript SDK. (Allow all public rights).');
+        expect(datamanager.metadata).to.have.property('locales');
+        expect(datamanager.metadata).to.have.property('defaultLocale');
+      });
     });
   });
 });

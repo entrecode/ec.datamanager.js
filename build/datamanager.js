@@ -496,6 +496,22 @@ DataManager.prototype.getImageThumbUrl = function(assetID, size, locale) {
   return DataManager.getImageThumbUrl(assetID, size, locale, this._fileUrl);
 };
 
+DataManager.prototype.resolve = function() {
+  var dm = this;
+  return new Promise(function(resolve, reject) {
+    traverson.from(dm.url).jsonHal()
+      .withRequestOptions(dm._requestOptions())
+      .get(function(err, res, traversal) {
+        checkResponse(err, res).then(function(res) {
+          var body = halfred.parse(JSON.parse(res.body));
+          dm._rootTraversal = traversal;
+          dm.metadata = body;
+          return resolve(dm);
+        }, reject);
+      });
+  });
+};
+
 DataManager.prototype.modelList = function() {
   var dm = this;
   return new Promise(function(resolve, reject) {
@@ -887,6 +903,25 @@ DataManager.prototype.registerAnonymous = function(validUntil) {
         }, reject);
       });
     });
+  });
+};
+
+DataManager.prototype.account = function() {
+  var dm = this;
+  return new Promise(function(resolve, reject) {
+    if(!dm.accessToken){
+      return reject(new Error('ec_sdk_not_logged_in'));
+    }
+    traverson.from(dm.url).jsonHal()
+      .withRequestOptions(dm._requestOptions())
+      .get(function(err, res, traversal) {
+        checkResponse(err, res).then(function(res) {
+          var body = halfred.parse(JSON.parse(res.body));
+          dm._rootTraversal = traversal;
+          dm.metadata = body;
+          return resolve(dm.metadata.account);
+        }, reject);
+      });
   });
 };
 
