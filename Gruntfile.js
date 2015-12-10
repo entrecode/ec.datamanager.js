@@ -24,7 +24,7 @@ module.exports = function(grunt) {
     },
     run: {
       coverage: {
-        exec: 'istanbul cover _mocha -- -R spec "test/**/*.test.js"'
+        exec: 'istanbul cover _mocha -- -R dot "test/**/*.test.js"'
       },
       openCoverage: {
         exec: 'open coverage/lcov-report/index.html'
@@ -57,6 +57,9 @@ module.exports = function(grunt) {
     },
     mochaTest: {
       test: {
+        options: {
+          reporter: 'dot'
+        },
         src: ['test/**/*.test.js']
       }
     },

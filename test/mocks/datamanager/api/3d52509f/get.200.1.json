@@ -3,19 +3,29 @@
   "req": {},
   "res": {
     "dataManagerID": "768823d9-e015-4452-b8f3-6061133c5775",
+    "title": "ec.datamanager-sdk-tests-2",
+    "description": null,
+    "locales": [],
+    "defaultLocale": null,
     "models": [
       {
         "title": "single",
+        "description": "dm with single model",
         "modelID": "35f3e34d-4f68-4d28-a369-ed6ab66bc93e",
         "titleField": "loop",
         "hexColor": "#d23738"
       }
     ],
+    "account": null,
     "_links": {
       "curies": {
         "name": "3d52509f",
         "href": "https://datamanager.entrecode.de/api/doc/3d52509f/relation/{rel}",
         "templated": true
+      },
+      "self": {
+        "name": "ec.datamanager-sdk-tests-2",
+        "href": "https://datamanager.entrecode.de/api/doc/3d52509f"
       },
       "3d52509f:single": {
         "href": "https://datamanager.entrecode.de/api/3d52509f/single",
@@ -23,6 +33,11 @@
       },
       "ec:api/assets": {
         "href": "https://datamanager.entrecode.de/asset/3d52509f"
+      },
+      "3d52509f:_auth/email-available": {
+        "name": "Test if given email is already registered",
+        "href": "https://datamanager.entrecode.de/api/3d52509f/_auth/email{?email}",
+        "templated": true
       },
       "3d52509f:_auth/public-key.pem": {
         "name": "Public key for JWT validation",
