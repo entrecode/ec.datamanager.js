@@ -5,12 +5,13 @@ JavaScript SDK for [ec.datamanager](https://doc.entrecode.de/en/latest/data_mana
 
 Simply use the generated APIs of the ec.datamanager with JavaScript. Supports usage in frontend (web) and backend (Node.js).
 
-The SDK is fully promise-based.
+The SDK is fully promise-based. Since version `0.6.0` the SDK is fully [HAL](https://tools.ietf.org/html/draft-kelly-json-hal-07) based and uses [traverson](https://github.com/basti1302/traverson), [traverson-hal](https://github.com/basti1302/traverson-hal), and [halfred](https://github.com/basti1302/halfred).
 
 ## Contents
 
 * [Installation](#installation)
 * [Usage](#usage)
+* [Errors](#errors)
 * [Documentation](#documentation)
 * [Tests and Coverage](#tests-and-coverage)
 * [Build](#build)
@@ -32,20 +33,11 @@ bower install ec.datamanager
 
 The bower module only includes the minified build (and no tests etc.).
 
-## Errors
-* `ec_sdk_model_not_found` When you tried to `model(…).resolve()` a model which is not present in the Data Manager.
-* `ec_sdk_invalid_method_for_schema` You specified the wrong method for `model(…).getSchema(<method>)`. Only `get`, `put`, and `post` are allowed.
-
 ## Usage
-
-Also see `./example/basic-example.js` for a running usage example.
-
-
 Loading the module in node.js:
 
 ```js
 var DataManager = require('ec.datamanager');
-
 ```
 
 Loading the minified module in the Browser:
@@ -66,16 +58,16 @@ Initializing dataManager with existing token:
 
 ```js
 var dataManager = new DataManager({
-    url: 'https://datamanager.entrecode.de/api/abcdef',
-    accessToken: '8c3b7b55-531f-4a03-b584-09fdef59cb0c'
+  url: 'https://datamanager.entrecode.de/api/abcdef',
+  accessToken: '8c3b7b55-531f-4a03-b584-09fdef59cb0c'
 });
 ```
 
-Initialization without token (will be generated):
+Initialization without token:
 
 ```js
 var dataManager = new DataManager({
-    url: 'https://datamanager.entrecode.de/api/abcdef'
+  url: 'https://datamanager.entrecode.de/api/abcdef'
 });
 ```
 
@@ -83,189 +75,242 @@ Alternative:
 
 ```js
 var dataManager = new DataManager({
-    id: 'abcdef12'
+  id: 'abcdef12'
 });
 ```
-### Get EntryList
+
+Initialization with `clientID` for user management:
 
 ```js
-dataManager.model('myModel').entryList({size: 100, sort: ['property', '-date']})
-.then(function(res) {
-   console.log(res.entries); // success! array of Entries
-   console.log(res.count);
-   console.log(res.total);
-})
-.catch(function(error) {
-   console.error(error); // error getting entries
+var dataManager = new DataManager({
+  id: 'beefbeef',
+  clientID: 'myAwesomeClient'
 });
 ```
 
-*`size: 0` will return ALL entries*
-
-
-### Get Entries
-
-```js
-dataManager.model('myModel').entries({size: 0, sort: ['property' , '-date'], "levels": 3})
-.then(function(entries) {
-   console.log(entries); // success! array of Entries
-})
-.catch(function(error) {
-   console.error(error); // error getting entries
-});
-```
-*`size: 0` will return ALL entries*
-
-### Get Entry
-
-```js
-dataManager.model('myModel').entry('my7fmeXh')
-.then(function(entry) {
-   console.log(entries); // success! an Entry
-})
-.catch(function(error) {
-   console.error(error); // error getting entry
-});
-
-// OR for nested entries
-
-dataManager.model('myModel').entry({id: 'my7fmeXh', levels: 2})
-.then(function(entry) {
-   console.log(entries); // success! an Entry
-})
-.catch(function(error) {
-   console.error(error); // error getting entry
-});
-```
-
-### Create Entry
-
-```js
-dataManager.model('myModel').createEntry({
-  some: 'property'
-})
-.catch(function(error) {
-  console.error(error); // error creating entry
-});
-```
-
-### Delete Entry
-The `delete()` function is an instance method of `Entry`. Just return `entry.delete()` in your entry promise handler:
-
-```js
-dataManager.model('myModel').entry('f328af3') // entry('f328af3') is shorthand for entries({id: 'f328af3'})
-.then(function(entry) {
-   return entry.delete();
-})
-.then(function() {
-   console.log('deleted'); // success!
-})
-.catch(function(error) {
-   console.error(error); // error deleting entry
-});
-```
-
-### Update Entry
-Works similar to `delete()`:
-
-```js
-dataManager.model('myModel').entry('f328af3')
-.then(function(entry) {
-   entry.key1 = 'new value for key1';
-   entry.key2 = 2;
-   return entry.save();
-})
-.catch(function(error) {
-   console.error(error); // error updating entry
-});
-```
-
-### Model List
+### Model
+#### Model List
 Retrieves all models of a Data Manager:
 
 ```js
 dataManager.modelList()
 .then(function(modelList) {
-   console.log(modelList) // object with model id properties
+  console.log(modelList) // object with models, titles are property names.
+  console.log(modelList.myModel.metadata.titleField) // the title field of the model.
+  modelList.myModel.entries()…
 }, function(error) { // you don't need to use catch(…)
-   console.error(error); // error
+  console.error(error); // error
 });
 ```
 
-### Get JSON Schema
+#### Model Resolve
+When creating a model directly it will not have the metadata ready. You can retrieve the metadata with `resolve()`.
 
 ```js
-dataManager.model('myModel').getSchema()
-.then(function(myModelSchema) {
-   console.log(myModelSchema)
-})
-.catch(function(error) {
-   console.error(error); // error deleting entry
-});
-
-// For PUT or POST schema:
-dataManager.model('myModel').getSchema('put')
-.then(…)
+dataManager.model('myModel').resolve()
+.then(function(model){
+  console.log(model.metadata.titleField);
+  model.entries()…
+}, errorHandler);
 ```
 
-### User Management
+#### Get JSON Schema
+JSON schemas exist for models. To get one call `getSchema()`.
+
+```js
+dataManager.model('myModel').getSchema() // will load 'GET' schema
+.then(function(myModelSchema) {
+  console.log(myModelSchema)
+}, errorHandler);
+
+// For PUT or POST schema:
+dataManager.model('myModel').getSchema('put'|'post')
+.then(…);
+```
+
+## Entries
+#### Get EntryList
+
+```js
+dataManager.model('myModel').entryList({size: 100, sort: ['property', '-date']})
+.then(function(res) {
+  console.log(res.entries); // success! array of Entries
+  console.log(res.count); // no. of received entries
+  console.log(res.total); // total no. of available entries (accesss with pagination)
+}, errorHandler);
+```
+
+*`size: 0` will return ALL entries*
+
+#### Get Entries
+
+```js
+dataManager.model('myModel').entries({size: 0, sort: ['property' , '-date']})
+.then(function(entries) {
+  console.log(entries); // success! array of Entries
+}, errorHandler);
+```
+*`size: 0` will return ALL entries*
+
+#### Get Entry
+
+```js
+dataManager.model('myModel').entry('my7fmeXh')
+.then(function(entry) {
+   console.log(entries); // success! an Entry
+}, errorHandler);
+
+// OR for nested entries
+
+dataManager.model('myModel').entry('my7fmeXh', 2}) // since 0.6.0 no longer object
+.then(function(entry) {
+   console.log(entries); // success! an Entry
+}, errorHandler);
+```
+
+#### Create Entry
+
+```js
+dataManager.model('myModel').createEntry({
+  some: 'property',
+  other: {
+    proper: 'T\'s'
+  }
+})
+.then(function(entry){
+  console.log(entry.value._id); // the created entry
+}, errorHanlder);
+```
+
+#### Delete Entry
+The `delete()` function is an instance method of `Entry`. Just return `entry.delete()` in your entry promise handler:
+
+```js
+dataManager.model('myModel').entry('f328af3')
+.then(function(entry) {
+  return entry.delete();
+})
+.then(function() {
+  console.log('deleted'); // success!
+})
+.catch(errorHandler);
+```
+
+#### Update Entry
+Works similar to `delete()`:
+
+```js
+dataManager.model('myModel').entry('f328af3')
+.then(function(entry) {
+   entry.value.key1 = 'new value for key1';
+   entry.value.key2 = 2;
+   return entry.save();
+})
+.then(function(savedEntry){
+  console.log(entry.value.key1); // prints 'new value for key1'
+})
+.catch(errorHandler);
+```
+
+## Users in the SDK
+### Register Anonymous User.
 
 ```js
 // register anonymous user.
-dataManager.register()
+dataManager.registerAnonymous()
 .then(function(user) {
-   // token was already added to dataManager instance.
-   console.log(user.jwt); // token of the user. save for later.
-   console.log(user.accountID); // acocuntID of the user
-})
-.catch(function(error) {
-   console.error(error);
-});
+  // token was already added to dataManager instance.
+  console.log(user.value.jwt); // token of the user. please save for later.
+  console.log(user.value.accountID); // acocuntID of the user
+  dataManager.model('myModel')… // this will be using the logged in anonymous user.
+}, errorHandler);
 ```
 
 The `accessToken` is a property of the DataManager instance:
 
 ```js
-dataManager.accessToken; // returns currently saved token for user authentication
+dataManager.accessToken; // the currently used token for user authentication
 ```
 
-### Asset File Helper
-The SDK can help you getting asset files, and image assets in the right sizes.
+### Email Available
+You can check for email availability before you regiser a user:
 
 ```js
-dataManager.getFileURL('46092f02-7441-4759-b6ff-8f3831d3da4b')
-.then(function(url) {
-    console.log(url)
-), function(error) {
-    console.error(error); // error getting asset file
-}
+dataManager.emailAvailable('some@mail.com').then(function(available){
+  if(available){
+    console.log('The email is available');
+  } else {
+    console.log('The email is NOT available');
+  }
+}, errorHandler);
 ```
 
-For image Assets, the following helper is available:
+### Get Authorizaton Links
+In order to receive prefilled urls for all other account management relations you can use `getAuthLink()`.
 
 ```js
-dataManager.getImageURL('46092f02-7441-4759-b6ff-8f3831d3da4b', 500)
+dataManager.getAuthLink('anonymous', {clientID: 'myAwesomeClientID'})
+.then(function(url){
+  request.post(url).end(function(err, res){ // your own post request to register a anonymous user.
+    …
+    // token will not be set in datamanager. but can be manually:
+    dataManager.accessToken = res.body.jwt;
+  });
+  
+}, errorHandler);
+```
+
+This function provides you with all links found in the root API response with the relation `<dataManagerShortID>:_auth/<linkName>`. Most of them require `clientID` either set in the DataManager instance or directly as shown above. Others require additional properties (e.g. `password-reset`: requires `clientID` and `email`).
+
+Applicable link names are:
+
+* `anonymous`
+* `signup`
+* `login`
+* `password-reset`
+* `email-available`
+* `public-key.pem`
+
+Additional documentation for user management in Data Manager APIs can be found in the Data Manager documentation itself.
+
+## Asset File Helper
+The SDK can help you getting asset files, and image assets in the right sizes. All file Helper can receive a `locale` property as last parameter if you want to request a specific locale (not the choosen one from Data Manager).
+
+### Note On Static Helper
+The following functions are also provided as static functions in `DataManager`. E.g. you can call `DataManager.getFileUrl(assetID).then(…);` without connecting to a DataManager. This only works for assets in `https://datamanager.entrecode.de` DataManagers (not in Staging).
+
+### File Helper
+
+```js
+dataManager.getFileUrl('46092f02-7441-4759-b6ff-8f3831d3da4b')
 .then(function(url) {
-    console.log(url)
-), function(error) {
-    console.error(error); // error getting asset file
-}
+  console.log(url)
+), errorHandler);
+```
+
+### Image Helper
+
+```js
+dataManager.getImageUrl('46092f02-7441-4759-b6ff-8f3831d3da4b', 500)
+.then(function(url) {
+  console.log(url)
+), errorHandler);
 ```
 
 `getImageURL` expects a pixel value. The largest edge of the returned image will be at least this value pixels in size, if available.
 
-You can also request a thumbnail:
+### Thumbnail Helper
 
 ```js
-dataManager.getImageThumbURL('46092f02-7441-4759-b6ff-8f3831d3da4b', 100)
+dataManager.getImageThumbUrl('46092f02-7441-4759-b6ff-8f3831d3da4b', 100)
 .then(function(url) {
     console.log(url)
-), function(error) {
-    console.error(error); // error getting asset file
-}
+), errorHandler);
 ```
-The returned image will be a square-cropped variant with (in this example) at least 100 pixels (pixel value can be set as with `getImageURL`). Available sizes are 50, 100, 200 and 400 px.
 
+The returned image will be a square-cropped variant with (in this example) at least 100 pixels (pixel value can be set as with `getImageURL`). Available sizes are 50, 100, 200 and 400 px. Other values will be mapped to next bigger one.
+
+## Assets
 ### Get AssetList
 
 ```js
@@ -274,10 +319,7 @@ dataManager.assetList()
   console.log(res.assets); // array with assets
   console.log(res.count);
   console.log(res.total);
-})
-.catch(function(error){
-  console.error(error); // error getting asset list
-});
+}, errorHandler);
 ```
 
 ### Get Assets
@@ -286,10 +328,7 @@ dataManager.assetList()
 dataManager.assets()
 .then(function(assets) {
   console.log(assets); // array with assets
-})
-.catch(function(error){
-  console.error(error); // error getting asset list
-});
+}, errorHandler);
 ```
 
 ### Get Asset
@@ -298,31 +337,27 @@ dataManager.assets()
 dataManager.asset('46092f02-7441-4759-b6ff-8f3831d3da4b')
 .then(function(asset) {
   console.log(asset); // the Asset
-})
-.catch(function(error){
-  console.error(error); // error getting Asset
-});
+}, errorHandler);
 ```
 
-### Create Asset
+### Create Asset(s)
 
 ```js
 dataManager.createAsset(formData)
 .then(function(assets){
-  console.log(assets); // array with Get Asset promises
-  return assets[0];
+  console.log(assets); // array with Get Asset Promises
+  return assets[0]; // this is a Promise!
 })
 .then(function(asset){
   console.log(asset); // the created Asset.
 })
-.catch(function(error){
-  console.error(error); // error creating Asset
-});
+.catch(errorHandler);
 ```
 
 For node.js acceptable inputs are:
 
 * A path string to a local file (`path/to/file`)
+* An array of path strings (`['path/to/file1', 'path/to/file2']`)
 
 For browsers acceptable inputs are:
 
@@ -338,11 +373,10 @@ For browsers acceptable inputs are:
 	  data.append('file', $('#file')[0].files[0]);
 	  
 	  var dataManager = new DataManager({
-	    url: 'https://datamanager.angus.entrecode.de/api/c024f209/'
+	    id: 'c024f209'
 	  });
 	  dataManager.register();
 	  dataManager.createAsset(data).then(function(assets){
-	    console.log(assets);
 	    return assets[0];
 	  }).then(function(asset){
         console.log(asset); // the created Asset.
@@ -361,11 +395,11 @@ dataManager.asset('46092f02-7441-4759-b6ff-8f3831d3da4b')
 .then(function(asset){
   asset.value.title = 'new title';
   return asset.save();
-}).then(function(savedAsset){
+})
+.then(function(savedAsset){
   console.log('success!'); // successfully saved asset
-}).catch(function(error){
-  console.log(error); // error modifying asset
-});
+})
+.catch(errorHandler);
 ```
 
 ### Delete Asset
@@ -373,11 +407,22 @@ dataManager.asset('46092f02-7441-4759-b6ff-8f3831d3da4b')
 dataManager.asset('46092f02-7441-4759-b6ff-8f3831d3da4b')
 .then(function(asset){
   return asset.delete();
-}).then(function(){
+})
+.then(function(){
   console.log('success!'); // successfully deleted asset
-}).catch(function(error){
-  console.log(error); // error deleting asset
-});
+})
+.catch(errorHandler);
+```
+
+## Tags
+### Get TagList
+```js
+dataManager.tagList()
+.then(function(res){
+  console.log(res.tags); // array of tags
+  console.log(res.count);
+  console.log(res.total);
+}, errorHandler);
 ```
 
 ### Get Tags
@@ -385,9 +430,7 @@ dataManager.asset('46092f02-7441-4759-b6ff-8f3831d3da4b')
 dataManager.tags()
 .then(function(tags){
   console.log(tags); // array of tags
-}).catch(function(error){
-  console.log(error); // error getting tags
-});
+}, errorHanlder);
 ```
 
 ### Get Tag 
@@ -406,11 +449,11 @@ dataManager.tag('tag1')
 .then(function(tag){
   tag.value.tag = 'newTag';
   return tag.save();
-}).then(function(savedTag){
+})
+.then(function(savedTag){
   console.log('success!'); // successfully saved tag
-}).catch(function(error){
-  console.log(error); // error modifying tag
-});
+})
+.catch(errorHandler);
 ```
 
 ### Delete Tag
@@ -418,12 +461,18 @@ dataManager.tag('tag1')
 dataManager.tag('tag1')
 .then(function(tag){
   return tag.delete();
-}).then(function(){
+})
+.then(function(){
   console.log('success!'); // successfully deleted tag
-}).catch(function(error){
-  console.log(error); // error deleted tag
-});
+})
+.catch(errorHandler);
 ```
+
+## Errors
+* `ec_sdk_no_url_or_id_set` You did not specify a id or url in DataManager constructor.
+* `ec_sdk_invalid_url` The url (or url generated from id) was malformed.
+* `ec_sdk_model_not_found` When you tried to `model(…).resolve()` a model which is not available in the Data Manager.
+* `ec_sdk_invalid_method_for_schema` You specified the wrong method for `model(…).getSchema(<method>)`. Only `get`, `put`, and `post` are allowed.
 
 ## Documentation
 
