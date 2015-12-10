@@ -88,6 +88,18 @@ var dataManager = new DataManager({
 });
 ```
 
+### DataManager
+##### Resolve
+Retrieves information about the connected Data Manager. Like title, id, …
+
+```js
+dataManager.resolve()
+.then(function(dm) {
+  console.log(dm.metadata.title);
+  // Note: dataManager === dm
+}. errorHandler);
+```
+
 ### Model
 #### Model List
 Retrieves all models of a Data Manager:
@@ -283,6 +295,16 @@ Applicable link names are:
 * `public-key.pem`
 
 Additional documentation for user management in Data Manager APIs can be found in the Data Manager documentation itself.
+
+##### Get Account
+Get information about the logged in account.
+
+```js
+dataManager.account()
+.then(function(account) {
+  console.log(account.accountID);
+}, errorHandler);
+```
 
 ### Asset File Helper
 The SDK can help you getting asset files, and image assets in the right sizes. All file Helper can receive a `locale` property as last parameter if you want to request a specific locale (not the choosen one from Data Manager).
@@ -484,6 +506,7 @@ dataManager.tag('tag1')
 * `ec_sdk_invalid_url` The url (or url generated from id) was malformed.
 * `ec_sdk_model_not_found` When you tried to `model(…).resolve()` a model which is not available in the Data Manager.
 * `ec_sdk_invalid_method_for_schema` You specified the wrong method for `model(…).getSchema(<method>)`. Only `get`, `put`, and `post` are allowed.
+* `ec_sdk_not_logged_in` Your tried to resolve the account info without being logged in.
 
 ## Documentation
 
@@ -797,7 +820,7 @@ dataManager.tag('myTag')
 
 ## Tests and Coverage
 
-Before running tests, you need to `npm install` the dev dependency modules. For frontend tests `phantomjs 2.0` has to be installed.
+Before running tests, you need to `npm install` the dev dependency modules. For frontend tests `phantomjs 2.0` has to be installed globally.
 
 Running backend Tests with mocha (called with npm):
 
@@ -827,7 +850,7 @@ grunt test-frontend
 
 The task will run a mocked server at port 54815. Make sure it is available.
 
-Installing phantomjs 2.0 with brew
+Installing phantomjs 2.0 with homebrew
 
 ```sh
 brew install phantomjs
@@ -863,6 +886,8 @@ grunt build
 - `value` objects are [halfred](https://github.com/basti1302/halfred) objects.
 - Frontend tests use phantomjs 2.0 (needs to be installed globally by system; switch to other browser in `test/karma.conf.js` if not available).
 - removed dependency for weird ec.appcms-mock module
+- Adds Data Manager resolve method.
+- Adds Account resolve method.
 - I am sure I forgot something here…
 
 ### 0.5.3
