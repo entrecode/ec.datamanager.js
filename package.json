@@ -8,7 +8,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "mocha test",
+    "test": "mocha -R spec \"test/**/*.test.js\"",
     "test-travis": "grunt test-frontend && ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec \"test/**/*.test.js\"",
     "build": "grunt build"
   },
