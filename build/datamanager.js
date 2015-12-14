@@ -273,7 +273,7 @@ var DataManager = function(options) {
   if (options.hasOwnProperty('url')) {
     this.url = options.url;
   } else {
-    this.id = options.id;
+    this.id  = options.id;
     this.url = 'https://datamanager.entrecode.de/api/' + this.id;
   }
 
@@ -300,7 +300,8 @@ var DataManager = function(options) {
 };
 
 /**
- * Default fileUrl for bestFile functions {@link DataManager.getFileUrl}, {@link DataManager.getImageUrl}, and {@link DataManager.getImageThumbUrl}.
+ * Default fileUrl for bestFile functions {@link DataManager.getFileUrl}, {@link DataManager.getImageUrl}, and {@link
+  * DataManager.getImageThumbUrl}.
  *
  * @private
  * @constant {string} _fileUrl
@@ -500,15 +501,15 @@ DataManager.prototype.resolve = function() {
   var dm = this;
   return new Promise(function(resolve, reject) {
     traverson.from(dm.url).jsonHal()
-      .withRequestOptions(dm._requestOptions())
-      .get(function(err, res, traversal) {
-        checkResponse(err, res).then(function(res) {
-          var body = halfred.parse(JSON.parse(res.body));
-          dm._rootTraversal = traversal;
-          dm.metadata = body;
-          return resolve(dm);
-        }, reject);
-      });
+    .withRequestOptions(dm._requestOptions())
+    .get(function(err, res, traversal) {
+      checkResponse(err, res).then(function(res) {
+        var body          = halfred.parse(JSON.parse(res.body));
+        dm._rootTraversal = traversal;
+        dm.metadata       = body;
+        return resolve(dm);
+      }, reject);
+    });
   });
 };
 
@@ -516,29 +517,29 @@ DataManager.prototype.modelList = function() {
   var dm = this;
   return new Promise(function(resolve, reject) {
     traverson.from(dm.url).jsonHal()
-      .withRequestOptions(dm._requestOptions())
-      .get(function(err, res, traversal) {
-        checkResponse(err, res).then(function(res) {
-          var body = JSON.parse(res.body);
-          var out = {};
-          if (body.models) {
-            for (var i = 0; i < body.models.length; i++) {
-              dm._rootTraversal = traversal;
-              out[body.models[i].title] = dm.model(body.models[i].title, body.models[i]);
-            }
+    .withRequestOptions(dm._requestOptions())
+    .get(function(err, res, traversal) {
+      checkResponse(err, res).then(function(res) {
+        var body = JSON.parse(res.body);
+        var out  = {};
+        if (body.models) {
+          for (var i = 0; i < body.models.length; i++) {
+            dm._rootTraversal         = traversal;
+            out[body.models[i].title] = dm.model(body.models[i].title, body.models[i]);
           }
-          return resolve(out);
-        }, reject);
-      });
+        }
+        return resolve(out);
+      }, reject);
+    });
   });
 };
 
 DataManager.prototype.model = function(title, metadata) {
   var dm = this;
   return {
-    id: title,
-    title: title,
-    metadata: metadata,
+    id:         title,
+    title:      title,
+    metadata:   metadata,
     _traversal: null,
 
     _getTraversal: function() {
@@ -549,25 +550,25 @@ DataManager.prototype.model = function(title, metadata) {
         }
         if (dm._rootTraversal) {
           dm._rootTraversal.continue().newRequest()
-            .follow(dm.id + ':' + model.title)
-            .withRequestOptions(dm._requestOptions())
-            .get(function(err, res, traversal) {
-              checkResponse(err, res).then(function() {
-                model._traversal = traversal;
-                return resolve(traversal);
-              }, reject);
-            });
-        }
-
-        traverson.from(dm.url).jsonHal()
           .follow(dm.id + ':' + model.title)
           .withRequestOptions(dm._requestOptions())
-          .get(function(err, res, traversal) { // TODO remove this traversal when CMS-1761 is done
-            checkResponse(err, res).then(function(res) {
+          .get(function(err, res, traversal) {
+            checkResponse(err, res).then(function() {
               model._traversal = traversal;
               return resolve(traversal);
             }, reject);
           });
+        }
+
+        traverson.from(dm.url).jsonHal()
+        .follow(dm.id + ':' + model.title)
+        .withRequestOptions(dm._requestOptions())
+        .get(function(err, res, traversal) { // TODO remove this traversal when CMS-1761 is done
+          checkResponse(err, res).then(function(res) {
+            model._traversal = traversal;
+            return resolve(traversal);
+          }, reject);
+        });
       });
     },
 
@@ -575,20 +576,20 @@ DataManager.prototype.model = function(title, metadata) {
       var model = this;
       return new Promise(function(resolve, reject) {
         traverson.from(dm.url).jsonHal()
-          .withRequestOptions(dm._requestOptions())
-          .get(function(err, res, traversal) {
-            checkResponse(err, res).then(function(res) {
-              var body = JSON.parse(res.body);
-              for (var i = 0; i < body.models.length; i++) {
-                if (body.models[i].title === model.title) {
-                  model.metadata = body.models[i];
-                  dm._rootTraversal = traversal;
-                  return resolve(model);
-                }
+        .withRequestOptions(dm._requestOptions())
+        .get(function(err, res, traversal) {
+          checkResponse(err, res).then(function(res) {
+            var body = JSON.parse(res.body);
+            for (var i = 0; i < body.models.length; i++) {
+              if (body.models[i].title === model.title) {
+                model.metadata    = body.models[i];
+                dm._rootTraversal = traversal;
+                return resolve(model);
               }
-              return reject(new Error('ec_sdk_model_not_found'));
-            }, reject);
-          });
+            }
+            return reject(new Error('ec_sdk_model_not_found'));
+          }, reject);
+        });
       });
     },
 
@@ -603,13 +604,13 @@ DataManager.prototype.model = function(title, metadata) {
           return reject(new Error('ec_sdk_invalid_method_for_schema'));
         }
         request
-          .get(dm.url.replace('/api/', '/api/schema/') + '/' + model.title)
-          .query({template: method})
-          .end(function(err, res) {
-            checkResponse(err, res).then(function(res) {
-              return resolve(res.body);
-            }, reject);
-          });
+        .get(dm.url.replace('/api/', '/api/schema/') + '/' + model.title)
+        .query({template: method})
+        .end(function(err, res) {
+          checkResponse(err, res).then(function(res) {
+            return resolve(res.body);
+          }, reject);
+        });
       });
     },
 
@@ -618,31 +619,31 @@ DataManager.prototype.model = function(title, metadata) {
       return this._getTraversal().then(function(traversal) {
         return new Promise(function(resolve, reject) {
           var t = traversal.continue().newRequest()
-            .follow(dm.id + ':' + model.title + '/options');
+          .follow(dm.id + ':' + model.title + '/options');
           if (options) {
             t.withTemplateParameters(optionsToQueryParameter(options));
           }
           t.withRequestOptions(dm._requestOptions())
-            .get(function(err, res, traversal) {
-              checkResponse(err, res).then(function(res) {
-                var body = halfred.parse(JSON.parse(res.body));
-                // empty list due to filter
-                if (body.hasOwnProperty('count') && body.count === 0 && body.hasOwnProperty('total') && body.total === 0) {
-                  return resolve({entries: [], count: 0, total: 0});
+          .get(function(err, res, traversal) {
+            checkResponse(err, res).then(function(res) {
+              var body = halfred.parse(JSON.parse(res.body));
+              // empty list due to filter
+              if (body.hasOwnProperty('count') && body.count === 0 && body.hasOwnProperty('total') && body.total === 0) {
+                return resolve({entries: [], count: 0, total: 0});
+              }
+              var entries = body.embeddedArray(dm.id + ':' + model.title);
+              // single result due to filter
+              var out = [];
+              if (!entries) {
+                out.push(new Entry(body, dm, model));
+              } else {
+                for (var i in entries) {
+                  out.push(new Entry(entries[i], dm, model));
                 }
-                var entries = body.embeddedArray(dm.id + ':' + model.title);
-                // single result due to filter
-                var out = [];
-                if (!entries) {
-                  out.push(new Entry(body, dm, model));
-                } else {
-                  for (var i in entries) {
-                    out.push(new Entry(entries[i], dm, model));
-                  }
-                }
-                return resolve({entries: out, count: body.count, total: body.total});
-              }, reject);
-            });
+              }
+              return resolve({entries: out, count: body.count, total: body.total});
+            }, reject);
+          });
         });
       });
     },
@@ -669,18 +670,18 @@ DataManager.prototype.model = function(title, metadata) {
             }
           }
           var t = traversal.continue().newRequest()
-            .follow(dm.id + ':' + model.title + '/options'); // TODO options
+          .follow(dm.id + ':' + model.title + '/options'); // TODO options
           if (levels) {
             t.withTemplateParameters({_id: id, _levels: levels});
           } else {
             t.withTemplateParameters({_id: id});
           }
           t.withRequestOptions(dm._requestOptions())
-            .get(function(err, res, traversal) {
-              checkResponse(err, res).then(function(res) {
-                return resolve(new Entry(halfred.parse(JSON.parse(res.body)), dm, model, traversal));
-              }, reject);
-            });
+          .get(function(err, res, traversal) {
+            checkResponse(err, res).then(function(res) {
+              return resolve(new Entry(halfred.parse(JSON.parse(res.body)), dm, model, traversal));
+            }, reject);
+          });
         });
       });
     },
@@ -690,18 +691,18 @@ DataManager.prototype.model = function(title, metadata) {
       return this._getTraversal().then(function(traversal) {
         return new Promise(function(resolve, reject) {
           traversal.continue().newRequest()
-            .follow(dm.id + ':' + model.title + '/options') // TODO options
-            .withRequestOptions(dm._requestOptions({
-              'Content-Type': 'application/json'
-            }))
-            .post(entry, function(err, res, traversal) {
-              checkResponse(err, res).then(function(res) {
-                if (res.statusCode === 204) {
-                  return resolve(true);
-                }
-                return resolve(new Entry(halfred.parse(JSON.parse(res.body)), dm, model, traversal));
-              }, reject);
-            });
+          .follow(dm.id + ':' + model.title + '/options') // TODO options
+          .withRequestOptions(dm._requestOptions({
+            'Content-Type': 'application/json'
+          }))
+          .post(entry, function(err, res, traversal) {
+            checkResponse(err, res).then(function(res) {
+              if (res.statusCode === 204) {
+                return resolve(true);
+              }
+              return resolve(new Entry(halfred.parse(JSON.parse(res.body)), dm, model, traversal));
+            }, reject);
+          });
         });
       });
     },
@@ -711,14 +712,14 @@ DataManager.prototype.model = function(title, metadata) {
       return this._getTraversal().then(function(traversal) {
         return new Promise(function(resolve, reject) {
           traversal.continue().newRequest()
-            .follow(dm.id + ':' + model.title + '/options')
-            .withTemplateParameters({_id: entryId})
-            .withRequestOptions(dm._requestOptions())
-            .delete(function(err, res) {
-              checkResponse(err, res).then(function() {
-                return resolve(true);
-              }, reject);
-            });
+          .follow(dm.id + ':' + model.title + '/options')
+          .withTemplateParameters({_id: entryId})
+          .withRequestOptions(dm._requestOptions())
+          .delete(function(err, res) {
+            checkResponse(err, res).then(function() {
+              return resolve(true);
+            }, reject);
+          });
         });
       });
     }
@@ -730,29 +731,29 @@ DataManager.prototype.assetList = function(options) {
   return new Promise(function(resolve, reject) {
     dm._getTraversal().then(function(traversal) {
       var t = traversal.continue().newRequest()
-        .follow('ec:api/assets', 'ec:api/assets/options'); // TODO remove options relation
+      .follow('ec:api/assets', 'ec:api/assets/options'); // TODO remove options relation
       if (options) {
         t.withTemplateParameters(optionsToQueryParameter(options));
       }
       t.withRequestOptions(dm._requestOptions())
-        .get(function(err, res, traversal) {
-          checkResponse(err, res).then(function(res) {
-            var body = halfred.parse(JSON.parse(res.body));
-            if (body.hasOwnProperty('count') && body.count === 0 && body.hasOwnProperty('total') && body.total === 0) {
-              return resolve({assets: [], count: 0, total: 0});
+      .get(function(err, res, traversal) {
+        checkResponse(err, res).then(function(res) {
+          var body = halfred.parse(JSON.parse(res.body));
+          if (body.hasOwnProperty('count') && body.count === 0 && body.hasOwnProperty('total') && body.total === 0) {
+            return resolve({assets: [], count: 0, total: 0});
+          }
+          var assets = body.embeddedArray('ec:api/asset');
+          var out    = [];
+          if (!assets) { // single result due to filter
+            out.push(new Asset(body, dm));
+          } else {
+            for (var i in assets) {
+              out.push(new Asset(assets[i], dm));
             }
-            var assets = body.embeddedArray('ec:api/asset');
-            var out = [];
-            if (!assets) { // single result due to filter
-              out.push(new Asset(body, dm));
-            } else {
-              for (var i in assets) {
-                out.push(new Asset(assets[i], dm));
-              }
-            }
-            return resolve({assets: out, count: body.count, total: body.total});
-          }, reject);
-        });
+          }
+          return resolve({assets: out, count: body.count, total: body.total});
+        }, reject);
+      });
     });
   });
 };
@@ -774,14 +775,14 @@ DataManager.prototype.asset = function(assetID) {
     }
     dm._getTraversal().then(function(traversal) {
       traversal.continue().newRequest()
-        .follow('ec:api/assets', 'ec:api/assets/options') // TODO remove options relation
-        .withTemplateParameters({assetID: assetID})
-        .withRequestOptions(dm._requestOptions())
-        .get(function(err, res, traversal) {
-          checkResponse(err, res).then(function(res) {
-            return resolve(new Asset(halfred.parse(JSON.parse(res.body)), dm, traversal));
-          }, reject);
-        });
+      .follow('ec:api/assets', 'ec:api/assets/options') // TODO remove options relation
+      .withTemplateParameters({assetID: assetID})
+      .withRequestOptions(dm._requestOptions())
+      .get(function(err, res, traversal) {
+        checkResponse(err, res).then(function(res) {
+          return resolve(new Asset(halfred.parse(JSON.parse(res.body)), dm, traversal));
+        }, reject);
+      });
     });
   });
 };
@@ -792,38 +793,38 @@ DataManager.prototype.createAsset = function(input) {
   return new Promise(function(resolve, reject) {
     dm._getTraversal().then(function(traversal) {
       traversal.continue().newRequest()
-        .follow('ec:api/assets')
-        .getUrl(function(err, url) {
-          if (err) {
-            return resolve(err);
+      .follow('ec:api/assets')
+      .getUrl(function(err, url) {
+        if (err) {
+          return resolve(err);
+        }
+        var req = request
+        .post(url);
+        if (dm.accessToken) {
+          req.set('Authorization', 'Bearer ' + dm.accessToken);
+        }
+        if (typeof input === 'string') {        // File path
+          req.attach('file', input);
+        } else if (Array.isArray(input)) {      // Array of file paths
+          for (var i in input) {
+            req.attach('file', input[i]);
           }
-          var req = request
-            .post(url);
-          if (dm.accessToken) {
-            req.set('Authorization', 'Bearer ' + dm.accessToken);
-          }
-          if (typeof input === 'string') {        // File path
-            req.attach('file', input);
-          } else if (Array.isArray(input)) {      // Array of file paths
-            for (var i in input) {
-              req.attach('file', input[i]);
+        } else {                                // FormData
+          req.send(input);
+        }
+        req.end(function(err, res) {
+          checkResponse(err, res).then(function(res) {
+            var regex  = /^.*\?assetID=([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-4[0-9A-Fa-f]{3}-[89ABab][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12})$/;
+            var body   = halfred.parse(res.body);
+            var assets = body.linkArray('ec:asset');
+            var out    = [];
+            for (var i in assets) {
+              out.push(dm.asset(regex.exec(assets[i].href)[1]));
             }
-          } else {                                // FormData
-            req.send(input);
-          }
-          req.end(function(err, res) {
-            checkResponse(err, res).then(function(res) {
-              var regex = /^.*\?assetID=([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-4[0-9A-Fa-f]{3}-[89ABab][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12})$/;
-              var body = halfred.parse(res.body);
-              var assets = body.linkArray('ec:asset');
-              var out = [];
-              for (var i in assets) {
-                out.push(dm.asset(regex.exec(assets[i].href)[1]));
-              }
-              return resolve(out);
-            }, reject);
-          });
+            return resolve(out);
+          }, reject);
         });
+      });
     }, reject);
   });
 };
@@ -833,27 +834,27 @@ DataManager.prototype.tagList = function(options) {
   return new Promise(function(resolve, reject) {
     dm._getTraversal().then(function(traversal) {
       traversal.continue().newRequest()
-        .follow('ec:api/assets', 'ec:api/tags', 'ec:api/tags/options')
-        .withTemplateParameters(optionsToQueryParameter(options))
-        .withRequestOptions(dm._requestOptions())
-        .get(function(err, res, traversal) {
-          checkResponse(err, res).then(function(res) {
-            var body = halfred.parse(JSON.parse(res.body));
-            if (body.hasOwnProperty('count') && body.count === 0 && body.hasOwnProperty('total') && body.total === 0) {
-              return resolve({tags: [], count: 0, total: 0});
+      .follow('ec:api/assets', 'ec:api/tags', 'ec:api/tags/options')
+      .withTemplateParameters(optionsToQueryParameter(options))
+      .withRequestOptions(dm._requestOptions())
+      .get(function(err, res, traversal) {
+        checkResponse(err, res).then(function(res) {
+          var body = halfred.parse(JSON.parse(res.body));
+          if (body.hasOwnProperty('count') && body.count === 0 && body.hasOwnProperty('total') && body.total === 0) {
+            return resolve({tags: [], count: 0, total: 0});
+          }
+          var tags = body.embeddedArray('ec:api/tag');
+          var out  = [];
+          if (!tags) { // single result due to filter
+            out.push(new Tag(body, dm));
+          } else {
+            for (var i in tags) {
+              out.push(new Tag(tags[i], dm));
             }
-            var tags = body.embeddedArray('ec:api/tag');
-            var out = [];
-            if (!tags) { // single result due to filter
-              out.push(new Tag(body, dm));
-            } else {
-              for (var i in tags) {
-                out.push(new Tag(tags[i], dm));
-              }
-            }
-            return resolve({tags: out, count: body.count, total: body.total});
-          }, reject);
-        });
+          }
+          return resolve({tags: out, count: body.count, total: body.total});
+        }, reject);
+      });
     });
   });
 };
@@ -872,15 +873,15 @@ DataManager.prototype.tag = function(tag) {
   return new Promise(function(resolve, reject) {
     dm._getTraversal().then(function(traversal) {
       traversal.continue().newRequest()
-        .follow('ec:api/assets', 'ec:api/tags', 'ec:api/tags/options')
-        .withTemplateParameters({tag: tag})
-        .withRequestOptions(dm._requestOptions())
-        .get(function(err, res, traversal) {
-          checkResponse(err, res).then(function(res) {
-            var body = halfred.parse(JSON.parse(res.body));
-            return resolve(new Tag(body, dm, traversal));
-          }, reject);
-        });
+      .follow('ec:api/assets', 'ec:api/tags', 'ec:api/tags/options')
+      .withTemplateParameters({tag: tag})
+      .withRequestOptions(dm._requestOptions())
+      .get(function(err, res, traversal) {
+        checkResponse(err, res).then(function(res) {
+          var body = halfred.parse(JSON.parse(res.body));
+          return resolve(new Tag(body, dm, traversal));
+        }, reject);
+      });
     });
   });
 };
@@ -890,15 +891,15 @@ DataManager.prototype.registerAnonymous = function(validUntil) {
   return new Promise(function(resolve, reject) {
     dm._getTraversal().then(function(traversal) {
       var t = traversal.continue().newRequest()
-        .follow(dm.id + ':_auth/anonymous');
+      .follow(dm.id + ':_auth/anonymous');
       if (validUntil) {
         t.withTemplateParameters({validUntil: validUntil})
       }
       t.post({}, function(err, res, traversal) {
         checkResponse(err, res).then(function(res) {
-          var body = JSON.parse(res.body);
+          var body       = JSON.parse(res.body);
           dm.accessToken = body.jwt;
-          dm._user = new User(true, body, dm, traversal);
+          dm._user       = new User(true, body, dm, traversal);
           return resolve(dm._user);
         }, reject);
       });
@@ -909,19 +910,19 @@ DataManager.prototype.registerAnonymous = function(validUntil) {
 DataManager.prototype.account = function() {
   var dm = this;
   return new Promise(function(resolve, reject) {
-    if(!dm.accessToken){
+    if (!dm.accessToken) {
       return reject(new Error('ec_sdk_not_logged_in'));
     }
     traverson.from(dm.url).jsonHal()
-      .withRequestOptions(dm._requestOptions())
-      .get(function(err, res, traversal) {
-        checkResponse(err, res).then(function(res) {
-          var body = halfred.parse(JSON.parse(res.body));
-          dm._rootTraversal = traversal;
-          dm.metadata = body;
-          return resolve(dm.metadata.account);
-        }, reject);
-      });
+    .withRequestOptions(dm._requestOptions())
+    .get(function(err, res, traversal) {
+      checkResponse(err, res).then(function(res) {
+        var body          = halfred.parse(JSON.parse(res.body));
+        dm._rootTraversal = traversal;
+        dm.metadata       = body;
+        return resolve(dm.metadata.account);
+      }, reject);
+    });
   });
 };
 
@@ -939,7 +940,7 @@ DataManager.prototype.getAuthLink = function(relation, templateParameter) {
 
     dm._getTraversal().then(function(traversal) {
       var t = traversal.continue().newRequest()
-        .follow(dm.id + ':_auth/' + relation);
+      .follow(dm.id + ':_auth/' + relation);
       if (templateParameter) {
         t.withTemplateParameters(templateParameter);
       }
@@ -958,13 +959,13 @@ DataManager.prototype.emailAvailable = function(email) {
   return new Promise(function(resolve, reject) {
     dm._getTraversal().then(function(traversal) {
       traversal.continue().newRequest()
-        .follow(dm.id + ':_auth/email-available')
-        .withTemplateParameters({email: email})
-        .get(function(err, res) {
-          checkResponse(err, res).then(function(res) {
-            return resolve(JSON.parse(res.body).available);
-          }, reject);
-        });
+      .follow(dm.id + ':_auth/email-available')
+      .withTemplateParameters({email: email})
+      .get(function(err, res) {
+        checkResponse(err, res).then(function(res) {
+          return resolve(JSON.parse(res.body).available);
+        }, reject);
+      });
     });
   });
 };
@@ -976,18 +977,18 @@ DataManager.prototype._getTraversal = function() {
       return resolve(dm._rootTraversal);
     }
     traverson.from(dm.url).jsonHal()
-      .withRequestOptions(dm._requestOptions())
-      .get(function(err, res, traversal) {
-        checkResponse(err, res).then(function(res) {
-          dm._rootTraversal = traversal;
-          return resolve(traversal);
-        }, reject);
-      });
+    .withRequestOptions(dm._requestOptions())
+    .get(function(err, res, traversal) {
+      checkResponse(err, res).then(function(res) {
+        dm._rootTraversal = traversal;
+        return resolve(traversal);
+      }, reject);
+    });
   });
 };
 
 DataManager.prototype._requestOptions = function(additionalHeaders) {
-  var out = {};
+  var out     = {};
   out.headers = {};
   if (this.accessToken) {
     out.headers['Authorization'] = 'Bearer ' + this.accessToken;
@@ -1001,9 +1002,9 @@ DataManager.prototype._requestOptions = function(additionalHeaders) {
 };
 
 var Entry = function(entry, dm, model, traversal) {
-  this.value = entry;
-  this._dm = dm;
-  this._model = model;
+  this.value      = entry;
+  this._dm        = dm;
+  this._model     = model;
   this._traversal = traversal;
 
   this.save = function() {
@@ -1015,20 +1016,20 @@ var Entry = function(entry, dm, model, traversal) {
           out[key] = entry.value[key];
         }
         traversal.continue().newRequest()
-          .follow('self')
-          .withRequestOptions(entry._dm._requestOptions({
-            'Content-Type': 'application/json'
-          }))
-          .put(out, function(err, res, traversal) {
-            checkResponse(err, res).then(function(res) {
-              if (res.statusCode === 204) {
-                return resolve(true);
-              }
-              entry.value = halfred.parse(JSON.parse(res.body));
-              entry._traversal = traversal;
-              return resolve(entry);
-            }, reject);
-          });
+        .follow('self')
+        .withRequestOptions(entry._dm._requestOptions({
+          'Content-Type': 'application/json'
+        }))
+        .put(out, function(err, res, traversal) {
+          checkResponse(err, res).then(function(res) {
+            if (res.statusCode === 204) {
+              return resolve(true);
+            }
+            entry.value      = halfred.parse(JSON.parse(res.body));
+            entry._traversal = traversal;
+            return resolve(entry);
+          }, reject);
+        });
       }, reject);
     });
   };
@@ -1038,12 +1039,12 @@ var Entry = function(entry, dm, model, traversal) {
     return new Promise(function(resolve, reject) {
       entry._getTraversal().then(function(traversal) {
         traversal.continue().newRequest().follow('self')
-          .withRequestOptions(entry._dm._requestOptions())
-          .delete(function(err, res) {
-            checkResponse(err, res).then(function() {
-              return resolve(true);
-            }, reject);
-          });
+        .withRequestOptions(entry._dm._requestOptions())
+        .delete(function(err, res) {
+          checkResponse(err, res).then(function() {
+            return resolve(true);
+          }, reject);
+        });
       }, reject);
     });
   };
@@ -1075,7 +1076,7 @@ var Entry = function(entry, dm, model, traversal) {
         return resolve(entry._traversal);
       }
       traverson.from(entry.value.link('self').href).jsonHal().get(function(err, res, traversal) {
-        checkResponse(err, res).then(function(res) {
+        checkResponse(err, res).then(function() {
           entry._traversal = traversal;
           return resolve(traversal);
         }, reject);
@@ -1085,8 +1086,8 @@ var Entry = function(entry, dm, model, traversal) {
 };
 
 var Asset = function(asset, dm, traversal) {
-  this.value = asset;
-  this._dm = dm;
+  this.value      = asset;
+  this._dm        = dm;
   this._traversal = traversal;
 
   this.save = function() {
@@ -1098,20 +1099,20 @@ var Asset = function(asset, dm, traversal) {
           out[key] = asset.value[key];
         }
         traversal.continue().newRequest()
-          .follow('self')
-          .withRequestOptions(asset._dm._requestOptions({
-            'Content-Type': 'application/json'
-          }))
-          .put(out, function(err, res, traversal) {
-            checkResponse(err, res).then(function(res) {
-              if (res.statusCode === 204) {
-                return resolve(true);
-              }
-              asset.value = halfred.parse(JSON.parse(res.body));
-              asset._traversal = traversal;
-              return resolve(asset);
-            }, reject);
-          });
+        .follow('self')
+        .withRequestOptions(asset._dm._requestOptions({
+          'Content-Type': 'application/json'
+        }))
+        .put(out, function(err, res, traversal) {
+          checkResponse(err, res).then(function(res) {
+            if (res.statusCode === 204) {
+              return resolve(true);
+            }
+            asset.value      = halfred.parse(JSON.parse(res.body));
+            asset._traversal = traversal;
+            return resolve(asset);
+          }, reject);
+        });
       }, reject);
     });
   };
@@ -1121,13 +1122,13 @@ var Asset = function(asset, dm, traversal) {
     return new Promise(function(resolve, reject) {
       asset._getTraversal().then(function(traversal) {
         traversal.continue().newRequest()
-          .follow('self')
-          .withRequestOptions(asset._dm._requestOptions())
-          .delete(function(err, res) {
-            checkResponse(err, res).then(function() {
-              return resolve(true);
-            }, reject);
-          });
+        .follow('self')
+        .withRequestOptions(asset._dm._requestOptions())
+        .delete(function(err, res) {
+          checkResponse(err, res).then(function() {
+            return resolve(true);
+          }, reject);
+        });
       });
     });
   };
@@ -1138,14 +1139,19 @@ var Asset = function(asset, dm, traversal) {
       if (asset._traversal) {
         return resolve(traversal);
       }
-      return reject(new Error('ec_sdk_could_not_get_traversal'));
+      traverson.from(asset.value.link('self').href).jsonHal().get(function(err, res, traversal) {
+        checkResponse(err, res).then(function() {
+          asset._traversal = traversal;
+          return resolve(traversal);
+        }, reject);
+      });
     });
   }
 };
 
 var Tag = function(tag, dm, traversal) {
-  this.value = tag;
-  this._dm = dm;
+  this.value      = tag;
+  this._dm        = dm;
   this._traversal = traversal;
 
   this.save = function() {
@@ -1157,20 +1163,20 @@ var Tag = function(tag, dm, traversal) {
           out[key] = tag.value[key];
         }
         traversal.continue().newRequest()
-          .follow('self')
-          .withRequestOptions(tag._dm._requestOptions({
-            'Content-Type': 'application/json'
-          }))
-          .put(out, function(err, res, traversal) {
-            checkResponse(err, res).then(function(res) {
-              if (res.statusCode === 204) {
-                return resolve(true);
-              }
-              tag.value = halfred.parse(JSON.parse(res.body));
-              tag._traversal = traversal;
-              return resolve(tag);
-            }, reject);
-          });
+        .follow('self')
+        .withRequestOptions(tag._dm._requestOptions({
+          'Content-Type': 'application/json'
+        }))
+        .put(out, function(err, res, traversal) {
+          checkResponse(err, res).then(function(res) {
+            if (res.statusCode === 204) {
+              return resolve(true);
+            }
+            tag.value      = halfred.parse(JSON.parse(res.body));
+            tag._traversal = traversal;
+            return resolve(tag);
+          }, reject);
+        });
       }, reject);
     });
   };
@@ -1180,13 +1186,13 @@ var Tag = function(tag, dm, traversal) {
     return new Promise(function(resolve, reject) {
       tag._getTraversal().then(function(traversal) {
         traversal.continue().newRequest()
-          .follow('self')
-          .withRequestOptions(tag._dm._requestOptions())
-          .delete(function(err, res) {
-            checkResponse(err, res).then(function() {
-              return resolve(true);
-            }, reject);
-          });
+        .follow('self')
+        .withRequestOptions(tag._dm._requestOptions())
+        .delete(function(err, res) {
+          checkResponse(err, res).then(function() {
+            return resolve(true);
+          }, reject);
+        });
       });
     });
   };
@@ -1197,16 +1203,21 @@ var Tag = function(tag, dm, traversal) {
       if (tag._traversal) {
         return resolve(tag._traversal);
       }
-      return reject(new Error('ec_sdk_could_not_get_traversal'));
+      traverson.from(tag.value.link('self').href).jsonHal().get(function(err, res, traversal) {
+        checkResponse(err, res).then(function() {
+          tag._traversal = traversal;
+          return resolve(traversal);
+        }, reject);
+      });
     });
   }
 };
 
 // TODO document
 var User = function(isAnon, user, dm, traversal) {
-  this.value = user;
-  this._isAnon = isAnon;
-  this._dm = dm;
+  this.value      = user;
+  this._isAnon    = isAnon;
+  this._dm        = dm;
   this._traversal = traversal;
 
   // TODO document
@@ -1215,7 +1226,7 @@ var User = function(isAnon, user, dm, traversal) {
     return new Promise(function(resolve, reject) {
       if (user._isAnon) {
         user._dm.accessToken = undefined;
-        user._dm._user = undefined;
+        user._dm._user       = undefined;
         return resolve();
       }
       return reject(new Error('ec_sdk_user_not_logged_out'));
