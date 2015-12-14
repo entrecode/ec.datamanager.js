@@ -634,10 +634,10 @@ DataManager.prototype.model = function(title, metadata) {
                 // single result due to filter
                 var out = [];
                 if (!entries) {
-                  out.push(new Entry(body, dm, model, traversal));
+                  out.push(new Entry(body, dm, model));
                 } else {
                   for (var i in entries) {
-                    out.push(new Entry(entries[i], dm, model, traversal));
+                    out.push(new Entry(entries[i], dm, model));
                   }
                 }
                 return resolve({entries: out, count: body.count, total: body.total});
@@ -744,10 +744,10 @@ DataManager.prototype.assetList = function(options) {
             var assets = body.embeddedArray('ec:api/asset');
             var out = [];
             if (!assets) { // single result due to filter
-              out.push(new Asset(body, dm, traversal));
+              out.push(new Asset(body, dm));
             } else {
               for (var i in assets) {
-                out.push(new Asset(assets[i], dm, traversal));
+                out.push(new Asset(assets[i], dm));
               }
             }
             return resolve({assets: out, count: body.count, total: body.total});
@@ -845,10 +845,10 @@ DataManager.prototype.tagList = function(options) {
             var tags = body.embeddedArray('ec:api/tag');
             var out = [];
             if (!tags) { // single result due to filter
-              out.push(new Tag(body, dm, traversal));
+              out.push(new Tag(body, dm));
             } else {
               for (var i in tags) {
-                out.push(new Tag(tags[i], dm, traversal));
+                out.push(new Tag(tags[i], dm));
               }
             }
             return resolve({tags: out, count: body.count, total: body.total});
@@ -1074,7 +1074,12 @@ var Entry = function(entry, dm, model, traversal) {
       if (entry._traversal) {
         return resolve(entry._traversal);
       }
-      return reject(new Error('ec_sdk_could_not_get_traversal'));
+      traverson.from(entry.value.link('self').href).jsonHal().get(function(err, res, traversal) {
+        checkResponse(err, res).then(function(res) {
+          entry._traversal = traversal;
+          return resolve(traversal);
+        }, reject);
+      });
     });
   };
 };

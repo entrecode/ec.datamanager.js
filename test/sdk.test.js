@@ -635,6 +635,13 @@ describe('entry/entries', function() { // this is basically modelList
       expect(deleted).to.be.true;
     });
   });
+  it('entry delete on entry from list', function() {
+    return dm.model('to-do-item').entries().then(function(entries) {
+      return entries[0].delete().then(function(deleted) {
+        expect(deleted).to.be.true;
+      });
+    });
+  });
   it('put entry', function() {
     return dm.model('to-do-item').entry('N1GJuenPEl').then(function(entry) {
       entry.value.description = '<p>New Description.</p>';
