@@ -534,6 +534,20 @@ describe('entry/entries', function() { // this is basically modelList
       expect(entry.value['list-items'][0]).to.have.property('_id', '4JGrCvm27e');
     });
   });
+  it('get single entry, on list', function() {
+    return dm.model('to-do-item').entry({
+      filter: {
+        title: {
+          exact: 'Beef'
+        }
+      }
+    }).then(function(entry) {
+      expect(entry).to.be.ok;
+      expect(entry).to.be.instanceOf(Object);
+      expect(entry).to.have.property('value');
+      expect(entry.value).to.have.property('_id', 'VkGhAPQ2Qe');
+    });
+  });
   it('single result on list', function() {
     return dm.model('to-do-item').entries({
       filter: {
