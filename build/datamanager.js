@@ -550,7 +550,6 @@ DataManager.prototype.model = function(title, metadata) {
         }
         if (dm._rootTraversal) {
           dm._rootTraversal.continue().newRequest()
-          .follow(dm.id + ':' + model.title)
           .withRequestOptions(dm._requestOptions())
           .get(function(err, res, traversal) {
             checkResponse(err, res).then(function() {
@@ -561,9 +560,8 @@ DataManager.prototype.model = function(title, metadata) {
         }
 
         traverson.from(dm.url).jsonHal()
-        .follow(dm.id + ':' + model.title)
         .withRequestOptions(dm._requestOptions())
-        .get(function(err, res, traversal) { // TODO remove this traversal when CMS-1761 is done
+        .get(function(err, res, traversal) {
           checkResponse(err, res).then(function(res) {
             model._traversal = traversal;
             return resolve(traversal);
@@ -619,7 +617,7 @@ DataManager.prototype.model = function(title, metadata) {
       return this._getTraversal().then(function(traversal) {
         return new Promise(function(resolve, reject) {
           var t = traversal.continue().newRequest()
-          .follow(dm.id + ':' + model.title + '/options');
+          .follow(dm.id + ':' + model.title);
           if (options) {
             t.withTemplateParameters(optionsToQueryParameter(options));
           }
@@ -691,7 +689,7 @@ DataManager.prototype.model = function(title, metadata) {
             options.levels = levels;
           }
           traversal.continue().newRequest()
-          .follow(dm.id + ':' + model.title + '/options') // TODO options
+          .follow(dm.id + ':' + model.title)
           .withTemplateParameters(optionsToQueryParameter(options))
           .withRequestOptions(dm._requestOptions())
           .get(function(err, res, traversal) {
@@ -715,7 +713,7 @@ DataManager.prototype.model = function(title, metadata) {
       return this._getTraversal().then(function(traversal) {
         return new Promise(function(resolve, reject) {
           traversal.continue().newRequest()
-          .follow(dm.id + ':' + model.title + '/options') // TODO options
+          .follow(dm.id + ':' + model.title)
           .withRequestOptions(dm._requestOptions({
             'Content-Type': 'application/json'
           }))
@@ -736,7 +734,7 @@ DataManager.prototype.model = function(title, metadata) {
       return this._getTraversal().then(function(traversal) {
         return new Promise(function(resolve, reject) {
           traversal.continue().newRequest()
-          .follow(dm.id + ':' + model.title + '/options')
+          .follow(dm.id + ':' + model.title)
           .withTemplateParameters({_id: entryId})
           .withRequestOptions(dm._requestOptions())
           .delete(function(err, res) {
@@ -755,7 +753,7 @@ DataManager.prototype.assetList = function(options) {
   return new Promise(function(resolve, reject) {
     dm._getTraversal().then(function(traversal) {
       var t = traversal.continue().newRequest()
-      .follow('ec:api/assets', 'ec:api/assets/options'); // TODO remove options relation
+      .follow('ec:api/assets');
       if (options) {
         t.withTemplateParameters(optionsToQueryParameter(options));
       }
@@ -799,7 +797,7 @@ DataManager.prototype.asset = function(assetID) {
     }
     dm._getTraversal().then(function(traversal) {
       traversal.continue().newRequest()
-      .follow('ec:api/assets', 'ec:api/assets/options') // TODO remove options relation
+      .follow('ec:api/assets')
       .withTemplateParameters({assetID: assetID})
       .withRequestOptions(dm._requestOptions())
       .get(function(err, res, traversal) {
@@ -858,8 +856,8 @@ DataManager.prototype.tagList = function(options) {
   return new Promise(function(resolve, reject) {
     dm._getTraversal().then(function(traversal) {
       traversal.continue().newRequest()
-      .follow('ec:api/assets', 'ec:api/tags', 'ec:api/tags/options')
-      .withTemplateParameters(optionsToQueryParameter(options))
+      .follow('ec:api/assets', 'ec:api/tags')
+      .withTemplateParameters([null, null, optionsToQueryParameter(options)])
       .withRequestOptions(dm._requestOptions())
       .get(function(err, res, traversal) {
         checkResponse(err, res).then(function(res) {
@@ -897,8 +895,8 @@ DataManager.prototype.tag = function(tag) {
   return new Promise(function(resolve, reject) {
     dm._getTraversal().then(function(traversal) {
       traversal.continue().newRequest()
-      .follow('ec:api/assets', 'ec:api/tags', 'ec:api/tags/options')
-      .withTemplateParameters({tag: tag})
+      .follow('ec:api/assets', 'ec:api/tags')
+      .withTemplateParameters([null, null, {tag: tag}])
       .withRequestOptions(dm._requestOptions())
       .get(function(err, res, traversal) {
         checkResponse(err, res).then(function(res) {

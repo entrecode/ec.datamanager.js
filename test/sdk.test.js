@@ -62,7 +62,6 @@ describe('tests for working mocks', function() {
     return traverson.from(baseUrl + '58b9a1f5')
     .jsonHal()
     .follow('58b9a1f5:to-do-list')
-    .follow('58b9a1f5:to-do-list/options')
     .withTemplateParameters({_id: '4JMjeO737e'})
     .getResource(function(err, res, traversal) {
       expect(err).to.be.not.ok;

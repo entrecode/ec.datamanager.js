@@ -48,15 +48,18 @@
         "href": "https://datamanager.entrecode.de/api/doc/58b9a1f5"
       },
       "58b9a1f5:to-do-item": {
-        "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item",
-        "name": "to-do-item list"
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item{?_levels,_created,_createdFrom,_createdTo,_id,_modified,_modifiedFrom,_modifiedTo,_private,created,createdFrom,createdTo,id,modified,modifiedFrom,modifiedTo,page,private,size,sort,title,title~}",
+        "name": "to-do-item list",
+        "templated": true
       },
       "58b9a1f5:to-do-list": {
-        "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-list",
-        "name": "to-do-list list"
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-list{?_levels,_created,_createdFrom,_createdTo,_id,_modified,_modifiedFrom,_modifiedTo,_private,created,createdFrom,createdTo,id,list-items~,modified,modifiedFrom,modifiedTo,page,private,size,sort,title,title~}",
+        "name": "to-do-list list",
+        "templated": true
       },
       "ec:api/assets": {
-        "href": "https://datamanager.entrecode.de/asset/58b9a1f5"
+        "href": "https://datamanager.entrecode.de/asset/58b9a1f5{?assetID,created,createdFrom,createdTo,created~,creator,dataManagerID,deleted,deletedFrom,deletedTo,deleted~,page,size,sort,tag,title,title~,type,type~}",
+        "templated": true
       },
       "58b9a1f5:_auth/anonymous": {
         "name": "Register new anonymous account (POST)",
