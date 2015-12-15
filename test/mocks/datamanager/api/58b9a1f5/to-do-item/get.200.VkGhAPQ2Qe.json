@@ -1,0 +1,27 @@
+{
+  "qs": {
+    "_id": "VkGhAPQ2Qe"
+  },
+  "req": {},
+  "res": {
+    "_id": "VkGhAPQ2Qe",
+    "_created": "2015-11-23T16:03:08.108Z",
+    "_creator": null,
+    "_modified": "2015-11-23T16:03:08.108Z",
+    "id": "VkGhAPQ2Qe",
+    "created": "2015-11-23T16:03:08.108Z",
+    "modified": "2015-11-23T16:03:08.108Z",
+    "private": false,
+    "title": "Beef",
+    "description": null,
+    "_modelTitleField": "title",
+    "_links": {
+      "collection": {
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item"
+      },
+      "self": {
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?_id=VkGhAPQ2Qe"
+      }
+    }
+  }
+}

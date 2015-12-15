@@ -1,0 +1,36 @@
+{
+  "qs": {},
+  "req": {},
+  "res": {
+    "dataManagerID": "bbbff362-62f2-4513-b034-eeb7c3427ce8",
+    "title": "ec.datamanager-sdk-tests-3",
+    "description": "without models",
+    "locales": [],
+    "defaultLocale": null,
+    "models": [],
+    "account": null,
+    "_links": {
+      "curies": {
+        "name": "aa3b242e",
+        "href": "https://datamanager.entrecode.de/api/doc/aa3b242e/relation/{rel}",
+        "templated": true
+      },
+      "self": {
+        "name": "ec.datamanager-sdk-tests-3",
+        "href": "https://datamanager.entrecode.de/api/doc/aa3b242e"
+      },
+      "ec:api/assets": {
+        "href": "https://datamanager.entrecode.de/asset/aa3b242e"
+      },
+      "aa3b242e:_auth/email-available": {
+        "name": "Test if given email is already registered",
+        "href": "https://datamanager.entrecode.de/api/aa3b242e/_auth/email{?email}",
+        "templated": true
+      },
+      "aa3b242e:_auth/public-key.pem": {
+        "name": "Public key for JWT validation",
+        "href": "https://datamanager.entrecode.de/api/aa3b242e/_auth/public-key.pem"
+      }
+    }
+  }
+}

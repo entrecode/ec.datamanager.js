@@ -1,0 +1,92 @@
+{
+  "qs": {},
+  "req": {},
+  "res": {
+    "dataManagerID": "7e2fd960-b8ab-419f-8c8f-90da12b2a9d0",
+    "title": "ec.datamanager-sdk-tests-1",
+    "description": "This Data Manager contains test data for the ec.datamanager javascript SDK. (Allow all public rights).",
+    "locales": [
+    ],
+    "defaultLocale": null,
+    "models": [
+      {
+        "title": "to-do-item",
+        "description": "Items of a To-Do-List",
+        "modelID": "6d33e556-b5bf-4925-9962-8a1852e712d2",
+        "titleField": "title",
+        "hexColor": "#d23738"
+      },
+      {
+        "title": "to-do-list",
+        "description": "A To-Do-List",
+        "modelID": "f3b43060-463f-4321-bf90-b60dc9c8ad0d",
+        "titleField": "title",
+        "hexColor": "#d23738"
+      }
+    ],
+    "account": {
+      "accountID": "c631bba1-a36b-4977-9b42-2c14f51b653c",
+      "email": null,
+      "pending": false,
+      "hasPassword": false,
+      "oauth": [],
+      "roles": [
+        {
+          "roleID": "2f705a26-e320-4b58-84e8-b7e37887c938",
+          "name": "Anonymous Users"
+        }
+      ]
+    },
+    "_links": {
+      "curies": {
+        "name": "58b9a1f5",
+        "href": "https://datamanager.entrecode.de/api/doc/58b9a1f5/relation/{rel}",
+        "templated": true
+      },
+      "self": {
+        "name": "ec.datamanager-sdk-tests-1",
+        "href": "https://datamanager.entrecode.de/api/doc/58b9a1f5"
+      },
+      "58b9a1f5:to-do-item": {
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item",
+        "name": "to-do-item list"
+      },
+      "58b9a1f5:to-do-list": {
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-list",
+        "name": "to-do-list list"
+      },
+      "ec:api/assets": {
+        "href": "https://datamanager.entrecode.de/asset/58b9a1f5"
+      },
+      "58b9a1f5:_auth/anonymous": {
+        "name": "Register new anonymous account (POST)",
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5/_auth/account{?validUntil}",
+        "templated": true
+      },
+      "58b9a1f5:_auth/signup": {
+        "name": "Register new account (POST)",
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5/_auth/signup{?clientID,invite}",
+        "templated": true
+      },
+      "58b9a1f5:_auth/login": {
+        "name": "Sign in to an existing account",
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5/_auth/login{?clientID}",
+        "templated": true
+      },
+      "58b9a1f5:_auth/password-reset": {
+        "name": "Request a password reset",
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5/_auth/password-reset{?clientID,email}",
+        "templated": true
+      },
+      "58b9a1f5:_auth/email-available": {
+        "name": "Test if given email is already registered",
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5/_auth/email{?email}",
+        "templated": true
+      },
+      "58b9a1f5:_auth/public-key.pem": {
+        "name": "Public key for JWT validation",
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5/_auth/public-key.pem"
+      }
+    }
+  }
+}

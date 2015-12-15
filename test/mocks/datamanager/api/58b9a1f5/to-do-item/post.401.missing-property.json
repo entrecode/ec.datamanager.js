@@ -1,0 +1,24 @@
+{
+  "qs": {},
+  "req": {
+    "description": "But No Title."
+  },
+  "res": {
+    "status": 400,
+    "code": 2201,
+    "title": "Missing property in JSON body",
+    "type": "https://doc.entrecode.de/#error-201",
+    "_links": {
+      "up": {
+        "title": "Data Manager Home Page",
+        "href": "https://datamanager.entrecode.de"
+      },
+      "describedby": {
+        "title": "Error Description",
+        "href": "https://doc.entrecode.de/#error-201"
+      }
+    },
+    "detail": "title",
+    "verbose": "Missing required property: title"
+  }
+}

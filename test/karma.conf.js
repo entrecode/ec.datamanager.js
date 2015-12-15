@@ -5,16 +5,18 @@ module.exports = function(config) {
   config.set({
 
     // base path that will be used to resolve all patterns (eg. files, exclude)
-    basePath: '',
+    basePath: '../',
 
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['mocha', 'chai', 'chai-as-promised'],
+    frameworks: ['mocha', 'chai'],
 
     // list of files / patterns to load in the browser
     files: [
-      "build/datamanager.js",
-      "test/test.js"
+      "build/datamanager.min.js",
+      "node_modules/traverson/browser/dist/traverson.min.js",
+      "node_modules/traverson-hal/browser/dist/traverson-hal.min.js",
+      "test/**/*.test.js"
     ],
 
     // list of files to exclude
@@ -27,7 +29,11 @@ module.exports = function(config) {
     // test results reporter to use
     // possible values: 'dots', 'progress'
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-    reporters: ['progress'],
+    reporters: ['dots', 'bamboo'],
+
+    bambooReporter: {
+      filename: 'test/results.json' //optional, defaults to "mocha.json"
+    },
 
     // web server port
     port: 9876,
@@ -44,8 +50,9 @@ module.exports = function(config) {
 
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-    //browsers: ['Chrome', 'Firefox', 'Safari', 'PhantomJS'],
     //browsers: ['Chrome'],
+    //browsers: ['Firefox'], // install launcher
+    //browsers: ['Safari'],  // install launcher
     browsers: ['PhantomJS'],
 
     // Continuous Integration mode

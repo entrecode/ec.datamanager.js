@@ -1,0 +1,122 @@
+{
+  "qs": {
+    "_id": "4JMjeO737e",
+    "_levels": "2"
+  },
+  "req": {},
+  "res": {
+    "_id": "4JMjeO737e",
+    "_created": "2015-11-23T16:03:38.304Z",
+    "_creator": null,
+    "_modified": "2015-11-23T16:03:42.561Z",
+    "id": "4JMjeO737e",
+    "created": "2015-11-23T16:03:38.304Z",
+    "modified": "2015-11-23T16:03:42.561Z",
+    "private": false,
+    "title": "Shopping List",
+    "list-items": [
+      {
+        "_id": "4JGrCvm27e",
+        "_created": "2015-11-23T16:03:00.626Z",
+        "_creator": null,
+        "_modified": "2015-11-23T16:03:00.626Z",
+        "id": "4JGrCvm27e",
+        "created": "2015-11-23T16:03:00.626Z",
+        "modified": "2015-11-23T16:03:00.626Z",
+        "private": false,
+        "title": "Bananas",
+        "description": null,
+        "_modelTitleField": "title",
+        "_links": {
+          "collection": {
+            "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item"
+          },
+          "self": {
+            "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?_id=4JGrCvm27e"
+          },
+          "ec:model": {
+            "href": "https://datamanager.entrecode.de/model?modelID=6d33e556-b5bf-4925-9962-8a1852e712d2"
+          }
+        }
+      },
+      {
+        "_id": "V1G2TvQnXx",
+        "_created": "2015-11-23T16:02:51.938Z",
+        "_creator": null,
+        "_modified": "2015-11-23T16:02:51.938Z",
+        "id": "V1G2TvQnXx",
+        "created": "2015-11-23T16:02:51.938Z",
+        "modified": "2015-11-23T16:02:51.938Z",
+        "private": false,
+        "title": "Oranges",
+        "description": null,
+        "_modelTitleField": "title",
+        "_links": {
+          "collection": {
+            "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item"
+          },
+          "self": {
+            "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?_id=V1G2TvQnXx"
+          },
+          "ec:model": {
+            "href": "https://datamanager.entrecode.de/model?modelID=6d33e556-b5bf-4925-9962-8a1852e712d2"
+          }
+        }
+      },
+      {
+        "_id": "VkM8aPQnQe",
+        "_created": "2015-11-23T16:02:45.806Z",
+        "_creator": null,
+        "_modified": "2015-11-23T16:02:45.806Z",
+        "id": "VkM8aPQnQe",
+        "created": "2015-11-23T16:02:45.806Z",
+        "modified": "2015-11-23T16:02:45.806Z",
+        "private": false,
+        "title": "Apples",
+        "description": null,
+        "_modelTitleField": "title",
+        "_links": {
+          "collection": {
+            "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item"
+          },
+          "self": {
+            "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?_id=VkM8aPQnQe"
+          },
+          "ec:model": {
+            "href": "https://datamanager.entrecode.de/model?modelID=6d33e556-b5bf-4925-9962-8a1852e712d2"
+          }
+        }
+      }
+    ],
+    "description": "",
+    "_modelTitleField": "title",
+    "_links": {
+      "collection": {
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-list"
+      },
+      "self": {
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-list?_id=4JMjeO737e"
+      },
+      "ec:model": {
+        "href": "https://datamanager.entrecode.de/model?modelID=f3b43060-463f-4321-bf90-b60dc9c8ad0d"
+      },
+      "58b9a1f5:to-do-list/list-items": [
+        {
+          "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?_id=4JGrCvm27e",
+          "name": "to-do-item",
+          "title": "Bananas"
+        },
+        {
+          "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?_id=V1G2TvQnXx",
+          "name": "to-do-item",
+          "title": "Oranges"
+        },
+        {
+          "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?_id=VkM8aPQnQe",
+          "name": "to-do-item",
+          "title": "Apples"
+        }
+      ]
+    }
+  }
+}

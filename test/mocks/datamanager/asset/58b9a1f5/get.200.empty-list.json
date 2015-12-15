@@ -1,0 +1,36 @@
+{
+  "qs": {
+    "title": "hello"
+  },
+  "req": {},
+  "res": {
+    "count": 0,
+    "total": 0,
+    "_links": {
+      "curies": {
+        "href": "https://doc.entrecode.de/data_manager/#relation-{rel}",
+        "templated": true
+      },
+      "ec:api/asset/by-id": {
+        "href": "https://datamanager.entrecode.de/asset/58b9a1f5{?assetID}",
+        "templated": true
+      },
+      "ec:api/tags": {
+        "href": "https://datamanager.entrecode.de/tag/58b9a1f5"
+      },
+      "ec:api": {
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5"
+      },
+      "ec:api/assets/options": {
+        "href": "https://datamanager.entrecode.de/asset/58b9a1f5{?assetID,created,createdFrom,createdTo,created~,creator,dataManagerID,deleted,deletedFrom,deletedTo,deleted~,page,size,sort,tag,title,title~,type,type~}",
+        "templated": true
+      },
+      "self": {
+        "href": "https://datamanager.entrecode.de/asset/58b9a1f5?title=hello"
+      },
+      "ec:assets/download": {
+        "href": "https://datamanager.entrecode.de/asset/download/58b9a1f5?title=hello"
+      }
+    }
+  }
+}

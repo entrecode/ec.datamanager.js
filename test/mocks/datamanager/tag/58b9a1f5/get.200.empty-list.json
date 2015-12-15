@@ -1,0 +1,26 @@
+{
+  "qs": {
+    "tag~": "buh"
+  },
+  "req": {},
+  "res": {
+    "count": 0,
+    "total": 0,
+    "_links": {
+      "curies": {
+        "href": "https://doc.entrecode.de/data_manager/#relation-{rel}",
+        "templated": true
+      },
+      "ec:api/assets": {
+        "href": "https://datamanager.entrecode.de/asset/58b9a1f5"
+      },
+      "ec:api/tags/options": {
+        "href": "https://datamanager.entrecode.de/tag/58b9a1f5{?dataManagerID,page,size,sort,tag,tag~}",
+        "templated": true
+      },
+      "self": {
+        "href": "https://datamanager.entrecode.de/tag/58b9a1f5?tag~=buh"
+      }
+    }
+  }
+}

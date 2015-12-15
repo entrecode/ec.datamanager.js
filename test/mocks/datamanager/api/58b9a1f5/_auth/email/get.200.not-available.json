@@ -1,0 +1,10 @@
+{
+  "qs": {
+    "email": "not-available@entrecode.de"
+  },
+  "req": {},
+  "res": {
+    "email": "not-available@entrecode.de",
+    "available": false
+  }
+}

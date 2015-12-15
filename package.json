@@ -1,6 +1,6 @@
 {
   "name": "ec.datamanager",
-  "version": "0.5.3",
+  "version": "0.6.0",
   "description": "JavaScript SDK for ec.datamanager. By entrecode.",
   "main": "index.js",
   "directories": {
@@ -8,9 +8,9 @@
     "test": "test"
   },
   "scripts": {
-    "test": "mocha test",
-    "test-travis": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec ./test/*",
-    "build": "browserify -r ./index.js -s DataManager -o ./build/datamanager.js &&  node_modules/uglify-js/bin/uglifyjs ./build/datamanager.js -o ./build/datamanager.js"
+    "test": "mocha -R spec \"test/**/*.test.js\"",
+    "test-travis": "grunt test-frontend && ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec \"test/**/*.test.js\"",
+    "build": "grunt build"
   },
   "repository": {
     "type": "git",
@@ -33,39 +33,37 @@
   },
   "homepage": "https://github.com/entrecode/ec.datamanager.js",
   "devDependencies": {
+    "body-parser": "1.14.1",
     "browserify": "12.0.1",
     "chai": "3.4.1",
-    "chai-as-promised": "5.1.0",
-    "coveralls": "2.11.4",
-    "ec.appcms-mock.js": "git+https://stash.entrecode.de/scm/cms/ec.appcms-mock.js.git#develop",
+    "coveralls": "2.11.6",
+    "express": "4.13.3",
     "grunt": "0.4.5",
     "grunt-browserify": "4.0.1",
-    "grunt-contrib-uglify": "0.10.1",
+    "grunt-contrib-uglify": "0.11.0",
     "grunt-express-server": "0.5.1",
     "grunt-karma": "0.12.1",
     "grunt-mocha-test": "0.12.7",
     "grunt-run": "0.5.2",
-    "istanbul": "0.4.0",
+    "istanbul": "0.4.1",
     "karma": "0.13.15",
+    "karma-bamboo-reporter": "0.1.2",
     "karma-chai-plugins": "0.6.1",
-    "karma-chrome-launcher": "0.2.1",
-    "karma-firefox-launcher": "0.1.6",
+    "karma-chrome-launcher": "0.2.2",
     "karma-mocha": "0.2.1",
-    "karma-opera-launcher": "0.3.0",
-    "karma-phantomjs-launcher": "0.2.1",
-    "karma-safari-launcher": "0.1.1",
+    "karma-phantomjs-launcher": "^0.2.1",
+    "lodash": "3.10.1",
     "mocha": "2.3.4",
     "mocha-bamboo-reporter": "1.1.0",
-    "mockery": "1.4.0",
-    "sinon": "1.17.2",
-    "sinon-chai": "2.8.0",
-    "supertest": "1.1.0",
-    "supertest-as-promised": "2.0.2",
-    "uglify-js": "2.6.1"
+    "nock": "3.4.0",
+    "phantomjs": "just-boris/phantomjs",
+    "walk": "2.3.9"
   },
   "dependencies": {
-    "axios": "0.7.0",
     "es6-promise": "3.0.2",
-    "superagent": "1.4.0"
+    "halfred": "1.0.0",
+    "superagent": "1.5.0",
+    "traverson": "3.1.0",
+    "traverson-hal": "4.1.1"
   }
 }
