@@ -34,8 +34,8 @@ app.all('/*', function(req, res, next) {
     return res.status(200).send('GET, PUT, POST, DELETE').end();
   }
   var filePath = path.resolve(__dirname, req.path.slice(1));
-  var walker = walk.walk(filePath);
-  var stop = false;
+  var walker   = walk.walk(filePath);
+  var stop     = false;
   walker.on('file', function(root, fileStat, nextFile) {
     if (stop) {
       return nextFile();
@@ -52,17 +52,17 @@ app.all('/*', function(req, res, next) {
         return nextFile();
       }
       file.req = JSON.parse(JSON.stringify(file.req)
-        .split('https://datamanager.entrecode.de').join('http://localhost:54815/datamanager')
-        .split('https://appserver.entrecode.de').join('http://localhost:54815/appserver')
-        .split('https://accounts.entrecode.de').join('http://localhost:54815/accounts'));
+      .split('https://datamanager.entrecode.de').join('http://localhost:54815/datamanager')
+      .split('https://appserver.entrecode.de').join('http://localhost:54815/appserver')
+      .split('https://accounts.entrecode.de').join('http://localhost:54815/accounts'));
       if (!_.eq(file.req, req.body)) {
         return nextFile();
       }
-      stop = true;
+      stop     = true;
       file.res = JSON.parse(JSON.stringify(file.res)
-        .split('https://datamanager.entrecode.de').join('http://localhost:54815/datamanager')
-        .split('https://appserver.entrecode.de').join('http://localhost:54815/appserver')
-        .split('https://accounts.entrecode.de').join('http://localhost:54815/accounts'));
+      .split('https://datamanager.entrecode.de').join('http://localhost:54815/datamanager')
+      .split('https://appserver.entrecode.de').join('http://localhost:54815/appserver')
+      .split('https://accounts.entrecode.de').join('http://localhost:54815/accounts'));
       res.status(fileStat.name.split('.')[1]).send(file.res);
       return nextFile();
     });

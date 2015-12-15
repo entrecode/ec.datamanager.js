@@ -18,7 +18,7 @@ if (isNode) {
       if (fileStat.name.charAt(0) === '.') {
         return next();
       }
-      var reqPath = root.replace(baseDM, '');
+      var reqPath   = root.replace(baseDM, '');
       var fileElems = fileStat.name.split('.');
       fs.readFile(path.resolve(root, fileStat.name), function(err, data) {
         if (err) {
