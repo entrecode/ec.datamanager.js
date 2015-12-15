@@ -669,12 +669,14 @@ DataManager.prototype.model = function(title, metadata) {
               }
             };
           } else {
+            options = id;
             if (id.hasOwnProperty('id')) {
               options.filter = {
                 _id: {
                   exact: id.id
                 }
               };
+              delete options.id;
             }
             if (id.hasOwnProperty('_id')) {
               options.filter = {
@@ -682,9 +684,7 @@ DataManager.prototype.model = function(title, metadata) {
                   exact: id._id
                 }
               };
-            }
-            if (id.hasOwnProperty('levels')) {
-              options.levels = id.levels;
+              delete options._id;
             }
           }
           if (levels) {
