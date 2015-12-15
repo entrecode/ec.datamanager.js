@@ -888,6 +888,7 @@ grunt build
 - removed dependency for weird ec.appcms-mock module
 - Adds Data Manager resolve method.
 - Adds Account resolve method.
+- `entry(…)` with filter resulting in list response will return the first one
 - I am sure I forgot something here…
 
 ### 0.5.3
