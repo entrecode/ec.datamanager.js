@@ -661,22 +661,39 @@ DataManager.prototype.model = function(title, metadata) {
       var model = this;
       return this._getTraversal().then(function(traversal) {
         return new Promise(function(resolve, reject) {
-          if (typeof id !== 'string') {
-            levels = id.levels;
+          var options = {};
+          if (typeof id === 'string') {
+            options.filter = {
+              _id: {
+                exact: id
+              }
+            };
+          } else {
             if (id.hasOwnProperty('id')) {
-              id = id.id;
-            } else {
-              id = id._id;
+              options.filter = {
+                _id: {
+                  exact: id.id
+                }
+              };
+            }
+            if (id.hasOwnProperty('_id')) {
+              options.filter = {
+                _id: {
+                  exact: id._id
+                }
+              };
+            }
+            if (id.hasOwnProperty('levels')) {
+              options.levels = id.levels;
             }
           }
-          var t = traversal.continue().newRequest()
-          .follow(dm.id + ':' + model.title + '/options'); // TODO options
           if (levels) {
-            t.withTemplateParameters({_id: id, _levels: levels});
-          } else {
-            t.withTemplateParameters({_id: id});
+            options.levels = levels;
           }
-          t.withRequestOptions(dm._requestOptions())
+          traversal.continue().newRequest()
+          .follow(dm.id + ':' + model.title + '/options') // TODO options
+          .withTemplateParameters(optionsToQueryParameter(options))
+          .withRequestOptions(dm._requestOptions())
           .get(function(err, res, traversal) {
             checkResponse(err, res).then(function(res) {
               var body = halfred.parse(JSON.parse(res.body));
@@ -686,7 +703,7 @@ DataManager.prototype.model = function(title, metadata) {
                   return resolve(new Entry(entry, dm, model));
                 }
               }
-              return resolve(new Entry(halfred.parse(JSON.parse(res.body)), dm, model, traversal));
+              return resolve(new Entry(body, dm, model, traversal));
             }, reject);
           });
         });
@@ -1269,6 +1286,9 @@ function optionsToQueryParameter(options) {
   }
   if (options && options.hasOwnProperty('sort') && Array.isArray(options.sort)) {
     query.sort = options.sort.join(',');
+  }
+  if (options && options.hasOwnProperty('levels')) {
+    query._levels = options.levels;
   }
   if (options && options.hasOwnProperty('filter')) {
     for (var key in options.filter) {
