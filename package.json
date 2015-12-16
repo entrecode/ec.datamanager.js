@@ -62,7 +62,7 @@
   "dependencies": {
     "es6-promise": "3.0.2",
     "halfred": "1.0.0",
-    "superagent": "1.5.0",
+    "superagent": "1.6.1",
     "traverson": "3.1.0",
     "traverson-hal": "4.1.1"
   }
