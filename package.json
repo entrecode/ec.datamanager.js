@@ -51,7 +51,7 @@
     "karma-chai-plugins": "0.6.1",
     "karma-chrome-launcher": "0.2.2",
     "karma-mocha": "0.2.1",
-    "karma-phantomjs-launcher": "^0.2.1",
+    "karma-phantomjs-launcher": "^0.2.3",
     "lodash": "3.10.1",
     "mocha": "2.3.4",
     "mocha-bamboo-reporter": "1.1.0",
