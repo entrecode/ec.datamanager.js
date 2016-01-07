@@ -46,7 +46,7 @@
     "grunt-mocha-test": "0.12.7",
     "grunt-run": "0.5.2",
     "istanbul": "0.4.1",
-    "karma": "0.13.15",
+    "karma": "0.13.19",
     "karma-bamboo-reporter": "0.1.2",
     "karma-chai-plugins": "0.6.1",
     "karma-chrome-launcher": "0.2.2",
@@ -63,7 +63,7 @@
     "es6-promise": "3.0.2",
     "halfred": "1.0.0",
     "superagent": "1.6.1",
-    "traverson": "3.1.0",
+    "traverson": "3.1.1",
     "traverson-hal": "4.1.1"
   }
 }
