@@ -868,6 +868,10 @@ grunt build
 
 
 ## Changelog
+### 0.6.1
+- bugfixes
+- single result functions will resolve with first element from lists
+- 
 ### 0.6.0
 - major refactor of SDK.
 - SDK propperly uses [HAL](https://tools.ietf.org/html/draft-kelly-json-hal-07) now.
