@@ -870,6 +870,11 @@ grunt build
 ## Changelog
 ### 0.7.0
 - removed usage of `…/options` relation. using templated links directly. requires datamanager 0.7.0+
+-
+
+### 0.6.1
+- bugfixes
+- single result functions will resolve with first element from lists
 
 ### 0.6.0
 - major refactor of SDK.

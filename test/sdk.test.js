@@ -574,6 +574,20 @@ describe('entry/entries', function() { // this is basically modelList
       expect(entries.length).to.be.equal(0)
     });
   });
+  it('empty result on entry', function() {
+    return dm.model('to-do-item').entry({
+      filter: {
+        title: {
+          exact: 'asdfasdf'
+        }
+      }
+    }).then(function(result) {
+      throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+    }, function(err) {
+      expect(err).to.be.ok;
+      expect(err).to.have.property('message', 'ec_sdk_no_match_due_to_filter');
+    });
+  });
   it('list: get entries, list single item', function() {
     return dm.model('to-do-list').entryList({
       filter: {
@@ -765,6 +779,20 @@ describe('asset/assets', function() {
       expect(entries.length).to.be.equal(0)
     });
   });
+  it('empty result on entry', function() {
+    return dm.asset({
+      filter: {
+        title: {
+          exact: 'hello'
+        }
+      }
+    }).then(function(result) {
+      throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+    }, function(err) {
+      expect(err).to.be.ok;
+      expect(err).to.have.property('message', 'ec_sdk_no_match_due_to_filter');
+    });
+  });
   it('list: get asset, list single item', function() {
     return dm.assetList().then(function(list) {
       expect(list).to.be.ok;
@@ -929,6 +957,20 @@ describe('tag/tags', function() {
     }).then(function(entries) {
       expect(entries).to.be.instanceOf(Array);
       expect(entries.length).to.be.equal(0)
+    });
+  });
+  it('empty result on tag', function() {
+    return dm.tag({
+      filter: {
+        tag: {
+          search: 'buh'
+        }
+      }
+    }).then(function(result) {
+      throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+    }, function(err) {
+      expect(err).to.be.ok;
+      expect(err).to.have.property('message', 'ec_sdk_no_match_due_to_filter');
     });
   });
   it('list: get tags, list multiple items', function() {
