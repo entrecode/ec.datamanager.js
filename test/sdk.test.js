@@ -744,6 +744,20 @@ describe('asset/assets', function() {
       expect(asset.value).to.have.property('assetID', '443163b2-71a9-4f2a-987b-c7c7f31c7e30');
     });
   });
+  it('get single asset, on list', function() {
+    return dm.asset({
+      filter: {
+        title: {
+          exact: 'anotherhardday'
+        }
+      }
+    }).then(function(asset) {
+      expect(asset).to.be.ok;
+      expect(asset).to.be.instanceOf(Object);
+      expect(asset.value).to.have.property('assetID', 'bce957c9-7512-4dc1-bb19-0d843574c5b7');
+      expect(asset.value).to.have.property('title', 'anotherhardday');
+    });
+  });
   it('no assetID provided', function() {
     return dm.asset().then(function(result) {
       throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
@@ -929,6 +943,27 @@ describe('tag/tags', function() {
       expect(tag).to.have.property('value');
       expect(tag.value).to.have.property('tag', 'work-memes');
       expect(tag.value).to.have.property('count', 2);
+    });
+  });
+  it('get single tag, on list', function() {
+    return dm.tag({
+      filter: {
+        tag: {
+          search: 'meme'
+        }
+      }
+    }).then(function(tag) {
+      expect(tag).to.be.ok;
+      expect(tag).to.be.instanceOf(Object);
+      expect(tag.value).to.have.property('tag', 'work-memes');
+    });
+  });
+  it('no tag name', function() {
+    return dm.tag().then(function(result) {
+      throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+    }, function(err){
+      expect(err).to.be.ok;
+      expect(err).to.have.property('message', 'ec_sdk_no_tag_name_provided');
     });
   });
   it('single result on list', function() {
