@@ -870,7 +870,7 @@ grunt build
 ## Changelog
 ### 0.7.0
 - removed usage of `…/options` relation. using templated links directly. requires datamanager 0.7.0+
--
+- bugfixes
 
 ### 0.6.1
 - bugfixes
