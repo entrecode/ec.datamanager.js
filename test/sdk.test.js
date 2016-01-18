@@ -3,12 +3,12 @@
 var isNode = typeof process !== 'undefined';
 
 if (isNode) { // require only in node, frontend knows things. ;)
-  var chai                    = require('chai') // main testing lib
-    , expect                  = chai.expect
-    , traverson               = require('traverson')
+  var chai = require('chai') // main testing lib
+    , expect = chai.expect
+    , traverson = require('traverson')
     , TraversonJsonHalAdapter = require('traverson-hal')
 
-    , DataManager             = require('../lib/DataManager.js')
+    , DataManager = require('../lib/DataManager.js')
 
     ;
 
@@ -97,7 +97,7 @@ describe('datamanager constructor', function() {
   });
   it('from url and accessToken', function(done) {
     var dm = new DataManager({
-      url:         'https://datamanager.entrecode.de/api/58b9a1f5/',
+      url: 'https://datamanager.entrecode.de/api/58b9a1f5/',
       accessToken: 'test'
     });
     expect(dm).to.be.instanceOf(DataManager);
@@ -116,7 +116,7 @@ describe('datamanager constructor', function() {
   });
   it('from id and accessToken', function(done) {
     var dm = new DataManager({
-      id:          '58b9a1f5',
+      id: '58b9a1f5',
       accessToken: 'test'
     });
     expect(dm).to.be.instanceOf(DataManager);
@@ -127,7 +127,7 @@ describe('datamanager constructor', function() {
   });
   it('from id and clientID', function(done) {
     var dm = new DataManager({
-      id:       '58b9a1f5',
+      id: '58b9a1f5',
       clientID: 'test'
     });
     expect(dm).to.be.instanceOf(DataManager);
@@ -272,64 +272,64 @@ if (isNode) {
       });
     });
   });
-}
 
-describe('best file routes', function() {
-  var dm;
-  before(function() {
-    dm = new DataManager({
-      url: baseUrl + '58b9a1f5'
+  describe('best file routes', function() {
+    var dm;
+    before(function() {
+      dm = new DataManager({
+        url: baseUrl + '58b9a1f5'
+      });
+    });
+    it('get file url', function() {
+      return dm.getFileUrl('4920f5ac-eab9-400b-8e41-5a202488b249').then(function(url) {
+        expect(url).to.be.ok;
+        expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM.jpg');
+      });
+    });
+    it('get file url with locale', function() {
+      return dm.getFileUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 'de_DE').then(function(url) {
+        expect(url).to.be.ok;
+        expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM.jpg');
+      });
+    });
+    it('get image url', function() {
+      return dm.getImageUrl('4920f5ac-eab9-400b-8e41-5a202488b249').then(function(url) {
+        expect(url).to.be.ok;
+        expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM.jpg');
+      });
+    });
+    it('get image url with size', function() {
+      return dm.getImageUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 200).then(function(url) {
+        expect(url).to.be.ok;
+        expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_256.jpg');
+      });
+    });
+    it('get image url wit size and locale', function() {
+      return dm.getImageUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 200, 'de_DE').then(function(url) {
+        expect(url).to.be.ok;
+        expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_256.jpg');
+      });
+    });
+    it('get thumb url', function() {
+      return dm.getImageThumbUrl('4920f5ac-eab9-400b-8e41-5a202488b249').then(function(url) {
+        expect(url).to.be.ok;
+        expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_400_thumb.jpg');
+      });
+    });
+    it('get thumb url with size', function() {
+      return dm.getImageThumbUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 100).then(function(url) {
+        expect(url).to.be.ok;
+        expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_100_thumb.jpg');
+      });
+    });
+    it('get thumb url with size and locale', function() {
+      return dm.getImageThumbUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 100, 'de_DE').then(function(url) {
+        expect(url).to.be.ok;
+        expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_100_thumb.jpg');
+      });
     });
   });
-  it('get file url', function() {
-    return dm.getFileUrl('4920f5ac-eab9-400b-8e41-5a202488b249').then(function(url) {
-      expect(url).to.be.ok;
-      expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM.jpg');
-    });
-  });
-  it('get file url with locale', function() {
-    return dm.getFileUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 'de_DE').then(function(url) {
-      expect(url).to.be.ok;
-      expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM.jpg');
-    });
-  });
-  it('get image url', function() {
-    return dm.getImageUrl('4920f5ac-eab9-400b-8e41-5a202488b249').then(function(url) {
-      expect(url).to.be.ok;
-      expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM.jpg');
-    });
-  });
-  it('get image url with size', function() {
-    return dm.getImageUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 200).then(function(url) {
-      expect(url).to.be.ok;
-      expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_256.jpg');
-    });
-  });
-  it('get image url wit size and locale', function() {
-    return dm.getImageUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 200, 'de_DE').then(function(url) {
-      expect(url).to.be.ok;
-      expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_256.jpg');
-    });
-  });
-  it('get thumb url', function() {
-    return dm.getImageThumbUrl('4920f5ac-eab9-400b-8e41-5a202488b249').then(function(url) {
-      expect(url).to.be.ok;
-      expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_400_thumb.jpg');
-    });
-  });
-  it('get thumb url with size', function() {
-    return dm.getImageThumbUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 100).then(function(url) {
-      expect(url).to.be.ok;
-      expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_100_thumb.jpg');
-    });
-  });
-  it('get thumb url with size and locale', function() {
-    return dm.getImageThumbUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 100, 'de_DE').then(function(url) {
-      expect(url).to.be.ok;
-      expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_100_thumb.jpg');
-    });
-  });
-});
+}
 
 describe('model', function() {
   var dm;
@@ -512,7 +512,7 @@ describe('entry/entries', function() { // this is basically modelList
     });
   });
   it('get single entry, with levels, with object', function() {
-    return dm.model('to-do-list').entry({id: '4JMjeO737e', levels: 2}).then(function(entry) {
+    return dm.model('to-do-list').entry({ id: '4JMjeO737e', levels: 2 }).then(function(entry) {
       expect(entry).to.be.ok;
       expect(entry).to.be.instanceOf(Object);
       expect(entry).to.have.property('value');
@@ -523,7 +523,7 @@ describe('entry/entries', function() { // this is basically modelList
     });
   });
   it('get single entry, with levels, with object 2', function() {
-    return dm.model('to-do-list').entry({_id: '4JMjeO737e', levels: 2}).then(function(entry) {
+    return dm.model('to-do-list').entry({ _id: '4JMjeO737e', levels: 2 }).then(function(entry) {
       expect(entry).to.be.ok;
       expect(entry).to.be.instanceOf(Object);
       expect(entry).to.have.property('value');
@@ -619,7 +619,7 @@ describe('entry/entries', function() { // this is basically modelList
   });
   it('create entry', function() {
     return dm.model('to-do-item').createEntry({
-      title:       'NewItem',
+      title: 'NewItem',
       description: '<p>A New Item.</p>'
     }).then(function(entry) {
       expect(entry).to.be.ok;
@@ -633,7 +633,7 @@ describe('entry/entries', function() { // this is basically modelList
   });
   it('create entry, 204', function() {
     return dm.model('to-do-item').createEntry({
-      title:       'NewItem204',
+      title: 'NewItem204',
       description: '<p>A New Item.</p>'
     }).then(function(entry) {
       expect(entry).to.be.true;
@@ -709,7 +709,7 @@ describe('asset/assets', function() {
   var dm;
   beforeEach(function() {
     dm = new DataManager({
-      url:         baseUrl + '58b9a1f5',
+      url: baseUrl + '58b9a1f5',
       accessToken: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJlbWFpbCI6bnVsbCwianRpIjoiM2EzYmQ5MzYtOWFlZS00ZWY0LTg0MjUtNjZhOGViODcyODk4IiwiaWF0IjoxNDQ5MTM2Njg0LCJleHAiOjQ2MDI3MzY2ODQsImlzcyI6ImVjX2RhdGFtYW5hZ2VyX3Nka190ZXN0c18xIiwic3ViIjoiMWNmOWUyOGUtZmE1NC00ZGVhLWJlMTQtZDlkYmNjMGMzYzY5In0.VMA0onkx4fpwBdTL9AQ2bzR4JBziY8UIavrAleIl7wj1Rh1-ZU09i-vze2sObarOZSygx74cO1uRkX37CFYj3Lf45mWPpHj-prJtfnS1xkn4KlfffTuz3VWINCorcZX-OyVeFWSexC6AwEQ9cW8FMEZPDpMLKodiFkhDUt1AIQg'
     });
   });
@@ -909,7 +909,7 @@ describe('tag/tags', function() {
   var dm;
   beforeEach(function() {
     dm = new DataManager({
-      url:         baseUrl + '58b9a1f5',
+      url: baseUrl + '58b9a1f5',
       accessToken: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJlbWFpbCI6bnVsbCwianRpIjoiM2EzYmQ5MzYtOWFlZS00ZWY0LTg0MjUtNjZhOGViODcyODk4IiwiaWF0IjoxNDQ5MTM2Njg0LCJleHAiOjQ2MDI3MzY2ODQsImlzcyI6ImVjX2RhdGFtYW5hZ2VyX3Nka190ZXN0c18xIiwic3ViIjoiMWNmOWUyOGUtZmE1NC00ZGVhLWJlMTQtZDlkYmNjMGMzYzY5In0.VMA0onkx4fpwBdTL9AQ2bzR4JBziY8UIavrAleIl7wj1Rh1-ZU09i-vze2sObarOZSygx74cO1uRkX37CFYj3Lf45mWPpHj-prJtfnS1xkn4KlfffTuz3VWINCorcZX-OyVeFWSexC6AwEQ9cW8FMEZPDpMLKodiFkhDUt1AIQg'
     });
   });
@@ -1200,27 +1200,27 @@ describe('user management', function() {
       });
     });
     it('anonymous with validUntil', function() {
-      return dm.getAuthLink('anonymous', {validUntil: '2025-11-09T09:58:04.000Z'}).then(function(url) {
+      return dm.getAuthLink('anonymous', { validUntil: '2025-11-09T09:58:04.000Z' }).then(function(url) {
         expect(url).to.be.equal(baseUrl + '58b9a1f5/_auth/account?validUntil=2025-11-09T09%3A58%3A04.000Z');
       });
     });
     it('signup', function() {
-      return dm.getAuthLink('signup', {clientID: 'testClient'}).then(function(url) {
+      return dm.getAuthLink('signup', { clientID: 'testClient' }).then(function(url) {
         expect(url).to.be.equal(baseUrl + '58b9a1f5/_auth/signup?clientID=testClient');
       });
     });
     it('login', function() {
-      return dm.getAuthLink('login', {clientID: 'testClient'}).then(function(url) {
+      return dm.getAuthLink('login', { clientID: 'testClient' }).then(function(url) {
         expect(url).to.be.equal(baseUrl + '58b9a1f5/_auth/login?clientID=testClient');
       });
     });
     it('password reset', function() {
-      return dm.getAuthLink('password-reset', {clientID: 'testClient', email: 'some@mail.com'}).then(function(url) {
+      return dm.getAuthLink('password-reset', { clientID: 'testClient', email: 'some@mail.com' }).then(function(url) {
         expect(url).to.be.equal(baseUrl + '58b9a1f5/_auth/password-reset?clientID=testClient&email=some%40mail.com');
       });
     });
     it('email available', function() {
-      return dm.getAuthLink('email-available', {email: 'some@mail.com'}).then(function(url) {
+      return dm.getAuthLink('email-available', { email: 'some@mail.com' }).then(function(url) {
         expect(url).to.be.equal(baseUrl + '58b9a1f5/_auth/email?email=some%40mail.com');
       });
     });
@@ -1244,7 +1244,7 @@ describe('user management', function() {
     });
     it('overwrite clientID from dm', function() {
       dm.clientID = 'testDMClient';
-      return dm.getAuthLink('login', {clientID: 'testClient'}).then(function(url) {
+      return dm.getAuthLink('login', { clientID: 'testClient' }).then(function(url) {
         expect(url).to.be.equal(baseUrl + '58b9a1f5/_auth/login?clientID=testClient');
       });
     });

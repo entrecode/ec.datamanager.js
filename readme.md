@@ -872,6 +872,9 @@ grunt build
 - removed usage of `…/options` relation. using templated links directly. requires datamanager 0.7.0+
 - bugfixes
 
+### 0.6.2
+- fixed bestFile routes in instantiated sdks
+
 ### 0.6.1
 - bugfixes
 - single result functions will resolve with first element from lists
