@@ -31,7 +31,9 @@ function drainQueue() {
         currentQueue = queue;
         queue = [];
         while (++queueIndex < len) {
-            currentQueue[queueIndex].run();
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
         }
         queueIndex = -1;
         len = queue.length;
@@ -83,7 +85,6 @@ process.binding = function (name) {
     throw new Error('process.binding is not supported');
 };
 
-// TODO(shtylman)
 process.cwd = function () { return '/' };
 process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
@@ -468,7 +469,7 @@ DataManager.getImageThumbUrl = function(assetID, size, locale) {
  * @returns {Promise}
  */
 DataManager.prototype.getFileUrl = function(assetID, locale) {
-  return DataManager.getFileUrl(assetID, locale, this._fileUrl);
+  return DataManager._getFileUrl(assetID, locale, this._fileUrl);
 };
 
 /**
@@ -481,7 +482,7 @@ DataManager.prototype.getFileUrl = function(assetID, locale) {
  * @returns {Promise}
  */
 DataManager.prototype.getImageUrl = function(assetID, size, locale) {
-  return DataManager.getImageUrl(assetID, size, locale, this._fileUrl);
+  return DataManager._getImageUrl(assetID, size, locale, this._fileUrl);
 };
 
 /**
@@ -494,7 +495,7 @@ DataManager.prototype.getImageUrl = function(assetID, size, locale) {
  * @returns {Promise}
  */
 DataManager.prototype.getImageThumbUrl = function(assetID, size, locale) {
-  return DataManager.getImageThumbUrl(assetID, size, locale, this._fileUrl);
+  return DataManager._getImageThumbUrl(assetID, size, locale, this._fileUrl);
 };
 
 DataManager.prototype.resolve = function() {
