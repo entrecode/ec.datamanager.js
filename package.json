@@ -52,7 +52,7 @@
     "karma-chrome-launcher": "0.2.2",
     "karma-mocha": "0.2.1",
     "karma-phantomjs-launcher": "^0.2.1",
-    "lodash": "3.10.1",
+    "lodash": "4.0.1",
     "mocha": "2.4.2",
     "mocha-bamboo-reporter": "1.1.0",
     "nock": "5.2.1",
