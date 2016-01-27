@@ -55,7 +55,7 @@
     "lodash": "4.0.1",
     "mocha": "2.4.2",
     "mocha-bamboo-reporter": "1.1.0",
-    "nock": "5.2.1",
+    "nock": "7.0.1",
     "phantomjs": "just-boris/phantomjs",
     "walk": "2.3.9"
   },
