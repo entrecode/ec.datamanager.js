@@ -48,14 +48,14 @@ app.all('/*', function(req, res, next) {
         return nextFile();
       }
       var file = JSON.parse(data);
-      if (!_.eq(file.qs, req.query)) {
+      if (!_.isEqual(file.qs, req.query)) {
         return nextFile();
       }
       file.req = JSON.parse(JSON.stringify(file.req)
       .split('https://datamanager.entrecode.de').join('http://localhost:54815/datamanager')
       .split('https://appserver.entrecode.de').join('http://localhost:54815/appserver')
       .split('https://accounts.entrecode.de').join('http://localhost:54815/accounts'));
-      if (!_.eq(file.req, req.body)) {
+      if (!_.isEqual(file.req, req.body)) {
         return nextFile();
       }
       stop     = true;
