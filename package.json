@@ -35,7 +35,7 @@
   "devDependencies": {
     "body-parser": "1.14.2",
     "browserify": "13.0.0",
-    "chai": "3.4.1",
+    "chai": "3.5.0",
     "coveralls": "2.11.6",
     "express": "4.13.4",
     "grunt": "0.4.5",
