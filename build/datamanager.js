@@ -1,248 +1,4 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.DataManager = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-// shim for using process in browser
-
-var process = module.exports = {};
-var queue = [];
-var draining = false;
-var currentQueue;
-var queueIndex = -1;
-
-function cleanUpNextTick() {
-    draining = false;
-    if (currentQueue.length) {
-        queue = currentQueue.concat(queue);
-    } else {
-        queueIndex = -1;
-    }
-    if (queue.length) {
-        drainQueue();
-    }
-}
-
-function drainQueue() {
-    if (draining) {
-        return;
-    }
-    var timeout = setTimeout(cleanUpNextTick);
-    draining = true;
-
-    var len = queue.length;
-    while(len) {
-        currentQueue = queue;
-        queue = [];
-        while (++queueIndex < len) {
-            if (currentQueue) {
-                currentQueue[queueIndex].run();
-            }
-        }
-        queueIndex = -1;
-        len = queue.length;
-    }
-    currentQueue = null;
-    draining = false;
-    clearTimeout(timeout);
-}
-
-process.nextTick = function (fun) {
-    var args = new Array(arguments.length - 1);
-    if (arguments.length > 1) {
-        for (var i = 1; i < arguments.length; i++) {
-            args[i - 1] = arguments[i];
-        }
-    }
-    queue.push(new Item(fun, args));
-    if (queue.length === 1 && !draining) {
-        setTimeout(drainQueue, 0);
-    }
-};
-
-// v8 likes predictible objects
-function Item(fun, array) {
-    this.fun = fun;
-    this.array = array;
-}
-Item.prototype.run = function () {
-    this.fun.apply(null, this.array);
-};
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-process.version = ''; // empty string to avoid regexp issues
-process.versions = {};
-
-function noop() {}
-
-process.on = noop;
-process.addListener = noop;
-process.once = noop;
-process.off = noop;
-process.removeListener = noop;
-process.removeAllListeners = noop;
-process.emit = noop;
-
-process.binding = function (name) {
-    throw new Error('process.binding is not supported');
-};
-
-process.cwd = function () { return '/' };
-process.chdir = function (dir) {
-    throw new Error('process.chdir is not supported');
-};
-process.umask = function() { return 0; };
-
-},{}],2:[function(require,module,exports){
-var indexOf = require('indexof');
-
-var Object_keys = function (obj) {
-    if (Object.keys) return Object.keys(obj)
-    else {
-        var res = [];
-        for (var key in obj) res.push(key)
-        return res;
-    }
-};
-
-var forEach = function (xs, fn) {
-    if (xs.forEach) return xs.forEach(fn)
-    else for (var i = 0; i < xs.length; i++) {
-        fn(xs[i], i, xs);
-    }
-};
-
-var defineProp = (function() {
-    try {
-        Object.defineProperty({}, '_', {});
-        return function(obj, name, value) {
-            Object.defineProperty(obj, name, {
-                writable: true,
-                enumerable: false,
-                configurable: true,
-                value: value
-            })
-        };
-    } catch(e) {
-        return function(obj, name, value) {
-            obj[name] = value;
-        };
-    }
-}());
-
-var globals = ['Array', 'Boolean', 'Date', 'Error', 'EvalError', 'Function',
-'Infinity', 'JSON', 'Math', 'NaN', 'Number', 'Object', 'RangeError',
-'ReferenceError', 'RegExp', 'String', 'SyntaxError', 'TypeError', 'URIError',
-'decodeURI', 'decodeURIComponent', 'encodeURI', 'encodeURIComponent', 'escape',
-'eval', 'isFinite', 'isNaN', 'parseFloat', 'parseInt', 'undefined', 'unescape'];
-
-function Context() {}
-Context.prototype = {};
-
-var Script = exports.Script = function NodeScript (code) {
-    if (!(this instanceof Script)) return new Script(code);
-    this.code = code;
-};
-
-Script.prototype.runInContext = function (context) {
-    if (!(context instanceof Context)) {
-        throw new TypeError("needs a 'context' argument.");
-    }
-    
-    var iframe = document.createElement('iframe');
-    if (!iframe.style) iframe.style = {};
-    iframe.style.display = 'none';
-    
-    document.body.appendChild(iframe);
-    
-    var win = iframe.contentWindow;
-    var wEval = win.eval, wExecScript = win.execScript;
-
-    if (!wEval && wExecScript) {
-        // win.eval() magically appears when this is called in IE:
-        wExecScript.call(win, 'null');
-        wEval = win.eval;
-    }
-    
-    forEach(Object_keys(context), function (key) {
-        win[key] = context[key];
-    });
-    forEach(globals, function (key) {
-        if (context[key]) {
-            win[key] = context[key];
-        }
-    });
-    
-    var winKeys = Object_keys(win);
-
-    var res = wEval.call(win, this.code);
-    
-    forEach(Object_keys(win), function (key) {
-        // Avoid copying circular objects like `top` and `window` by only
-        // updating existing context properties or new properties in the `win`
-        // that was only introduced after the eval.
-        if (key in context || indexOf(winKeys, key) === -1) {
-            context[key] = win[key];
-        }
-    });
-
-    forEach(globals, function (key) {
-        if (!(key in context)) {
-            defineProp(context, key, win[key]);
-        }
-    });
-    
-    document.body.removeChild(iframe);
-    
-    return res;
-};
-
-Script.prototype.runInThisContext = function () {
-    return eval(this.code); // maybe...
-};
-
-Script.prototype.runInNewContext = function (context) {
-    var ctx = Script.createContext(context);
-    var res = this.runInContext(ctx);
-
-    forEach(Object_keys(ctx), function (key) {
-        context[key] = ctx[key];
-    });
-
-    return res;
-};
-
-forEach(Object_keys(Script.prototype), function (name) {
-    exports[name] = Script[name] = function (code) {
-        var s = Script(code);
-        return s[name].apply(s, [].slice.call(arguments, 1));
-    };
-});
-
-exports.createScript = function (code) {
-    return exports.Script(code);
-};
-
-exports.createContext = Script.createContext = function (context) {
-    var copy = new Context();
-    if(typeof context === 'object') {
-        forEach(Object_keys(context), function (key) {
-            copy[key] = context[key];
-        });
-    }
-    return copy;
-};
-
-},{"indexof":3}],3:[function(require,module,exports){
-
-var indexOf = [].indexOf;
-
-module.exports = function(arr, obj){
-  if (indexOf) return arr.indexOf(obj);
-  for (var i = 0; i < arr.length; ++i) {
-    if (arr[i] === obj) return i;
-  }
-  return -1;
-};
-},{}],4:[function(require,module,exports){
 'use strict';
 
 var halfred                 = require('halfred')
@@ -1078,16 +834,18 @@ var Entry = function(entry, dm, model, traversal) {
     var entry = this;
     return new Promise(function(resolve, reject) {
       entry._getTraversal().then(function(traversal) {
-        var out = {};
-        for (var key in entry.value.original()) {
-          out[key] = entry.value[key];
-        }
+        delete entry.value._curies;
+        delete entry.value._curiesMap;
+        delete entry.value._resolvedCuriesMap;
+        delete entry.value._validation;
+        delete entry.value._original;
+        delete entry.value._embedded;
         traversal.continue().newRequest()
         .follow('self')
         .withRequestOptions(entry._dm._requestOptions({
           'Content-Type': 'application/json'
         }))
-        .put(out, function(err, res, traversal) {
+        .put(entry.value, function(err, res, traversal) {
           checkResponse(err, res).then(function(res) {
             if (res.statusCode === 204) {
               return resolve(true);
@@ -1163,16 +921,18 @@ var Asset = function(asset, dm, traversal) {
     var asset = this;
     return new Promise(function(resolve, reject) {
       asset._getTraversal().then(function(traversal) {
-        var out = {};
-        for (var key in asset.value.original()) {
-          out[key] = asset.value[key];
-        }
+        delete asset.value._curies;
+        delete asset.value._curiesMap;
+        delete asset.value._resolvedCuriesMap;
+        delete asset.value._validation;
+        delete asset.value._original;
+        delete asset.value._embedded;
         traversal.continue().newRequest()
         .follow('self')
         .withRequestOptions(asset._dm._requestOptions({
           'Content-Type': 'application/json'
         }))
-        .put(out, function(err, res, traversal) {
+        .put(asset.value, function(err, res, traversal) {
           checkResponse(err, res).then(function(res) {
             if (res.statusCode === 204) {
               return resolve(true);
@@ -1229,16 +989,18 @@ var Tag = function(tag, dm, traversal) {
     var tag = this;
     return new Promise(function(resolve, reject) {
       tag._getTraversal().then(function(traversal) {
-        var out = {};
-        for (var key in tag.value.original()) {
-          out[key] = tag.value[key];
-        }
+        delete tag.value._curies;
+        delete tag.value._curiesMap;
+        delete tag.value._resolvedCuriesMap;
+        delete tag.value._validation;
+        delete tag.value._original;
+        delete tag.value._embedded;
         traversal.continue().newRequest()
         .follow('self')
         .withRequestOptions(tag._dm._requestOptions({
           'Content-Type': 'application/json'
         }))
-        .put(out, function(err, res, traversal) {
+        .put(tag.value, function(err, res, traversal) {
           checkResponse(err, res).then(function(res) {
             if (res.statusCode === 204) {
               return resolve(true);
@@ -1363,7 +1125,181 @@ function optionsToQueryParameter(options) {
 
 module.exports = DataManager;
 
-},{"es6-promise":5,"halfred":6,"superagent":10,"traverson":57,"traverson-hal":13}],5:[function(require,module,exports){
+},{"es6-promise":3,"halfred":4,"superagent":10,"traverson":53,"traverson-hal":12}],2:[function(require,module,exports){
+/* JSONPath 0.8.0 - XPath for JSON
+ *
+ * Copyright (c) 2007 Stefan Goessner (goessner.net)
+ * Licensed under the MIT (MIT-LICENSE.txt) licence.
+ */
+
+var isNode = false;
+(function(exports, require) {
+
+// Keep compatibility with old browsers
+if (!Array.isArray) {
+  Array.isArray = function(vArg) {
+    return Object.prototype.toString.call(vArg) === "[object Array]";
+  };
+}
+
+// Make sure to know if we are in real node or not (the `require` variable
+// could actually be require.js, for example.
+var isNode = typeof module !== 'undefined' && !!module.exports;
+
+var vm = isNode ?
+    require('vm') : {
+      runInNewContext: function(expr, context) { with (context) return eval(expr); }
+    };
+exports.eval = jsonPath;
+
+var cache = {};
+
+function push(arr, elem) { arr = arr.slice(); arr.push(elem); return arr; }
+function unshift(elem, arr) { arr = arr.slice(); arr.unshift(elem); return arr; }
+
+function jsonPath(obj, expr, arg) {
+   var P = {
+      resultType: arg && arg.resultType || "VALUE",
+      flatten: arg && arg.flatten || false,
+      wrap: (arg && arg.hasOwnProperty('wrap')) ? arg.wrap : true,
+      sandbox: (arg && arg.sandbox) ? arg.sandbox : {},
+      normalize: function(expr) {
+         if (cache[expr]) return cache[expr];
+         var subx = [];
+         var normalized = expr.replace(/[\['](\??\(.*?\))[\]']/g, function($0,$1){return "[#"+(subx.push($1)-1)+"]";})
+                     .replace(/'?\.'?|\['?/g, ";")
+                     .replace(/(;)?(\^+)(;)?/g, function(_, front, ups, back) { return ';' + ups.split('').join(';') + ';'; })
+                     .replace(/;;;|;;/g, ";..;")
+                     .replace(/;$|'?\]|'$/g, "");
+         var exprList = normalized.split(';').map(function(expr) {
+            var match = expr.match(/#([0-9]+)/);
+            return !match || !match[1] ? expr : subx[match[1]];
+         })
+         return cache[expr] = exprList;
+      },
+      asPath: function(path) {
+         var x = path, p = "$";
+         for (var i=1,n=x.length; i<n; i++)
+            p += /^[0-9*]+$/.test(x[i]) ? ("["+x[i]+"]") : ("['"+x[i]+"']");
+         return p;
+      },
+      trace: function(expr, val, path) {
+         // no expr to follow? return path and value as the result of this trace branch
+         if (!expr.length) return [{path: path, value: val}];
+
+         var loc = expr[0], x = expr.slice(1);
+         // the parent sel computation is handled in the frame above using the
+         // ancestor object of val
+         if (loc === '^') return path.length ? [{path: path.slice(0,-1), expr: x, isParentSelector: true}] : [];
+
+         // we need to gather the return value of recursive trace calls in order to
+         // do the parent sel computation.
+         var ret = [];
+         function addRet(elems) { ret = ret.concat(elems); }
+
+         if (val && val.hasOwnProperty(loc)) // simple case, directly follow property
+            addRet(P.trace(x, val[loc], push(path, loc)));
+         else if (loc === "*") { // any property
+            P.walk(loc, x, val, path, function(m,l,x,v,p) {
+               addRet(P.trace(unshift(m, x), v, p)); });
+         }
+         else if (loc === "..") { // all chid properties
+            addRet(P.trace(x, val, path));
+            P.walk(loc, x, val, path, function(m,l,x,v,p) {
+               if (typeof v[m] === "object")
+                  addRet(P.trace(unshift("..", x), v[m], push(p, m)));
+            });
+         }
+         else if (loc[0] === '(') { // [(expr)]
+            addRet(P.trace(unshift(P.eval(loc, val, path[path.length], path),x), val, path));
+         }
+         else if (loc.indexOf('?(') === 0) { // [?(expr)]
+            P.walk(loc, x, val, path, function(m,l,x,v,p) {
+               if (P.eval(l.replace(/^\?\((.*?)\)$/,"$1"),v[m],m, path))
+                  addRet(P.trace(unshift(m,x),v,p));
+            });
+         }
+         else if (loc.indexOf(',') > -1) { // [name1,name2,...]
+            for (var parts = loc.split(','), i = 0; i < parts.length; i++)
+               addRet(P.trace(unshift(parts[i], x), val, path));
+         }
+         else if (/^(-?[0-9]*):(-?[0-9]*):?([0-9]*)$/.test(loc)) { // [start:end:step]  python slice syntax
+            addRet(P.slice(loc, x, val, path));
+         }
+
+         // we check the resulting values for parent selections. for parent
+         // selections we discard the value object and continue the trace with the
+         // current val object
+         return ret.reduce(function(all, ea) {
+            return all.concat(ea.isParentSelector ? P.trace(ea.expr, val, ea.path) : [ea]);
+         }, []);
+      },
+      walk: function(loc, expr, val, path, f) {
+         if (Array.isArray(val))
+            for (var i = 0, n = val.length; i < n; i++)
+               f(i, loc, expr, val, path);
+         else if (typeof val === "object")
+            for (var m in val)
+               if (val.hasOwnProperty(m))
+                  f(m, loc, expr, val, path);
+      },
+      slice: function(loc, expr, val, path) {
+         if (!Array.isArray(val)) return;
+         var len = val.length, parts = loc.split(':'),
+             start = (parts[0] && parseInt(parts[0])) || 0,
+             end = (parts[1] && parseInt(parts[1])) || len,
+             step = (parts[2] && parseInt(parts[2])) || 1;
+         start = (start < 0) ? Math.max(0,start+len) : Math.min(len,start);
+         end   = (end < 0)   ? Math.max(0,end+len)   : Math.min(len,end);
+         var ret = [];
+         for (var i = start; i < end; i += step)
+            ret = ret.concat(P.trace(unshift(i,expr), val, path));
+         return ret;
+      },
+      eval: function(code, _v, _vname, path) {
+         if (!$ || !_v) return false;
+         if (code.indexOf("@path") > -1) {
+            P.sandbox["_path"] = P.asPath(path.concat([_vname]));
+            code = code.replace(/@path/g, "_path");
+         }
+         if (code.indexOf("@") > -1) {
+            P.sandbox["_v"] = _v;
+            code = code.replace(/@/g, "_v");
+         }
+         try {
+             return vm.runInNewContext(code, P.sandbox);
+         }
+         catch(e) {
+             console.log(e);
+             throw new Error("jsonPath: " + e.message + ": " + code);
+         }
+      }
+   };
+
+   var $ = obj;
+   var resultType = P.resultType.toLowerCase();
+   if (expr && obj && (resultType == "value" || resultType == "path")) {
+      var exprList = P.normalize(expr);
+      if (exprList[0] === "$" && exprList.length > 1) exprList.shift();
+      var result = P.trace(exprList, obj, ["$"]);
+      result = result.filter(function(ea) { return ea && !ea.isParentSelector; });
+      if (!result.length) return P.wrap ? [] : false;
+      if (result.length === 1 && !P.wrap && !Array.isArray(result[0].value)) return result[0][resultType] || false;
+      return result.reduce(function(result, ea) {
+         var valOrPath = ea[resultType];
+         if (resultType === 'path') valOrPath = P.asPath(valOrPath);
+         if (P.flatten && Array.isArray(valOrPath)) {
+            result = result.concat(valOrPath);
+         } else {
+            result.push(valOrPath);
+         }
+         return result;
+      }, []);
+   }
+}
+})(typeof exports === 'undefined' ? this['jsonPath'] = {} : exports, typeof require == "undefined" ? null : require);
+
+},{"vm":57}],3:[function(require,module,exports){
 (function (process,global){
 /*!
  * @overview es6-promise - a tiny implementation of Promises/A+.
@@ -2334,7 +2270,7 @@ module.exports = DataManager;
 
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":1}],6:[function(require,module,exports){
+},{"_process":56}],4:[function(require,module,exports){
 var Parser = require('./lib/parser')
   , Resource = require('./lib/resource')
   , validationFlag = false;
@@ -2357,7 +2293,7 @@ module.exports = {
 
 };
 
-},{"./lib/parser":8,"./lib/resource":9}],7:[function(require,module,exports){
+},{"./lib/parser":6,"./lib/resource":7}],5:[function(require,module,exports){
 'use strict';
 
 /*
@@ -2402,7 +2338,7 @@ ImmutableStack.prototype.peek = function() {
 
 module.exports = ImmutableStack;
 
-},{}],8:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 'use strict';
 
 var Resource = require('./resource')
@@ -2612,7 +2548,7 @@ function pathToString(path) {
 
 module.exports = Parser;
 
-},{"./immutable_stack":7,"./resource":9}],9:[function(require,module,exports){
+},{"./immutable_stack":5,"./resource":7}],7:[function(require,module,exports){
 'use strict';
 
 function Resource(links, curies, embedded, validationIssues) {
@@ -2740,6 +2676,80 @@ Resource.prototype.embedded = Resource.prototype.embeddedResource;
 Resource.prototype.validation = Resource.prototype.validationIssues;
 
 module.exports = Resource;
+
+},{}],8:[function(require,module,exports){
+
+/**
+ * Reduce `arr` with `fn`.
+ *
+ * @param {Array} arr
+ * @param {Function} fn
+ * @param {Mixed} initial
+ *
+ * TODO: combatible error handling?
+ */
+
+module.exports = function(arr, fn, initial){  
+  var idx = 0;
+  var len = arr.length;
+  var curr = arguments.length == 3
+    ? initial
+    : arr[idx++];
+
+  while (idx < len) {
+    curr = fn.call(null, curr, arr[idx], ++idx, arr);
+  }
+  
+  return curr;
+};
+},{}],9:[function(require,module,exports){
+// Copyright 2014 Simon Lydell
+// X11 (“MIT”) Licensed. (See LICENSE.)
+
+void (function(root, factory) {
+  if (typeof define === "function" && define.amd) {
+    define(factory)
+  } else if (typeof exports === "object") {
+    module.exports = factory()
+  } else {
+    root.resolveUrl = factory()
+  }
+}(this, function() {
+
+  function resolveUrl(/* ...urls */) {
+    var numUrls = arguments.length
+
+    if (numUrls === 0) {
+      throw new Error("resolveUrl requires at least one argument; got none.")
+    }
+
+    var base = document.createElement("base")
+    base.href = arguments[0]
+
+    if (numUrls === 1) {
+      return base.href
+    }
+
+    var head = document.getElementsByTagName("head")[0]
+    head.insertBefore(base, head.firstChild)
+
+    var a = document.createElement("a")
+    var resolved
+
+    for (var index = 1; index < numUrls; index++) {
+      a.href = arguments[index]
+      resolved = a.href
+      base.href = resolved
+    }
+
+    head.removeChild(base)
+
+    return resolved
+  }
+
+  return resolveUrl
+
+}));
 
 },{}],10:[function(require,module,exports){
 /**
@@ -3924,7 +3934,7 @@ request.put = function(url, data, fn){
 
 module.exports = request;
 
-},{"emitter":11,"reduce":12}],11:[function(require,module,exports){
+},{"emitter":11,"reduce":8}],11:[function(require,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -4091,31 +4101,6 @@ Emitter.prototype.hasListeners = function(event){
 };
 
 },{}],12:[function(require,module,exports){
-
-/**
- * Reduce `arr` with `fn`.
- *
- * @param {Array} arr
- * @param {Function} fn
- * @param {Mixed} initial
- *
- * TODO: combatible error handling?
- */
-
-module.exports = function(arr, fn, initial){  
-  var idx = 0;
-  var len = arr.length;
-  var curr = arguments.length == 3
-    ? initial
-    : arr[idx++];
-
-  while (idx < len) {
-    curr = fn.call(null, curr, arr[idx], ++idx, arr);
-  }
-  
-  return curr;
-};
-},{}],13:[function(require,module,exports){
 'use strict';
 
 var halfred = require('halfred');
@@ -4439,7 +4424,7 @@ JsonHalAdapter.prototype._handleHeader = function(httpResponse, link) {
 
 module.exports = JsonHalAdapter;
 
-},{"halfred":14}],14:[function(require,module,exports){
+},{"halfred":13}],13:[function(require,module,exports){
 var Parser = require('./lib/parser')
   , validationFlag = false;
 
@@ -4458,13 +4443,13 @@ module.exports = {
   }
 };
 
-},{"./lib/parser":16}],15:[function(require,module,exports){
+},{"./lib/parser":15}],14:[function(require,module,exports){
+arguments[4][5][0].apply(exports,arguments)
+},{"dup":5}],15:[function(require,module,exports){
+arguments[4][6][0].apply(exports,arguments)
+},{"./immutable_stack":14,"./resource":16,"dup":6}],16:[function(require,module,exports){
 arguments[4][7][0].apply(exports,arguments)
-},{"dup":7}],16:[function(require,module,exports){
-arguments[4][8][0].apply(exports,arguments)
-},{"./immutable_stack":15,"./resource":17,"dup":8}],17:[function(require,module,exports){
-arguments[4][9][0].apply(exports,arguments)
-},{"dup":9}],18:[function(require,module,exports){
+},{"dup":7}],17:[function(require,module,exports){
 'use strict';
 
 // TODO Replace by a proper lightweight logging module, suited for the browser
@@ -4515,7 +4500,7 @@ minilog.enable = function() {
 
 module.exports = minilog;
 
-},{}],19:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -4527,7 +4512,7 @@ module.exports = {
   }
 };
 
-},{}],20:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 'use strict';
 
 var superagent = require('superagent');
@@ -4653,7 +4638,7 @@ function handleResponse(callback) {
 
 module.exports = new Request();
 
-},{"superagent":10}],21:[function(require,module,exports){
+},{"superagent":10}],20:[function(require,module,exports){
 'use strict';
 
 /*
@@ -4697,7 +4682,7 @@ var _s = {
 
 module.exports = _s;
 
-},{}],22:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 'use strict';
 
 var resolveUrl = require('resolve-url');
@@ -4706,7 +4691,7 @@ exports.resolve = function(from, to) {
   return resolveUrl(from, to);
 };
 
-},{"resolve-url":55}],23:[function(require,module,exports){
+},{"resolve-url":9}],22:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -4744,7 +4729,7 @@ exports.abortError = function abortError() {
   return error;
 };
 
-},{"minilog":18}],24:[function(require,module,exports){
+},{"minilog":17}],23:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -4880,7 +4865,7 @@ function createTraversalHandle(t) {
   };
 }
 
-},{"./abort_traversal":23,"./http_requests":26,"./is_continuation":27,"./transforms/apply_transforms":33,"./transforms/check_http_status":34,"./transforms/continuation_to_doc":35,"./transforms/continuation_to_response":36,"./transforms/convert_embedded_doc_to_response":37,"./transforms/execute_http_request":39,"./transforms/execute_last_http_request":40,"./transforms/extract_doc":41,"./transforms/extract_response":42,"./transforms/extract_url":43,"./transforms/fetch_last_resource":44,"./transforms/parse":47,"./walker":53,"minilog":18}],25:[function(require,module,exports){
+},{"./abort_traversal":22,"./http_requests":25,"./is_continuation":26,"./transforms/apply_transforms":32,"./transforms/check_http_status":33,"./transforms/continuation_to_doc":34,"./transforms/continuation_to_response":35,"./transforms/convert_embedded_doc_to_response":36,"./transforms/execute_http_request":38,"./transforms/execute_last_http_request":39,"./transforms/extract_doc":40,"./transforms/extract_response":41,"./transforms/extract_url":42,"./transforms/fetch_last_resource":43,"./transforms/parse":46,"./walker":52,"minilog":17}],24:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -5525,7 +5510,7 @@ function shallowCloneArray(array) {
 
 module.exports = Builder;
 
-},{"./abort_traversal":23,"./actions":24,"./media_type_registry":29,"./media_types":30,"./merge_recursive":31,"minilog":18,"request":20,"util":19}],26:[function(require,module,exports){
+},{"./abort_traversal":22,"./actions":23,"./media_type_registry":28,"./media_types":29,"./merge_recursive":30,"minilog":17,"request":19,"util":18}],25:[function(require,module,exports){
 (function (process){
 'use strict';
 var minilog = require('minilog')
@@ -5631,14 +5616,14 @@ exports.executeHttpRequest = function(t, request, method, callback) {
 };
 
 }).call(this,require('_process'))
-},{"./abort_traversal":23,"./transforms/detect_content_type":38,"./transforms/get_options_for_step":46,"_process":1,"minilog":18}],27:[function(require,module,exports){
+},{"./abort_traversal":22,"./transforms/detect_content_type":37,"./transforms/get_options_for_step":45,"_process":56,"minilog":17}],26:[function(require,module,exports){
 'use strict';
 
 module.exports = function isContinuation(t) {
   return t.continuation && t.step && t.step.response;
 };
 
-},{}],28:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 'use strict';
 
 var jsonpathLib = require('JSONPath')
@@ -5742,7 +5727,7 @@ JsonAdapter.prototype._handleHeader = function(httpResponse, link) {
 
 module.exports = JsonAdapter;
 
-},{"JSONPath":54,"minilog":18,"underscore.string":21}],29:[function(require,module,exports){
+},{"JSONPath":2,"minilog":17,"underscore.string":20}],28:[function(require,module,exports){
 'use strict';
 
 var mediaTypes = require('./media_types');
@@ -5761,7 +5746,7 @@ exports.register(mediaTypes.CONTENT_NEGOTIATION,
     require('./negotiation_adapter'));
 exports.register(mediaTypes.JSON, require('./json_adapter'));
 
-},{"./json_adapter":28,"./media_types":30,"./negotiation_adapter":32}],30:[function(require,module,exports){
+},{"./json_adapter":27,"./media_types":29,"./negotiation_adapter":31}],29:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -5770,7 +5755,7 @@ module.exports = {
   JSON_HAL: 'application/hal+json',
 };
 
-},{}],31:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 'use strict';
 
 // TODO Maybe replace with https://github.com/Raynos/xtend
@@ -5807,7 +5792,7 @@ function merge(obj1, obj2, key) {
 
 module.exports = mergeRecursive;
 
-},{}],32:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 'use strict';
 
 function NegotiationAdapter(log) {}
@@ -5818,7 +5803,7 @@ NegotiationAdapter.prototype.findNextStep = function(doc, link) {
 
 module.exports = NegotiationAdapter;
 
-},{}],33:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 (function (process){
 /* jshint loopfunc: true */
 'use strict';
@@ -5860,7 +5845,7 @@ function applyTransforms(transforms, t, callback) {
 module.exports = applyTransforms;
 
 }).call(this,require('_process'))
-},{"_process":1,"minilog":18}],34:[function(require,module,exports){
+},{"_process":56,"minilog":17}],33:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -5914,7 +5899,7 @@ function httpError(url, httpStatus, body) {
   return error;
 }
 
-},{"../is_continuation":27,"minilog":18}],35:[function(require,module,exports){
+},{"../is_continuation":26,"minilog":17}],34:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -5936,7 +5921,7 @@ module.exports = function continuationToDoc(t) {
   return true;
 };
 
-},{"../is_continuation":27,"minilog":18}],36:[function(require,module,exports){
+},{"../is_continuation":26,"minilog":17}],35:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -5961,7 +5946,7 @@ module.exports = function continuationToResponse(t) {
   return true;
 };
 
-},{"../is_continuation":27,"./convert_embedded_doc_to_response":37,"minilog":18}],37:[function(require,module,exports){
+},{"../is_continuation":26,"./convert_embedded_doc_to_response":36,"minilog":17}],36:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -5981,7 +5966,7 @@ module.exports = function convertEmbeddedDocToResponse(t) {
   return true;
 };
 
-},{"minilog":18}],38:[function(require,module,exports){
+},{"minilog":17}],37:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6007,7 +5992,7 @@ module.exports = function detectContentType(t, callback) {
   return true;
 };
 
-},{"../media_type_registry":29,"minilog":18}],39:[function(require,module,exports){
+},{"../media_type_registry":28,"minilog":17}],38:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6049,7 +6034,7 @@ executeLastHttpRequest.isAsync = true;
 
 module.exports = executeLastHttpRequest;
 
-},{"../abort_traversal":23,"../http_requests":26,"minilog":18}],40:[function(require,module,exports){
+},{"../abort_traversal":22,"../http_requests":25,"minilog":17}],39:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6078,7 +6063,7 @@ executeLastHttpRequest.isAsync = true;
 
 module.exports = executeLastHttpRequest;
 
-},{"../abort_traversal":23,"../http_requests":26,"minilog":18}],41:[function(require,module,exports){
+},{"../abort_traversal":22,"../http_requests":25,"minilog":17}],40:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6107,7 +6092,7 @@ module.exports = function extractDoc(t) {
   return false;
 };
 
-},{"minilog":18}],42:[function(require,module,exports){
+},{"minilog":17}],41:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6137,7 +6122,7 @@ module.exports = function extractDoc(t) {
   return false;
 };
 
-},{"minilog":18}],43:[function(require,module,exports){
+},{"minilog":17}],42:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6167,7 +6152,7 @@ module.exports = function extractDoc(t) {
   }
 };
 
-},{"minilog":18,"url":22}],44:[function(require,module,exports){
+},{"minilog":17,"url":21}],43:[function(require,module,exports){
 'use strict';
 
 // TODO Only difference to lib/transform/fetch_resource is the continuation
@@ -6205,7 +6190,7 @@ fetchLastResource.isAsync = true;
 
 module.exports = fetchLastResource;
 
-},{"../abort_traversal":23,"../http_requests":26,"minilog":18}],45:[function(require,module,exports){
+},{"../abort_traversal":22,"../http_requests":25,"minilog":17}],44:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -6263,7 +6248,7 @@ function fetchViaHttp(t, callback) {
 module.exports = fetchResource;
 
 }).call(this,require('_process'))
-},{"../abort_traversal":23,"../http_requests":26,"../is_continuation":27,"_process":1,"minilog":18}],46:[function(require,module,exports){
+},{"../abort_traversal":22,"../http_requests":25,"../is_continuation":26,"_process":56,"minilog":17}],45:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6279,7 +6264,7 @@ module.exports = function getOptionsForStep(t) {
   return options;
 };
 
-},{"minilog":18,"util":19}],47:[function(require,module,exports){
+},{"minilog":17,"util":18}],46:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6330,7 +6315,7 @@ function jsonError(url, body) {
   return error;
 }
 
-},{"../is_continuation":27,"minilog":18}],48:[function(require,module,exports){
+},{"../is_continuation":26,"minilog":17}],47:[function(require,module,exports){
 'use strict';
 
 var isContinuation = require('../is_continuation');
@@ -6345,7 +6330,7 @@ module.exports = function resetLastStep(t) {
   return true;
 };
 
-},{"../is_continuation":27}],49:[function(require,module,exports){
+},{"../is_continuation":26}],48:[function(require,module,exports){
 'use strict';
 
 var isContinuation = require('../is_continuation');
@@ -6360,7 +6345,7 @@ module.exports = function resetLastStep(t) {
   return true;
 };
 
-},{"../is_continuation":27}],50:[function(require,module,exports){
+},{"../is_continuation":26}],49:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6393,7 +6378,7 @@ module.exports = function resolveNextUrl(t) {
   return true;
 };
 
-},{"minilog":18,"underscore.string":21,"url":22}],51:[function(require,module,exports){
+},{"minilog":17,"underscore.string":20,"url":21}],50:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6426,7 +6411,7 @@ module.exports = function resolveUriTemplate(t) {
 
 
 
-},{"minilog":18,"underscore.string":21,"url-template":56,"util":19}],52:[function(require,module,exports){
+},{"minilog":17,"underscore.string":20,"url-template":54,"util":18}],51:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6465,7 +6450,7 @@ function findNextStep(t, link) {
   }
 }
 
-},{"minilog":18}],53:[function(require,module,exports){
+},{"minilog":17}],52:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6542,230 +6527,81 @@ function isAborted(t) {
   return t.aborted;
 }
 
-},{"./abort_traversal":23,"./is_continuation":27,"./transforms/apply_transforms":33,"./transforms/check_http_status":34,"./transforms/fetch_resource":45,"./transforms/parse":47,"./transforms/reset_continuation":48,"./transforms/reset_last_step":49,"./transforms/resolve_next_url":50,"./transforms/resolve_uri_template":51,"./transforms/switch_to_next_step":52,"minilog":18}],54:[function(require,module,exports){
-/* JSONPath 0.8.0 - XPath for JSON
- *
- * Copyright (c) 2007 Stefan Goessner (goessner.net)
- * Licensed under the MIT (MIT-LICENSE.txt) licence.
+},{"./abort_traversal":22,"./is_continuation":26,"./transforms/apply_transforms":32,"./transforms/check_http_status":33,"./transforms/fetch_resource":44,"./transforms/parse":46,"./transforms/reset_continuation":47,"./transforms/reset_last_step":48,"./transforms/resolve_next_url":49,"./transforms/resolve_uri_template":50,"./transforms/switch_to_next_step":51,"minilog":17}],53:[function(require,module,exports){
+(function (process){
+'use strict';
+
+var minilog = require('minilog')
+  , mediaTypes = require('./lib/media_types')
+  , Builder = require('./lib/builder')
+  , mediaTypes = require('./lib/media_types')
+  , mediaTypeRegistry = require('./lib/media_type_registry');
+
+// activate this line to enable logging
+if (process.env.TRAVERSON_LOGGING) {
+  require('minilog').enable();
+}
+
+// export builder for traverson-angular
+exports._Builder = Builder;
+
+/**
+ * Creates a new request builder instance.
  */
+exports.newRequest = function newRequest() {
+  return new Builder();
+};
 
-var isNode = false;
-(function(exports, require) {
+/**
+ * Creates a new request builder instance with the given root URL.
+ */
+exports.from = function from(url) {
+  var builder = new Builder();
+  builder.from(url);
+  return builder;
+};
 
-// Keep compatibility with old browsers
-if (!Array.isArray) {
-  Array.isArray = function(vArg) {
-    return Object.prototype.toString.call(vArg) === "[object Array]";
-  };
-}
-
-// Make sure to know if we are in real node or not (the `require` variable
-// could actually be require.js, for example.
-var isNode = typeof module !== 'undefined' && !!module.exports;
-
-var vm = isNode ?
-    require('vm') : {
-      runInNewContext: function(expr, context) { with (context) return eval(expr); }
-    };
-exports.eval = jsonPath;
-
-var cache = {};
-
-function push(arr, elem) { arr = arr.slice(); arr.push(elem); return arr; }
-function unshift(elem, arr) { arr = arr.slice(); arr.unshift(elem); return arr; }
-
-function jsonPath(obj, expr, arg) {
-   var P = {
-      resultType: arg && arg.resultType || "VALUE",
-      flatten: arg && arg.flatten || false,
-      wrap: (arg && arg.hasOwnProperty('wrap')) ? arg.wrap : true,
-      sandbox: (arg && arg.sandbox) ? arg.sandbox : {},
-      normalize: function(expr) {
-         if (cache[expr]) return cache[expr];
-         var subx = [];
-         var normalized = expr.replace(/[\['](\??\(.*?\))[\]']/g, function($0,$1){return "[#"+(subx.push($1)-1)+"]";})
-                     .replace(/'?\.'?|\['?/g, ";")
-                     .replace(/(;)?(\^+)(;)?/g, function(_, front, ups, back) { return ';' + ups.split('').join(';') + ';'; })
-                     .replace(/;;;|;;/g, ";..;")
-                     .replace(/;$|'?\]|'$/g, "");
-         var exprList = normalized.split(';').map(function(expr) {
-            var match = expr.match(/#([0-9]+)/);
-            return !match || !match[1] ? expr : subx[match[1]];
-         })
-         return cache[expr] = exprList;
-      },
-      asPath: function(path) {
-         var x = path, p = "$";
-         for (var i=1,n=x.length; i<n; i++)
-            p += /^[0-9*]+$/.test(x[i]) ? ("["+x[i]+"]") : ("['"+x[i]+"']");
-         return p;
-      },
-      trace: function(expr, val, path) {
-         // no expr to follow? return path and value as the result of this trace branch
-         if (!expr.length) return [{path: path, value: val}];
-
-         var loc = expr[0], x = expr.slice(1);
-         // the parent sel computation is handled in the frame above using the
-         // ancestor object of val
-         if (loc === '^') return path.length ? [{path: path.slice(0,-1), expr: x, isParentSelector: true}] : [];
-
-         // we need to gather the return value of recursive trace calls in order to
-         // do the parent sel computation.
-         var ret = [];
-         function addRet(elems) { ret = ret.concat(elems); }
-
-         if (val && val.hasOwnProperty(loc)) // simple case, directly follow property
-            addRet(P.trace(x, val[loc], push(path, loc)));
-         else if (loc === "*") { // any property
-            P.walk(loc, x, val, path, function(m,l,x,v,p) {
-               addRet(P.trace(unshift(m, x), v, p)); });
-         }
-         else if (loc === "..") { // all chid properties
-            addRet(P.trace(x, val, path));
-            P.walk(loc, x, val, path, function(m,l,x,v,p) {
-               if (typeof v[m] === "object")
-                  addRet(P.trace(unshift("..", x), v[m], push(p, m)));
-            });
-         }
-         else if (loc[0] === '(') { // [(expr)]
-            addRet(P.trace(unshift(P.eval(loc, val, path[path.length], path),x), val, path));
-         }
-         else if (loc.indexOf('?(') === 0) { // [?(expr)]
-            P.walk(loc, x, val, path, function(m,l,x,v,p) {
-               if (P.eval(l.replace(/^\?\((.*?)\)$/,"$1"),v[m],m, path))
-                  addRet(P.trace(unshift(m,x),v,p));
-            });
-         }
-         else if (loc.indexOf(',') > -1) { // [name1,name2,...]
-            for (var parts = loc.split(','), i = 0; i < parts.length; i++)
-               addRet(P.trace(unshift(parts[i], x), val, path));
-         }
-         else if (/^(-?[0-9]*):(-?[0-9]*):?([0-9]*)$/.test(loc)) { // [start:end:step]  python slice syntax
-            addRet(P.slice(loc, x, val, path));
-         }
-
-         // we check the resulting values for parent selections. for parent
-         // selections we discard the value object and continue the trace with the
-         // current val object
-         return ret.reduce(function(all, ea) {
-            return all.concat(ea.isParentSelector ? P.trace(ea.expr, val, ea.path) : [ea]);
-         }, []);
-      },
-      walk: function(loc, expr, val, path, f) {
-         if (Array.isArray(val))
-            for (var i = 0, n = val.length; i < n; i++)
-               f(i, loc, expr, val, path);
-         else if (typeof val === "object")
-            for (var m in val)
-               if (val.hasOwnProperty(m))
-                  f(m, loc, expr, val, path);
-      },
-      slice: function(loc, expr, val, path) {
-         if (!Array.isArray(val)) return;
-         var len = val.length, parts = loc.split(':'),
-             start = (parts[0] && parseInt(parts[0])) || 0,
-             end = (parts[1] && parseInt(parts[1])) || len,
-             step = (parts[2] && parseInt(parts[2])) || 1;
-         start = (start < 0) ? Math.max(0,start+len) : Math.min(len,start);
-         end   = (end < 0)   ? Math.max(0,end+len)   : Math.min(len,end);
-         var ret = [];
-         for (var i = start; i < end; i += step)
-            ret = ret.concat(P.trace(unshift(i,expr), val, path));
-         return ret;
-      },
-      eval: function(code, _v, _vname, path) {
-         if (!$ || !_v) return false;
-         if (code.indexOf("@path") > -1) {
-            P.sandbox["_path"] = P.asPath(path.concat([_vname]));
-            code = code.replace(/@path/g, "_path");
-         }
-         if (code.indexOf("@") > -1) {
-            P.sandbox["_v"] = _v;
-            code = code.replace(/@/g, "_v");
-         }
-         try {
-             return vm.runInNewContext(code, P.sandbox);
-         }
-         catch(e) {
-             console.log(e);
-             throw new Error("jsonPath: " + e.message + ": " + code);
-         }
-      }
-   };
-
-   var $ = obj;
-   var resultType = P.resultType.toLowerCase();
-   if (expr && obj && (resultType == "value" || resultType == "path")) {
-      var exprList = P.normalize(expr);
-      if (exprList[0] === "$" && exprList.length > 1) exprList.shift();
-      var result = P.trace(exprList, obj, ["$"]);
-      result = result.filter(function(ea) { return ea && !ea.isParentSelector; });
-      if (!result.length) return P.wrap ? [] : false;
-      if (result.length === 1 && !P.wrap && !Array.isArray(result[0].value)) return result[0][resultType] || false;
-      return result.reduce(function(result, ea) {
-         var valOrPath = ea[resultType];
-         if (resultType === 'path') valOrPath = P.asPath(valOrPath);
-         if (P.flatten && Array.isArray(valOrPath)) {
-            result = result.concat(valOrPath);
-         } else {
-            result.push(valOrPath);
-         }
-         return result;
-      }, []);
-   }
-}
-})(typeof exports === 'undefined' ? this['jsonPath'] = {} : exports, typeof require == "undefined" ? null : require);
-
-},{"vm":2}],55:[function(require,module,exports){
-// Copyright 2014 Simon Lydell
-// X11 (“MIT”) Licensed. (See LICENSE.)
-
-void (function(root, factory) {
-  if (typeof define === "function" && define.amd) {
-    define(factory)
-  } else if (typeof exports === "object") {
-    module.exports = factory()
-  } else {
-    root.resolveUrl = factory()
+// Provided for backward compatibility with pre-1.0.0 versions.
+// The preferred way is to use newRequest() or from() to create a request
+// builder and either set the media type explicitly by calling json() on the
+// request builder instance - or use content negotiation.
+exports.json = {
+  from: function(url) {
+    var builder = new Builder();
+    builder.from(url);
+    builder.setMediaType(mediaTypes.JSON);
+    return builder;
   }
-}(this, function() {
+},
 
-  function resolveUrl(/* ...urls */) {
-    var numUrls = arguments.length
-
-    if (numUrls === 0) {
-      throw new Error("resolveUrl requires at least one argument; got none.")
+// Provided for backward compatibility with pre-1.0.0 versions.
+// The preferred way is to use newRequest() or from() to create a request
+// builder and then either set the media type explicitly by calling jsonHal() on
+// the request builder instance - or use content negotiation.
+exports.jsonHal = {
+  from: function(url) {
+    if (!mediaTypeRegistry.get(mediaTypes.JSON_HAL)) {
+      throw new Error('JSON HAL adapter is not registered. From version ' +
+        '1.0.0 on, Traverson has no longer built-in support for ' +
+        'application/hal+json. HAL support was moved to a separate, optional ' +
+        'plug-in. See https://github.com/basti1302/traverson-hal');
     }
-
-    var base = document.createElement("base")
-    base.href = arguments[0]
-
-    if (numUrls === 1) {
-      return base.href
-    }
-
-    var head = document.getElementsByTagName("head")[0]
-    head.insertBefore(base, head.firstChild)
-
-    var a = document.createElement("a")
-    var resolved
-
-    for (var index = 1; index < numUrls; index++) {
-      a.href = arguments[index]
-      resolved = a.href
-      base.href = resolved
-    }
-
-    head.removeChild(base)
-
-    return resolved
+    var builder = new Builder();
+    builder.from(url);
+    builder.setMediaType(mediaTypes.JSON_HAL);
+    return builder;
   }
+};
 
-  return resolveUrl
+// expose media type registry so that media type plug-ins can register
+// themselves
+exports.registerMediaType = mediaTypeRegistry.register;
 
-}));
+// export media type constants
+exports.mediaTypes = mediaTypes;
 
-},{}],56:[function(require,module,exports){
+}).call(this,require('_process'))
+},{"./lib/builder":24,"./lib/media_type_registry":28,"./lib/media_types":29,"_process":56,"minilog":17}],54:[function(require,module,exports){
 (function (root, factory) {
     if (typeof exports === 'object') {
         module.exports = factory();
@@ -6946,83 +6782,253 @@ void (function(root, factory) {
   return new UrlTemplate();
 }));
 
-},{}],57:[function(require,module,exports){
-(function (process){
-'use strict';
+},{}],55:[function(require,module,exports){
 
-var minilog = require('minilog')
-  , mediaTypes = require('./lib/media_types')
-  , Builder = require('./lib/builder')
-  , mediaTypes = require('./lib/media_types')
-  , mediaTypeRegistry = require('./lib/media_type_registry');
+var indexOf = [].indexOf;
 
-// activate this line to enable logging
-if (process.env.TRAVERSON_LOGGING) {
-  require('minilog').enable();
+module.exports = function(arr, obj){
+  if (indexOf) return arr.indexOf(obj);
+  for (var i = 0; i < arr.length; ++i) {
+    if (arr[i] === obj) return i;
+  }
+  return -1;
+};
+},{}],56:[function(require,module,exports){
+// shim for using process in browser
+
+var process = module.exports = {};
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
 }
 
-// export builder for traverson-angular
-exports._Builder = Builder;
-
-/**
- * Creates a new request builder instance.
- */
-exports.newRequest = function newRequest() {
-  return new Builder();
-};
-
-/**
- * Creates a new request builder instance with the given root URL.
- */
-exports.from = function from(url) {
-  var builder = new Builder();
-  builder.from(url);
-  return builder;
-};
-
-// Provided for backward compatibility with pre-1.0.0 versions.
-// The preferred way is to use newRequest() or from() to create a request
-// builder and either set the media type explicitly by calling json() on the
-// request builder instance - or use content negotiation.
-exports.json = {
-  from: function(url) {
-    var builder = new Builder();
-    builder.from(url);
-    builder.setMediaType(mediaTypes.JSON);
-    return builder;
-  }
-},
-
-// Provided for backward compatibility with pre-1.0.0 versions.
-// The preferred way is to use newRequest() or from() to create a request
-// builder and then either set the media type explicitly by calling jsonHal() on
-// the request builder instance - or use content negotiation.
-exports.jsonHal = {
-  from: function(url) {
-    if (!mediaTypeRegistry.get(mediaTypes.JSON_HAL)) {
-      throw new Error('JSON HAL adapter is not registered. From version ' +
-        '1.0.0 on, Traverson has no longer built-in support for ' +
-        'application/hal+json. HAL support was moved to a separate, optional ' +
-        'plug-in. See https://github.com/basti1302/traverson-hal');
+function drainQueue() {
+    if (draining) {
+        return;
     }
-    var builder = new Builder();
-    builder.from(url);
-    builder.setMediaType(mediaTypes.JSON_HAL);
-    return builder;
-  }
+    var timeout = setTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
+        }
+        queueIndex = -1;
+        len = queue.length;
+    }
+    currentQueue = null;
+    draining = false;
+    clearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        setTimeout(drainQueue, 0);
+    }
 };
 
-// expose media type registry so that media type plug-ins can register
-// themselves
-exports.registerMediaType = mediaTypeRegistry.register;
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
 
-// export media type constants
-exports.mediaTypes = mediaTypes;
+function noop() {}
 
-}).call(this,require('_process'))
-},{"./lib/builder":25,"./lib/media_type_registry":29,"./lib/media_types":30,"_process":1,"minilog":18}],"ec.datamanager.js":[function(require,module,exports){
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function() { return 0; };
+
+},{}],57:[function(require,module,exports){
+var indexOf = require('indexof');
+
+var Object_keys = function (obj) {
+    if (Object.keys) return Object.keys(obj)
+    else {
+        var res = [];
+        for (var key in obj) res.push(key)
+        return res;
+    }
+};
+
+var forEach = function (xs, fn) {
+    if (xs.forEach) return xs.forEach(fn)
+    else for (var i = 0; i < xs.length; i++) {
+        fn(xs[i], i, xs);
+    }
+};
+
+var defineProp = (function() {
+    try {
+        Object.defineProperty({}, '_', {});
+        return function(obj, name, value) {
+            Object.defineProperty(obj, name, {
+                writable: true,
+                enumerable: false,
+                configurable: true,
+                value: value
+            })
+        };
+    } catch(e) {
+        return function(obj, name, value) {
+            obj[name] = value;
+        };
+    }
+}());
+
+var globals = ['Array', 'Boolean', 'Date', 'Error', 'EvalError', 'Function',
+'Infinity', 'JSON', 'Math', 'NaN', 'Number', 'Object', 'RangeError',
+'ReferenceError', 'RegExp', 'String', 'SyntaxError', 'TypeError', 'URIError',
+'decodeURI', 'decodeURIComponent', 'encodeURI', 'encodeURIComponent', 'escape',
+'eval', 'isFinite', 'isNaN', 'parseFloat', 'parseInt', 'undefined', 'unescape'];
+
+function Context() {}
+Context.prototype = {};
+
+var Script = exports.Script = function NodeScript (code) {
+    if (!(this instanceof Script)) return new Script(code);
+    this.code = code;
+};
+
+Script.prototype.runInContext = function (context) {
+    if (!(context instanceof Context)) {
+        throw new TypeError("needs a 'context' argument.");
+    }
+    
+    var iframe = document.createElement('iframe');
+    if (!iframe.style) iframe.style = {};
+    iframe.style.display = 'none';
+    
+    document.body.appendChild(iframe);
+    
+    var win = iframe.contentWindow;
+    var wEval = win.eval, wExecScript = win.execScript;
+
+    if (!wEval && wExecScript) {
+        // win.eval() magically appears when this is called in IE:
+        wExecScript.call(win, 'null');
+        wEval = win.eval;
+    }
+    
+    forEach(Object_keys(context), function (key) {
+        win[key] = context[key];
+    });
+    forEach(globals, function (key) {
+        if (context[key]) {
+            win[key] = context[key];
+        }
+    });
+    
+    var winKeys = Object_keys(win);
+
+    var res = wEval.call(win, this.code);
+    
+    forEach(Object_keys(win), function (key) {
+        // Avoid copying circular objects like `top` and `window` by only
+        // updating existing context properties or new properties in the `win`
+        // that was only introduced after the eval.
+        if (key in context || indexOf(winKeys, key) === -1) {
+            context[key] = win[key];
+        }
+    });
+
+    forEach(globals, function (key) {
+        if (!(key in context)) {
+            defineProp(context, key, win[key]);
+        }
+    });
+    
+    document.body.removeChild(iframe);
+    
+    return res;
+};
+
+Script.prototype.runInThisContext = function () {
+    return eval(this.code); // maybe...
+};
+
+Script.prototype.runInNewContext = function (context) {
+    var ctx = Script.createContext(context);
+    var res = this.runInContext(ctx);
+
+    forEach(Object_keys(ctx), function (key) {
+        context[key] = ctx[key];
+    });
+
+    return res;
+};
+
+forEach(Object_keys(Script.prototype), function (name) {
+    exports[name] = Script[name] = function (code) {
+        var s = Script(code);
+        return s[name].apply(s, [].slice.call(arguments, 1));
+    };
+});
+
+exports.createScript = function (code) {
+    return exports.Script(code);
+};
+
+exports.createContext = Script.createContext = function (context) {
+    var copy = new Context();
+    if(typeof context === 'object') {
+        forEach(Object_keys(context), function (key) {
+            copy[key] = context[key];
+        });
+    }
+    return copy;
+};
+
+},{"indexof":55}],"ec.datamanager.js":[function(require,module,exports){
 'use strict';
 
 module.exports = require('./lib/DataManager');
-},{"./lib/DataManager":4}]},{},[])("ec.datamanager.js")
+},{"./lib/DataManager":1}]},{},[])("ec.datamanager.js")
 });

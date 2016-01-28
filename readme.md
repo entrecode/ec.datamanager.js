@@ -868,6 +868,9 @@ grunt build
 
 
 ## Changelog
+### 0.6.3
+- fixed error when adding new values to previously created entry when model gets additional fields. thx felix...
+
 ### 0.6.2
 - fixed bestFile routes in instantiated sdks
 
