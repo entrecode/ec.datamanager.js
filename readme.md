@@ -872,6 +872,9 @@ grunt build
 - removed usage of `…/options` relation. using templated links directly. requires datamanager 0.7.0+
 - bugfixes
 
+### 0.6.3
+- fixed error when adding new values to previously created entry when model gets additional fields. thx felix...
+
 ### 0.6.2
 - fixed bestFile routes in instantiated sdks
 
