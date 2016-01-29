@@ -265,7 +265,7 @@ DataManager.prototype.resolve = function() {
         dm._rootTraversal = traversal;
         dm.metadata       = body;
         return resolve(dm);
-      }, reject);
+      }).catch(reject);
     });
   });
 };
@@ -286,7 +286,7 @@ DataManager.prototype.modelList = function() {
           }
         }
         return resolve(out);
-      }, reject);
+      }).catch(reject);
     });
   });
 };
@@ -312,7 +312,7 @@ DataManager.prototype.model = function(title, metadata) {
             checkResponse(err, res).then(function() {
               model._traversal = traversal;
               return resolve(traversal);
-            }, reject);
+            }).catch(reject);
           });
         }
 
@@ -322,7 +322,7 @@ DataManager.prototype.model = function(title, metadata) {
           checkResponse(err, res).then(function(res) {
             model._traversal = traversal;
             return resolve(traversal);
-          }, reject);
+          }).catch(reject);
         });
       });
     },
@@ -343,7 +343,7 @@ DataManager.prototype.model = function(title, metadata) {
               }
             }
             return reject(new Error('ec_sdk_model_not_found'));
-          }, reject);
+          }).catch(reject);
         });
       });
     },
@@ -364,7 +364,7 @@ DataManager.prototype.model = function(title, metadata) {
         .end(function(err, res) {
           checkResponse(err, res).then(function(res) {
             return resolve(res.body);
-          }, reject);
+          }).catch(reject);
         });
       });
     },
@@ -397,7 +397,7 @@ DataManager.prototype.model = function(title, metadata) {
                 }
               }
               return resolve({entries: out, count: body.count, total: body.total});
-            }, reject);
+            }).catch(reject);
           });
         });
       });
@@ -408,7 +408,7 @@ DataManager.prototype.model = function(title, metadata) {
       return new Promise(function(resolve, reject) {
         model.entryList(options).then(function(list) {
           return resolve(list.entries);
-        }, reject);
+        }).catch(reject);
       });
     },
 
@@ -461,7 +461,7 @@ DataManager.prototype.model = function(title, metadata) {
                 }
               }
               return resolve(new Entry(body, dm, model, traversal));
-            }, reject);
+            }).catch(reject);
           });
         });
       });
@@ -499,7 +499,7 @@ DataManager.prototype.model = function(title, metadata) {
           .delete(function(err, res) {
             checkResponse(err, res).then(function() {
               return resolve(true);
-            }, reject);
+            }).catch(reject);
           });
         });
       });
@@ -533,7 +533,7 @@ DataManager.prototype.assetList = function(options) {
             }
           }
           return resolve({assets: out, count: body.count, total: body.total});
-        }, reject);
+        }).catch(reject);
       });
     });
   });
@@ -544,7 +544,7 @@ DataManager.prototype.assets = function(options) {
   return new Promise(function(resolve, reject) {
     dm.assetList(options).then(function(list) {
       return resolve(list.assets);
-    }, reject);
+    }).catch(reject);
   });
 };
 
@@ -581,7 +581,7 @@ DataManager.prototype.asset = function(assetID) {
             }
           }
           return resolve(new Asset(body, dm, traversal));
-        }, reject);
+        }).catch(reject);
       });
     });
   });
@@ -622,10 +622,10 @@ DataManager.prototype.createAsset = function(input) {
               out.push(dm.asset(regex.exec(assets[i].href)[1]));
             }
             return resolve(out);
-          }, reject);
+          }).catch(reject);
         });
       });
-    }, reject);
+    }).catch(reject);
   });
 };
 
@@ -653,7 +653,7 @@ DataManager.prototype.tagList = function(options) {
             }
           }
           return resolve({tags: out, count: body.count, total: body.total});
-        }, reject);
+        }).catch(reject);
       });
     });
   });
@@ -664,7 +664,7 @@ DataManager.prototype.tags = function(options) {
   return new Promise(function(resolve, reject) {
     dm.tagList(options).then(function(list) {
       return resolve(list.tags)
-    }, reject);
+    }).catch(reject);
   });
 };
 
@@ -701,7 +701,7 @@ DataManager.prototype.tag = function(tag) {
             }
           }
           return resolve(new Tag(body, dm, traversal));
-        }, reject);
+        }).catch(reject);
       });
     });
   });
@@ -722,7 +722,7 @@ DataManager.prototype.registerAnonymous = function(validUntil) {
           dm.accessToken = body.jwt;
           dm._user       = new User(true, body, dm, traversal);
           return resolve(dm._user);
-        }, reject);
+        }).catch(reject);
       });
     });
   });
@@ -742,7 +742,7 @@ DataManager.prototype.account = function() {
         dm._rootTraversal = traversal;
         dm.metadata       = body;
         return resolve(dm.metadata.account);
-      }, reject);
+      }).catch(reject);
     });
   });
 };
@@ -771,7 +771,7 @@ DataManager.prototype.getAuthLink = function(relation, templateParameter) {
         }
         return resolve(url);
       });
-    }, reject);
+    }).catch(reject);
   });
 };
 
@@ -785,7 +785,7 @@ DataManager.prototype.emailAvailable = function(email) {
       .get(function(err, res) {
         checkResponse(err, res).then(function(res) {
           return resolve(JSON.parse(res.body).available);
-        }, reject);
+        }).catch(reject);
       });
     });
   });
@@ -803,7 +803,7 @@ DataManager.prototype._getTraversal = function() {
       checkResponse(err, res).then(function(res) {
         dm._rootTraversal = traversal;
         return resolve(traversal);
-      }, reject);
+      }).catch(reject);
     });
   });
 };
@@ -854,9 +854,9 @@ var Entry = function(entry, dm, model, traversal) {
             entry.value      = halfred.parse(JSON.parse(res.body));
             entry._traversal = traversal;
             return resolve(entry);
-          }, reject);
+          }).catch(reject);
         });
-      }, reject);
+      }).catch(reject);
     });
   };
 
@@ -873,9 +873,9 @@ var Entry = function(entry, dm, model, traversal) {
         .delete(function(err, res) {
           checkResponse(err, res).then(function() {
             return resolve(true);
-          }, reject);
+          }).catch(reject);
         });
-      }, reject);
+      }).catch(reject);
     });
   };
 
@@ -930,9 +930,9 @@ var Asset = function(asset, dm, traversal) {
             asset.value      = halfred.parse(JSON.parse(res.body));
             asset._traversal = traversal;
             return resolve(asset);
-          }, reject);
+          }).catch(reject);
         });
-      }, reject);
+      }).catch(reject);
     });
   };
 
@@ -949,7 +949,7 @@ var Asset = function(asset, dm, traversal) {
         .delete(function(err, res) {
           checkResponse(err, res).then(function() {
             return resolve(true);
-          }, reject);
+          }).catch(reject);
         });
       });
     });
@@ -984,9 +984,9 @@ var Tag = function(tag, dm, traversal) {
             tag.value      = halfred.parse(JSON.parse(res.body));
             tag._traversal = traversal;
             return resolve(tag);
-          }, reject);
+          }).catch(reject);
         });
-      }, reject);
+      }).catch(reject);
     });
   };
 
@@ -1000,7 +1000,7 @@ var Tag = function(tag, dm, traversal) {
         .delete(function(err, res) {
           checkResponse(err, res).then(function() {
             return resolve(true);
-          }, reject);
+          }).catch(reject);
         });
       });
     });
@@ -1018,7 +1018,7 @@ var Tag = function(tag, dm, traversal) {
         checkResponse(err, res).then(function() {
           tag._traversal = traversal;
           return resolve(traversal);
-        }, reject);
+        }).catch(reject);
       });
     });
   }
@@ -1101,181 +1101,170 @@ function optionsToQueryParameter(options) {
 
 module.exports = DataManager;
 
-},{"es6-promise":3,"halfred":4,"superagent":10,"traverson":53,"traverson-hal":12}],2:[function(require,module,exports){
-/* JSONPath 0.8.0 - XPath for JSON
- *
- * Copyright (c) 2007 Stefan Goessner (goessner.net)
- * Licensed under the MIT (MIT-LICENSE.txt) licence.
+},{"es6-promise":3,"halfred":4,"superagent":11,"traverson":53,"traverson-hal":12}],2:[function(require,module,exports){
+
+/**
+ * Expose `Emitter`.
  */
 
-var isNode = false;
-(function(exports, require) {
+module.exports = Emitter;
 
-// Keep compatibility with old browsers
-if (!Array.isArray) {
-  Array.isArray = function(vArg) {
-    return Object.prototype.toString.call(vArg) === "[object Array]";
-  };
+/**
+ * Initialize a new `Emitter`.
+ *
+ * @api public
+ */
+
+function Emitter(obj) {
+  if (obj) return mixin(obj);
+};
+
+/**
+ * Mixin the emitter properties.
+ *
+ * @param {Object} obj
+ * @return {Object}
+ * @api private
+ */
+
+function mixin(obj) {
+  for (var key in Emitter.prototype) {
+    obj[key] = Emitter.prototype[key];
+  }
+  return obj;
 }
 
-// Make sure to know if we are in real node or not (the `require` variable
-// could actually be require.js, for example.
-var isNode = typeof module !== 'undefined' && !!module.exports;
+/**
+ * Listen on the given `event` with `fn`.
+ *
+ * @param {String} event
+ * @param {Function} fn
+ * @return {Emitter}
+ * @api public
+ */
 
-var vm = isNode ?
-    require('vm') : {
-      runInNewContext: function(expr, context) { with (context) return eval(expr); }
-    };
-exports.eval = jsonPath;
+Emitter.prototype.on =
+Emitter.prototype.addEventListener = function(event, fn){
+  this._callbacks = this._callbacks || {};
+  (this._callbacks['$' + event] = this._callbacks['$' + event] || [])
+    .push(fn);
+  return this;
+};
 
-var cache = {};
+/**
+ * Adds an `event` listener that will be invoked a single
+ * time then automatically removed.
+ *
+ * @param {String} event
+ * @param {Function} fn
+ * @return {Emitter}
+ * @api public
+ */
 
-function push(arr, elem) { arr = arr.slice(); arr.push(elem); return arr; }
-function unshift(elem, arr) { arr = arr.slice(); arr.unshift(elem); return arr; }
+Emitter.prototype.once = function(event, fn){
+  function on() {
+    this.off(event, on);
+    fn.apply(this, arguments);
+  }
 
-function jsonPath(obj, expr, arg) {
-   var P = {
-      resultType: arg && arg.resultType || "VALUE",
-      flatten: arg && arg.flatten || false,
-      wrap: (arg && arg.hasOwnProperty('wrap')) ? arg.wrap : true,
-      sandbox: (arg && arg.sandbox) ? arg.sandbox : {},
-      normalize: function(expr) {
-         if (cache[expr]) return cache[expr];
-         var subx = [];
-         var normalized = expr.replace(/[\['](\??\(.*?\))[\]']/g, function($0,$1){return "[#"+(subx.push($1)-1)+"]";})
-                     .replace(/'?\.'?|\['?/g, ";")
-                     .replace(/(;)?(\^+)(;)?/g, function(_, front, ups, back) { return ';' + ups.split('').join(';') + ';'; })
-                     .replace(/;;;|;;/g, ";..;")
-                     .replace(/;$|'?\]|'$/g, "");
-         var exprList = normalized.split(';').map(function(expr) {
-            var match = expr.match(/#([0-9]+)/);
-            return !match || !match[1] ? expr : subx[match[1]];
-         })
-         return cache[expr] = exprList;
-      },
-      asPath: function(path) {
-         var x = path, p = "$";
-         for (var i=1,n=x.length; i<n; i++)
-            p += /^[0-9*]+$/.test(x[i]) ? ("["+x[i]+"]") : ("['"+x[i]+"']");
-         return p;
-      },
-      trace: function(expr, val, path) {
-         // no expr to follow? return path and value as the result of this trace branch
-         if (!expr.length) return [{path: path, value: val}];
+  on.fn = fn;
+  this.on(event, on);
+  return this;
+};
 
-         var loc = expr[0], x = expr.slice(1);
-         // the parent sel computation is handled in the frame above using the
-         // ancestor object of val
-         if (loc === '^') return path.length ? [{path: path.slice(0,-1), expr: x, isParentSelector: true}] : [];
+/**
+ * Remove the given callback for `event` or all
+ * registered callbacks.
+ *
+ * @param {String} event
+ * @param {Function} fn
+ * @return {Emitter}
+ * @api public
+ */
 
-         // we need to gather the return value of recursive trace calls in order to
-         // do the parent sel computation.
-         var ret = [];
-         function addRet(elems) { ret = ret.concat(elems); }
+Emitter.prototype.off =
+Emitter.prototype.removeListener =
+Emitter.prototype.removeAllListeners =
+Emitter.prototype.removeEventListener = function(event, fn){
+  this._callbacks = this._callbacks || {};
 
-         if (val && val.hasOwnProperty(loc)) // simple case, directly follow property
-            addRet(P.trace(x, val[loc], push(path, loc)));
-         else if (loc === "*") { // any property
-            P.walk(loc, x, val, path, function(m,l,x,v,p) {
-               addRet(P.trace(unshift(m, x), v, p)); });
-         }
-         else if (loc === "..") { // all chid properties
-            addRet(P.trace(x, val, path));
-            P.walk(loc, x, val, path, function(m,l,x,v,p) {
-               if (typeof v[m] === "object")
-                  addRet(P.trace(unshift("..", x), v[m], push(p, m)));
-            });
-         }
-         else if (loc[0] === '(') { // [(expr)]
-            addRet(P.trace(unshift(P.eval(loc, val, path[path.length], path),x), val, path));
-         }
-         else if (loc.indexOf('?(') === 0) { // [?(expr)]
-            P.walk(loc, x, val, path, function(m,l,x,v,p) {
-               if (P.eval(l.replace(/^\?\((.*?)\)$/,"$1"),v[m],m, path))
-                  addRet(P.trace(unshift(m,x),v,p));
-            });
-         }
-         else if (loc.indexOf(',') > -1) { // [name1,name2,...]
-            for (var parts = loc.split(','), i = 0; i < parts.length; i++)
-               addRet(P.trace(unshift(parts[i], x), val, path));
-         }
-         else if (/^(-?[0-9]*):(-?[0-9]*):?([0-9]*)$/.test(loc)) { // [start:end:step]  python slice syntax
-            addRet(P.slice(loc, x, val, path));
-         }
+  // all
+  if (0 == arguments.length) {
+    this._callbacks = {};
+    return this;
+  }
 
-         // we check the resulting values for parent selections. for parent
-         // selections we discard the value object and continue the trace with the
-         // current val object
-         return ret.reduce(function(all, ea) {
-            return all.concat(ea.isParentSelector ? P.trace(ea.expr, val, ea.path) : [ea]);
-         }, []);
-      },
-      walk: function(loc, expr, val, path, f) {
-         if (Array.isArray(val))
-            for (var i = 0, n = val.length; i < n; i++)
-               f(i, loc, expr, val, path);
-         else if (typeof val === "object")
-            for (var m in val)
-               if (val.hasOwnProperty(m))
-                  f(m, loc, expr, val, path);
-      },
-      slice: function(loc, expr, val, path) {
-         if (!Array.isArray(val)) return;
-         var len = val.length, parts = loc.split(':'),
-             start = (parts[0] && parseInt(parts[0])) || 0,
-             end = (parts[1] && parseInt(parts[1])) || len,
-             step = (parts[2] && parseInt(parts[2])) || 1;
-         start = (start < 0) ? Math.max(0,start+len) : Math.min(len,start);
-         end   = (end < 0)   ? Math.max(0,end+len)   : Math.min(len,end);
-         var ret = [];
-         for (var i = start; i < end; i += step)
-            ret = ret.concat(P.trace(unshift(i,expr), val, path));
-         return ret;
-      },
-      eval: function(code, _v, _vname, path) {
-         if (!$ || !_v) return false;
-         if (code.indexOf("@path") > -1) {
-            P.sandbox["_path"] = P.asPath(path.concat([_vname]));
-            code = code.replace(/@path/g, "_path");
-         }
-         if (code.indexOf("@") > -1) {
-            P.sandbox["_v"] = _v;
-            code = code.replace(/@/g, "_v");
-         }
-         try {
-             return vm.runInNewContext(code, P.sandbox);
-         }
-         catch(e) {
-             console.log(e);
-             throw new Error("jsonPath: " + e.message + ": " + code);
-         }
-      }
-   };
+  // specific event
+  var callbacks = this._callbacks['$' + event];
+  if (!callbacks) return this;
 
-   var $ = obj;
-   var resultType = P.resultType.toLowerCase();
-   if (expr && obj && (resultType == "value" || resultType == "path")) {
-      var exprList = P.normalize(expr);
-      if (exprList[0] === "$" && exprList.length > 1) exprList.shift();
-      var result = P.trace(exprList, obj, ["$"]);
-      result = result.filter(function(ea) { return ea && !ea.isParentSelector; });
-      if (!result.length) return P.wrap ? [] : false;
-      if (result.length === 1 && !P.wrap && !Array.isArray(result[0].value)) return result[0][resultType] || false;
-      return result.reduce(function(result, ea) {
-         var valOrPath = ea[resultType];
-         if (resultType === 'path') valOrPath = P.asPath(valOrPath);
-         if (P.flatten && Array.isArray(valOrPath)) {
-            result = result.concat(valOrPath);
-         } else {
-            result.push(valOrPath);
-         }
-         return result;
-      }, []);
-   }
-}
-})(typeof exports === 'undefined' ? this['jsonPath'] = {} : exports, typeof require == "undefined" ? null : require);
+  // remove all handlers
+  if (1 == arguments.length) {
+    delete this._callbacks['$' + event];
+    return this;
+  }
 
-},{"vm":57}],3:[function(require,module,exports){
+  // remove specific handler
+  var cb;
+  for (var i = 0; i < callbacks.length; i++) {
+    cb = callbacks[i];
+    if (cb === fn || cb.fn === fn) {
+      callbacks.splice(i, 1);
+      break;
+    }
+  }
+  return this;
+};
+
+/**
+ * Emit `event` with the given args.
+ *
+ * @param {String} event
+ * @param {Mixed} ...
+ * @return {Emitter}
+ */
+
+Emitter.prototype.emit = function(event){
+  this._callbacks = this._callbacks || {};
+  var args = [].slice.call(arguments, 1)
+    , callbacks = this._callbacks['$' + event];
+
+  if (callbacks) {
+    callbacks = callbacks.slice(0);
+    for (var i = 0, len = callbacks.length; i < len; ++i) {
+      callbacks[i].apply(this, args);
+    }
+  }
+
+  return this;
+};
+
+/**
+ * Return array of callbacks for `event`.
+ *
+ * @param {String} event
+ * @return {Array}
+ * @api public
+ */
+
+Emitter.prototype.listeners = function(event){
+  this._callbacks = this._callbacks || {};
+  return this._callbacks['$' + event] || [];
+};
+
+/**
+ * Check if this emitter has `event` handlers.
+ *
+ * @param {String} event
+ * @return {Boolean}
+ * @api public
+ */
+
+Emitter.prototype.hasListeners = function(event){
+  return !! this.listeners(event).length;
+};
+
+},{}],3:[function(require,module,exports){
 (function (process,global){
 /*!
  * @overview es6-promise - a tiny implementation of Promises/A+.
@@ -2654,6 +2643,462 @@ Resource.prototype.validation = Resource.prototype.validationIssues;
 module.exports = Resource;
 
 },{}],8:[function(require,module,exports){
+/*global exports, require*/
+/* eslint-disable no-eval */
+/* JSONPath 0.8.0 - XPath for JSON
+ *
+ * Copyright (c) 2007 Stefan Goessner (goessner.net)
+ * Licensed under the MIT (MIT-LICENSE.txt) licence.
+ */
+
+var module;
+(function (require) {'use strict';
+
+// Make sure to know if we are in real node or not (the `require` variable
+// could actually be require.js, for example.
+var isNode = module && !!module.exports;
+
+var allowedResultTypes = ['value', 'path', 'pointer', 'parent', 'parentProperty', 'all'];
+
+var vm = isNode
+    ? require('vm') : {
+        runInNewContext: function (expr, context) {
+            return eval(Object.keys(context).reduce(function (s, vr) {
+                return 'var ' + vr + '=' + JSON.stringify(context[vr]).replace(/\u2028|\u2029/g, function (m) {
+                    // http://www.thespanner.co.uk/2011/07/25/the-json-specification-is-now-wrong/
+                    return '\\u202' + (m === '\u2028' ? '8' : '9');
+                }) + ';' + s;
+            }, expr));
+        }
+    };
+
+function push (arr, elem) {arr = arr.slice(); arr.push(elem); return arr;}
+function unshift (elem, arr) {arr = arr.slice(); arr.unshift(elem); return arr;}
+function NewError (value) {
+  this.avoidNew = true;
+  this.value = value;
+  this.message = 'JSONPath should not be called with "new" (it prevents return of (unwrapped) scalar values)';
+}
+
+function JSONPath (opts, expr, obj, callback, otherTypeCallback) {
+    if (!(this instanceof JSONPath)) {
+        try {
+            return new JSONPath(opts, expr, obj, callback, otherTypeCallback);
+        }
+        catch (e) {
+            if (!e.avoidNew) {
+                throw e;
+            }
+            return e.value;
+        }
+    }
+
+    if (typeof opts === 'string') {
+        otherTypeCallback = callback;
+        callback = obj;
+        obj = expr;
+        expr = opts;
+        opts = {};
+    }
+    opts = opts || {};
+    var objArgs = opts.hasOwnProperty('json') && opts.hasOwnProperty('path');
+    this.json = opts.json || obj;
+    this.path = opts.path || expr;
+    this.resultType = (opts.resultType && opts.resultType.toLowerCase()) || 'value';
+    this.flatten = opts.flatten || false;
+    this.wrap = opts.hasOwnProperty('wrap') ? opts.wrap : true;
+    this.sandbox = opts.sandbox || {};
+    this.preventEval = opts.preventEval || false;
+    this.parent = opts.parent || null;
+    this.parentProperty = opts.parentProperty || null;
+    this.callback = opts.callback || callback || null;
+    this.otherTypeCallback = opts.otherTypeCallback || otherTypeCallback || function () {
+        throw new Error('You must supply an otherTypeCallback callback option with the @other() operator.');
+    };
+
+    if (opts.autostart !== false) {
+        var ret = this.evaluate({
+            path: (objArgs ? opts.path : expr),
+            json: (objArgs ? opts.json : obj)
+        });
+        if (!ret || typeof ret !== 'object') {
+            throw new NewError(ret);
+        }
+        return ret;
+    }
+}
+
+// PUBLIC METHODS
+
+JSONPath.prototype.evaluate = function (expr, json, callback, otherTypeCallback) {
+    var self = this,
+        flatten = this.flatten,
+        wrap = this.wrap,
+        currParent = this.parent,
+        currParentProperty = this.parentProperty;
+
+    this.currResultType = this.resultType;
+    this.currPreventEval = this.preventEval;
+    this.currSandbox = this.sandbox;
+    callback = callback || this.callback;
+    this.currOtherTypeCallback = otherTypeCallback || this.otherTypeCallback;
+
+    json = json || this.json;
+    expr = expr || this.path;
+    if (expr && typeof expr === 'object') {
+        if (!expr.path) {
+            throw new Error('You must supply a "path" property when providing an object argument to JSONPath.evaluate().');
+        }
+        json = expr.hasOwnProperty('json') ? expr.json : json;
+        flatten = expr.hasOwnProperty('flatten') ? expr.flatten : flatten;
+        this.currResultType = expr.hasOwnProperty('resultType') ? expr.resultType : this.currResultType;
+        this.currSandbox = expr.hasOwnProperty('sandbox') ? expr.sandbox : this.currSandbox;
+        wrap = expr.hasOwnProperty('wrap') ? expr.wrap : wrap;
+        this.currPreventEval = expr.hasOwnProperty('preventEval') ? expr.preventEval : this.currPreventEval;
+        callback = expr.hasOwnProperty('callback') ? expr.callback : callback;
+        this.currOtherTypeCallback = expr.hasOwnProperty('otherTypeCallback') ? expr.otherTypeCallback : this.currOtherTypeCallback;
+        currParent = expr.hasOwnProperty('parent') ? expr.parent : currParent;
+        currParentProperty = expr.hasOwnProperty('parentProperty') ? expr.parentProperty : currParentProperty;
+        expr = expr.path;
+    }
+    currParent = currParent || null;
+    currParentProperty = currParentProperty || null;
+
+    if (Array.isArray(expr)) {
+        expr = JSONPath.toPathString(expr);
+    }
+    if (!expr || !json || allowedResultTypes.indexOf(this.currResultType) === -1) {
+        return;
+    }
+    this._obj = json;
+
+    var exprList = JSONPath.toPathArray(expr);
+    if (exprList[0] === '$' && exprList.length > 1) {exprList.shift();}
+    var result = this._trace(exprList, json, ['$'], currParent, currParentProperty, callback);
+    result = result.filter(function (ea) {return ea && !ea.isParentSelector;});
+
+    if (!result.length) {return wrap ? [] : undefined;}
+    if (result.length === 1 && !wrap && !Array.isArray(result[0].value)) {
+        return this._getPreferredOutput(result[0]);
+    }
+    return result.reduce(function (result, ea) {
+        var valOrPath = self._getPreferredOutput(ea);
+        if (flatten && Array.isArray(valOrPath)) {
+            result = result.concat(valOrPath);
+        }
+        else {
+            result.push(valOrPath);
+        }
+        return result;
+    }, []);
+};
+
+// PRIVATE METHODS
+
+JSONPath.prototype._getPreferredOutput = function (ea) {
+    var resultType = this.currResultType;
+    switch (resultType) {
+    case 'all':
+        ea.path = typeof ea.path === 'string' ? ea.path : JSONPath.toPathString(ea.path);
+        return ea;
+    case 'value': case 'parent': case 'parentProperty':
+        return ea[resultType];
+    case 'path':
+        return JSONPath.toPathString(ea[resultType]);
+    case 'pointer':
+        return JSONPath.toPointer(ea.path);
+    }
+};
+
+JSONPath.prototype._handleCallback = function (fullRetObj, callback, type) {
+    if (callback) {
+        var preferredOutput = this._getPreferredOutput(fullRetObj);
+        fullRetObj.path = typeof fullRetObj.path === 'string' ? fullRetObj.path : JSONPath.toPathString(fullRetObj.path);
+        callback(preferredOutput, type, fullRetObj);
+    }
+};
+
+JSONPath.prototype._trace = function (expr, val, path, parent, parentPropName, callback) {
+    // No expr to follow? return path and value as the result of this trace branch
+    var retObj, self = this;
+    if (!expr.length) {
+        retObj = {path: path, value: val, parent: parent, parentProperty: parentPropName};
+        this._handleCallback(retObj, callback, 'value');
+        return retObj;
+    }
+
+    var loc = expr[0], x = expr.slice(1);
+
+    // We need to gather the return value of recursive trace calls in order to
+    // do the parent sel computation.
+    var ret = [];
+    function addRet (elems) {ret = ret.concat(elems);}
+
+    if (val && Object.prototype.hasOwnProperty.call(val, loc)) { // simple case--directly follow property
+        addRet(this._trace(x, val[loc], push(path, loc), val, loc, callback));
+    }
+    else if (loc === '*') { // all child properties
+        this._walk(loc, x, val, path, parent, parentPropName, callback, function (m, l, x, v, p, par, pr, cb) {
+            addRet(self._trace(unshift(m, x), v, p, par, pr, cb));
+        });
+    }
+    else if (loc === '..') { // all descendent parent properties
+        addRet(this._trace(x, val, path, parent, parentPropName, callback)); // Check remaining expression with val's immediate children
+        this._walk(loc, x, val, path, parent, parentPropName, callback, function (m, l, x, v, p, par, pr, cb) {
+            // We don't join m and x here because we only want parents, not scalar values
+            if (typeof v[m] === 'object') { // Keep going with recursive descent on val's object children
+                addRet(self._trace(unshift(l, x), v[m], push(p, m), v, m, cb));
+            }
+        });
+    }
+    else if (loc[0] === '(') { // [(expr)] (dynamic property/index)
+        if (this.currPreventEval) {
+            throw new Error('Eval [(expr)] prevented in JSONPath expression.');
+        }
+        // As this will resolve to a property name (but we don't know it yet), property and parent information is relative to the parent of the property to which this expression will resolve
+        addRet(this._trace(unshift(this._eval(loc, val, path[path.length - 1], path.slice(0, -1), parent, parentPropName), x), val, path, parent, parentPropName, callback));
+    }
+    // The parent sel computation is handled in the frame above using the
+    // ancestor object of val
+    else if (loc === '^') {
+        // This is not a final endpoint, so we do not invoke the callback here
+        return path.length ? {
+            path: path.slice(0, -1),
+            expr: x,
+            isParentSelector: true
+        } : [];
+    }
+    else if (loc === '~') { // property name
+        retObj = {path: push(path, loc), value: parentPropName, parent: parent, parentProperty: null};
+        this._handleCallback(retObj, callback, 'property');
+        return retObj;
+    }
+    else if (loc === '$') { // root only
+        addRet(this._trace(x, val, path, null, null, callback));
+    }
+    else if (loc.indexOf('?(') === 0) { // [?(expr)] (filtering)
+        if (this.currPreventEval) {
+            throw new Error('Eval [?(expr)] prevented in JSONPath expression.');
+        }
+        this._walk(loc, x, val, path, parent, parentPropName, callback, function (m, l, x, v, p, par, pr, cb) {
+            if (self._eval(l.replace(/^\?\((.*?)\)$/, '$1'), v[m], m, p, par, pr)) {
+                addRet(self._trace(unshift(m, x), v, p, par, pr, cb));
+            }
+        });
+    }
+    else if (loc.indexOf(',') > -1) { // [name1,name2,...]
+        var parts, i;
+        for (parts = loc.split(','), i = 0; i < parts.length; i++) {
+            addRet(this._trace(unshift(parts[i], x), val, path, parent, parentPropName, callback));
+        }
+    }
+    else if (loc[0] === '@') { // value type: @boolean(), etc.
+        var addType = false;
+        var valueType = loc.slice(1, -2);
+        switch (valueType) {
+        case 'boolean': case 'string': case 'undefined': case 'function':
+            if (typeof val === valueType) {
+                addType = true;
+            }
+            break;
+        case 'number':
+            if (typeof val === valueType && isFinite(val)) {
+                addType = true;
+            }
+            break;
+        case 'nonFinite':
+            if (typeof val === 'number' && !isFinite(val)) {
+                addType = true;
+            }
+            break;
+        case 'object':
+            if (val && typeof val === valueType) {
+                addType = true;
+            }
+            break;
+        case 'array':
+            if (Array.isArray(val)) {
+                addType = true;
+            }
+            break;
+        case 'other':
+            addType = this.currOtherTypeCallback(val, path, parent, parentPropName);
+            break;
+        case 'integer':
+            if (val === +val && isFinite(val) && !(val % 1)) {
+                addType = true;
+            }
+            break;
+        case 'null':
+            if (val === null) {
+                addType = true;
+            }
+            break;
+        }
+        if (addType) {
+            retObj = {path: path, value: val, parent: parent, parentProperty: parentPropName};
+            this._handleCallback(retObj, callback, 'value');
+            return retObj;
+        }
+    }
+    else if (/^(-?[0-9]*):(-?[0-9]*):?([0-9]*)$/.test(loc)) { // [start:end:step]  Python slice syntax
+        addRet(this._slice(loc, x, val, path, parent, parentPropName, callback));
+    }
+
+    // We check the resulting values for parent selections. For parent
+    // selections we discard the value object and continue the trace with the
+    // current val object
+    return ret.reduce(function (all, ea) {
+        return all.concat(ea.isParentSelector ? self._trace(ea.expr, val, ea.path, parent, parentPropName, callback) : ea);
+    }, []);
+};
+
+JSONPath.prototype._walk = function (loc, expr, val, path, parent, parentPropName, callback, f) {
+    var i, n, m;
+    if (Array.isArray(val)) {
+        for (i = 0, n = val.length; i < n; i++) {
+            f(i, loc, expr, val, path, parent, parentPropName, callback);
+        }
+    }
+    else if (typeof val === 'object') {
+        for (m in val) {
+            if (Object.prototype.hasOwnProperty.call(val, m)) {
+                f(m, loc, expr, val, path, parent, parentPropName, callback);
+            }
+        }
+    }
+};
+
+JSONPath.prototype._slice = function (loc, expr, val, path, parent, parentPropName, callback) {
+    if (!Array.isArray(val)) {return;}
+    var i,
+        len = val.length, parts = loc.split(':'),
+        start = (parts[0] && parseInt(parts[0], 10)) || 0,
+        end = (parts[1] && parseInt(parts[1], 10)) || len,
+        step = (parts[2] && parseInt(parts[2], 10)) || 1;
+    start = (start < 0) ? Math.max(0, start + len) : Math.min(len, start);
+    end = (end < 0) ? Math.max(0, end + len) : Math.min(len, end);
+    var ret = [];
+    for (i = start; i < end; i += step) {
+        ret = ret.concat(this._trace(unshift(i, expr), val, path, parent, parentPropName, callback));
+    }
+    return ret;
+};
+
+JSONPath.prototype._eval = function (code, _v, _vname, path, parent, parentPropName) {
+    if (!this._obj || !_v) {return false;}
+    if (code.indexOf('@parentProperty') > -1) {
+        this.currSandbox._$_parentProperty = parentPropName;
+        code = code.replace(/@parentProperty/g, '_$_parentProperty');
+    }
+    if (code.indexOf('@parent') > -1) {
+        this.currSandbox._$_parent = parent;
+        code = code.replace(/@parent/g, '_$_parent');
+    }
+    if (code.indexOf('@property') > -1) {
+        this.currSandbox._$_property = _vname;
+        code = code.replace(/@property/g, '_$_property');
+    }
+    if (code.indexOf('@path') > -1) {
+        this.currSandbox._$_path = JSONPath.toPathString(path.concat([_vname]));
+        code = code.replace(/@path/g, '_$_path');
+    }
+    if (code.match(/@([\.\s\)\[])/)) {
+        this.currSandbox._$_v = _v;
+        code = code.replace(/@([\.\s\)\[])/g, '_$_v$1');
+    }
+    try {
+        return vm.runInNewContext(code, this.currSandbox);
+    }
+    catch (e) {
+        console.log(e);
+        throw new Error('jsonPath: ' + e.message + ': ' + code);
+    }
+};
+
+// PUBLIC CLASS PROPERTIES AND METHODS
+
+// Could store the cache object itself
+JSONPath.cache = {};
+
+JSONPath.toPathString = function (pathArr) {
+    var i, n, x = pathArr, p = '$';
+    for (i = 1, n = x.length; i < n; i++) {
+        if (!(/^(~|\^|@.*?\(\))$/).test(x[i])) {
+            p += (/^[0-9*]+$/).test(x[i]) ? ('[' + x[i] + ']') : ("['" + x[i] + "']");
+        }
+    }
+    return p;
+};
+
+JSONPath.toPointer = function (pointer) {
+    var i, n, x = pointer, p = '';
+    for (i = 1, n = x.length; i < n; i++) {
+        if (!(/^(~|\^|@.*?\(\))$/).test(x[i])) {
+            p += '/' + x[i].toString()
+                  .replace(/\~/g, '~0')
+                  .replace(/\//g, '~1');
+        }
+    }
+    return p;
+};
+
+JSONPath.toPathArray = function (expr) {
+    var cache = JSONPath.cache;
+    if (cache[expr]) {return cache[expr];}
+    var subx = [];
+    var normalized = expr
+                    // Properties
+                    .replace(/@(?:null|boolean|number|string|array|object|integer|undefined|nonFinite|function|other)\(\)/g, ';$&;')
+                    // Parenthetical evaluations (filtering and otherwise), directly within brackets or single quotes
+                    .replace(/[\['](\??\(.*?\))[\]']/g, function ($0, $1) {return '[#' + (subx.push($1) - 1) + ']';})
+                    // Escape periods and tildes within properties
+                    .replace(/\['([^'\]]*)'\]/g, function ($0, prop) {
+                        return "['" + prop.replace(/\./g, '%@%').replace(/~/g, '%%@@%%') + "']";
+                    })
+                    // Properties operator
+                    .replace(/~/g, ';~;')
+                    // Split by property boundaries
+                    .replace(/'?\.'?(?![^\[]*\])|\['?/g, ';')
+                    // Reinsert periods within properties
+                    .replace(/%@%/g, '.')
+                    // Reinsert tildes within properties
+                    .replace(/%%@@%%/g, '~')
+                    // Parent
+                    .replace(/(?:;)?(\^+)(?:;)?/g, function ($0, ups) {return ';' + ups.split('').join(';') + ';';})
+                    // Descendents
+                    .replace(/;;;|;;/g, ';..;')
+                    // Remove trailing
+                    .replace(/;$|'?\]|'$/g, '');
+
+    var exprList = normalized.split(';').map(function (expr) {
+        var match = expr.match(/#([0-9]+)/);
+        return !match || !match[1] ? expr : subx[match[1]];
+    });
+    cache[expr] = exprList;
+    return cache[expr];
+};
+
+// For backward compatibility (deprecated)
+JSONPath.eval = function (obj, expr, opts) {
+    return JSONPath(opts, expr, obj);
+};
+
+if (typeof define === 'function' && define.amd) {
+    define(function () {return JSONPath;});
+}
+else if (isNode) {
+    module.exports = JSONPath;
+}
+else {
+    self.jsonPath = { // Deprecated
+        eval: JSONPath.eval
+    };
+    self.JSONPath = JSONPath;
+}
+}(typeof require === 'undefined' ? null : require));
+
+},{"vm":57}],9:[function(require,module,exports){
 
 /**
  * Reduce `arr` with `fn`.
@@ -2678,7 +3123,7 @@ module.exports = function(arr, fn, initial){
   
   return curr;
 };
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 // Copyright 2014 Simon Lydell
 // X11 (“MIT”) Licensed. (See LICENSE.)
 
@@ -2727,7 +3172,7 @@ void (function(root, factory) {
 
 }));
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -2965,6 +3410,18 @@ function parseHeader(str) {
   }
 
   return fields;
+}
+
+/**
+ * Check if `mime` is json or has +json structured syntax suffix.
+ *
+ * @param {String} mime
+ * @return {Boolean}
+ * @api private
+ */
+
+function isJSON(mime) {
+  return /[\/+]json\b/.test(mime);
 }
 
 /**
@@ -3222,6 +3679,8 @@ function Request(method, url) {
       err = new Error('Parser is unable to parse the response');
       err.parse = true;
       err.original = e;
+      // issue #675: return the raw response if the response parsing fails
+      err.rawResponse = self.xhr && self.xhr.responseText ? self.xhr.responseText : null;
       return self.callback(err);
     }
 
@@ -3507,26 +3966,15 @@ Request.prototype.field = function(name, val){
 
 Request.prototype.attach = function(field, file, filename){
   if (!this._formData) this._formData = new root.FormData();
-  this._formData.append(field, file, filename);
+  this._formData.append(field, file, filename || file.name);
   return this;
 };
 
 /**
- * Send `data`, defaulting the `.type()` to "json" when
+ * Send `data` as the request body, defaulting the `.type()` to "json" when
  * an object is given.
  *
  * Examples:
- *
- *       // querystring
- *       request.get('/search')
- *         .end(callback)
- *
- *       // multiple data "writes"
- *       request.get('/search')
- *         .send({ search: 'query' })
- *         .send({ range: '1..5' })
- *         .send({ order: 'desc' })
- *         .end(callback)
  *
  *       // manual json
  *       request.post('/user')
@@ -3612,8 +4060,13 @@ Request.prototype.callback = function(err, res){
  */
 
 Request.prototype.crossDomainError = function(){
-  var err = new Error('Origin is not allowed by Access-Control-Allow-Origin');
+  var err = new Error('Request has been terminated\nPossible causes: the network is offline, Origin is not allowed by Access-Control-Allow-Origin, the page is being unloaded, etc.');
   err.crossDomain = true;
+
+  err.status = this.status;
+  err.method = this.method;
+  err.url = this.url;
+
   this.callback(err);
 };
 
@@ -3687,6 +4140,7 @@ Request.prototype.end = function(fn){
     if (e.total > 0) {
       e.percent = e.loaded / e.total * 100;
     }
+    e.direction = 'download';
     self.emit('progress', e);
   };
   if (this.hasListeners('progress')) {
@@ -3729,6 +4183,7 @@ Request.prototype.end = function(fn){
     // serialize stuff
     var contentType = this.getHeader('Content-Type');
     var serialize = this._parser || request.serialize[contentType ? contentType.split(';')[0] : ''];
+    if (!serialize && isJSON(contentType)) serialize = request.serialize['application/json'];
     if (serialize) data = serialize(data);
   }
 
@@ -3847,8 +4302,8 @@ function del(url, fn){
   return req;
 };
 
-request.del = del;
-request.delete = del;
+request['del'] = del;
+request['delete'] = del;
 
 /**
  * PATCH `url` with optional `data` and callback `fn(res)`.
@@ -3910,173 +4365,7 @@ request.put = function(url, data, fn){
 
 module.exports = request;
 
-},{"emitter":11,"reduce":8}],11:[function(require,module,exports){
-
-/**
- * Expose `Emitter`.
- */
-
-module.exports = Emitter;
-
-/**
- * Initialize a new `Emitter`.
- *
- * @api public
- */
-
-function Emitter(obj) {
-  if (obj) return mixin(obj);
-};
-
-/**
- * Mixin the emitter properties.
- *
- * @param {Object} obj
- * @return {Object}
- * @api private
- */
-
-function mixin(obj) {
-  for (var key in Emitter.prototype) {
-    obj[key] = Emitter.prototype[key];
-  }
-  return obj;
-}
-
-/**
- * Listen on the given `event` with `fn`.
- *
- * @param {String} event
- * @param {Function} fn
- * @return {Emitter}
- * @api public
- */
-
-Emitter.prototype.on =
-Emitter.prototype.addEventListener = function(event, fn){
-  this._callbacks = this._callbacks || {};
-  (this._callbacks[event] = this._callbacks[event] || [])
-    .push(fn);
-  return this;
-};
-
-/**
- * Adds an `event` listener that will be invoked a single
- * time then automatically removed.
- *
- * @param {String} event
- * @param {Function} fn
- * @return {Emitter}
- * @api public
- */
-
-Emitter.prototype.once = function(event, fn){
-  var self = this;
-  this._callbacks = this._callbacks || {};
-
-  function on() {
-    self.off(event, on);
-    fn.apply(this, arguments);
-  }
-
-  on.fn = fn;
-  this.on(event, on);
-  return this;
-};
-
-/**
- * Remove the given callback for `event` or all
- * registered callbacks.
- *
- * @param {String} event
- * @param {Function} fn
- * @return {Emitter}
- * @api public
- */
-
-Emitter.prototype.off =
-Emitter.prototype.removeListener =
-Emitter.prototype.removeAllListeners =
-Emitter.prototype.removeEventListener = function(event, fn){
-  this._callbacks = this._callbacks || {};
-
-  // all
-  if (0 == arguments.length) {
-    this._callbacks = {};
-    return this;
-  }
-
-  // specific event
-  var callbacks = this._callbacks[event];
-  if (!callbacks) return this;
-
-  // remove all handlers
-  if (1 == arguments.length) {
-    delete this._callbacks[event];
-    return this;
-  }
-
-  // remove specific handler
-  var cb;
-  for (var i = 0; i < callbacks.length; i++) {
-    cb = callbacks[i];
-    if (cb === fn || cb.fn === fn) {
-      callbacks.splice(i, 1);
-      break;
-    }
-  }
-  return this;
-};
-
-/**
- * Emit `event` with the given args.
- *
- * @param {String} event
- * @param {Mixed} ...
- * @return {Emitter}
- */
-
-Emitter.prototype.emit = function(event){
-  this._callbacks = this._callbacks || {};
-  var args = [].slice.call(arguments, 1)
-    , callbacks = this._callbacks[event];
-
-  if (callbacks) {
-    callbacks = callbacks.slice(0);
-    for (var i = 0, len = callbacks.length; i < len; ++i) {
-      callbacks[i].apply(this, args);
-    }
-  }
-
-  return this;
-};
-
-/**
- * Return array of callbacks for `event`.
- *
- * @param {String} event
- * @return {Array}
- * @api public
- */
-
-Emitter.prototype.listeners = function(event){
-  this._callbacks = this._callbacks || {};
-  return this._callbacks[event] || [];
-};
-
-/**
- * Check if this emitter has `event` handlers.
- *
- * @param {String} event
- * @return {Boolean}
- * @api public
- */
-
-Emitter.prototype.hasListeners = function(event){
-  return !! this.listeners(event).length;
-};
-
-},{}],12:[function(require,module,exports){
+},{"emitter":2,"reduce":9}],12:[function(require,module,exports){
 'use strict';
 
 var halfred = require('halfred');
@@ -4614,7 +4903,7 @@ function handleResponse(callback) {
 
 module.exports = new Request();
 
-},{"superagent":10}],20:[function(require,module,exports){
+},{"superagent":11}],20:[function(require,module,exports){
 'use strict';
 
 /*
@@ -4667,7 +4956,7 @@ exports.resolve = function(from, to) {
   return resolveUrl(from, to);
 };
 
-},{"resolve-url":9}],22:[function(require,module,exports){
+},{"resolve-url":10}],22:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -5519,7 +5808,7 @@ exports.fetchResource = function fetchResource(t, callback) {
     return process.nextTick(function() {
       var error = new Error('Can not process step');
       error.step = t.step;
-      callback(error);
+      callback(error, t);
     });
   }
 };
@@ -5602,11 +5891,9 @@ module.exports = function isContinuation(t) {
 },{}],27:[function(require,module,exports){
 'use strict';
 
-var jsonpathLib = require('JSONPath')
+var jsonpath = require('jsonpath-plus')
   , minilog = require('minilog')
   , _s = require('underscore.string');
-
-var jsonpath = jsonpathLib.eval;
 
 function JsonAdapter(log) {
   this.log = log;
@@ -5659,7 +5946,10 @@ JsonAdapter.prototype._testJSONPath = function(link) {
 };
 
 JsonAdapter.prototype._resolveJSONPath = function(doc, link) {
-  var matches = jsonpath(doc, link);
+  var matches = jsonpath({
+    json: doc,
+    path: link,
+  });
   if (matches.length === 1) {
     var url = matches[0];
     if (!url) {
@@ -5703,7 +5993,7 @@ JsonAdapter.prototype._handleHeader = function(httpResponse, link) {
 
 module.exports = JsonAdapter;
 
-},{"JSONPath":2,"minilog":17,"underscore.string":20}],28:[function(require,module,exports){
+},{"jsonpath-plus":8,"minilog":17,"underscore.string":20}],28:[function(require,module,exports){
 'use strict';
 
 var mediaTypes = require('./media_types');
