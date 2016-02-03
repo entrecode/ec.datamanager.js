@@ -905,6 +905,53 @@ describe('asset/assets', function() {
   });
 });
 
+describe('asset best file helper', function() {
+  var dm;
+  var asset;
+  beforeEach(function(done) {
+    dm = new DataManager({
+      url: baseUrl + '58b9a1f5',
+      accessToken: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJlbWFpbCI6bnVsbCwianRpIjoiM2EzYmQ5MzYtOWFlZS00ZWY0LTg0MjUtNjZhOGViODcyODk4IiwiaWF0IjoxNDQ5MTM2Njg0LCJleHAiOjQ2MDI3MzY2ODQsImlzcyI6ImVjX2RhdGFtYW5hZ2VyX3Nka190ZXN0c18xIiwic3ViIjoiMWNmOWUyOGUtZmE1NC00ZGVhLWJlMTQtZDlkYmNjMGMzYzY5In0.VMA0onkx4fpwBdTL9AQ2bzR4JBziY8UIavrAleIl7wj1Rh1-ZU09i-vze2sObarOZSygx74cO1uRkX37CFYj3Lf45mWPpHj-prJtfnS1xkn4KlfffTuz3VWINCorcZX-OyVeFWSexC6AwEQ9cW8FMEZPDpMLKodiFkhDUt1AIQg'
+    });
+    dm.asset('443163b2-71a9-4f2a-987b-c7c7f31c7e30').then(function(a) {
+      expect(a).to.be.ok;
+      expect(a).to.be.instanceOf(Object);
+      expect(a).to.have.property('value');
+      expect(a.value).to.have.property('assetID', '443163b2-71a9-4f2a-987b-c7c7f31c7e30');
+      asset = a;
+      done();
+    }).catch(done);
+  });
+  afterEach(function() {
+    dm = null;
+    asset = null;
+  });
+  it('get file url', function() {
+    expect(asset.getFileUrl()).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/b_in72f5iM6szybZ4Un4W1zr.jpg');
+  });
+  it('get file url with locale', function() {
+    expect(asset.getFileUrl('de_DE')).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/b_in72f5iM6szybZ4Un4W1zr.jpg');
+  });
+  it('get image url', function() {
+    expect(asset.getImageUrl()).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/b_in72f5iM6szybZ4Un4W1zr.jpg');
+  });
+  it('get image url with size', function() {
+    expect(asset.getImageUrl(200)).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/b_in72f5iM6szybZ4Un4W1zr_256.jpg');
+  });
+  it('get image url wit size and locale', function() {
+    expect(asset.getImageUrl(200, 'de_DE')).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/b_in72f5iM6szybZ4Un4W1zr_256.jpg');
+  });
+  it('get thumb url', function() {
+    expect(asset.getImageThumbUrl()).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/b_in72f5iM6szybZ4Un4W1zr_400_thumb.jpg');
+  });
+  it('get thumb url with size', function() {
+    expect(asset.getImageThumbUrl(100)).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/b_in72f5iM6szybZ4Un4W1zr_100_thumb.jpg');
+  });
+  it('get thumb url with size and locale', function() {
+    expect(asset.getImageThumbUrl(100, 'de_DE')).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/b_in72f5iM6szybZ4Un4W1zr_100_thumb.jpg');
+  });
+});
+
 describe('tag/tags', function() {
   var dm;
   beforeEach(function() {
