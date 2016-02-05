@@ -453,7 +453,7 @@ dataManager.asset('46092f02-7441-4759-b6ff-8f3831d3da4b')
 var url = asset.getFileUrl(); // original file
 ```
 
-#### Image Helper
+#### Asset Image Helper
 
 ```js
 var url = asset.getImageUrl(500) // size 500 image files
@@ -461,7 +461,7 @@ var url = asset.getImageUrl(500) // size 500 image files
 
 `getImageUrl` expects a pixel value. The largest edge of the returned image will be at least this value pixels in size, if available.
 
-#### Thumbnail Helper
+#### Asset Thumbnail Helper
 
 ```js
 var url = asset.getImageThumbUrl(100); // size 100 thumb files
