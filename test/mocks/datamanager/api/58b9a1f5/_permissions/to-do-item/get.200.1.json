@@ -1,0 +1,23 @@
+{
+  "qs": {},
+  "req": {},
+  "res": {
+    "permissions": [
+      "to-do-item:get,put:title,description"
+    ],
+    "_links": {
+      "curies": {
+        "name": "c1dac75f",
+        "href": "https://datamanager.entrecode.de/api/doc/58b9a1f5/relation/{rel}",
+        "templated": true
+      },
+      "self": {
+        "name": "to-do-item permissions",
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5/_permissions/to-do-item"
+      },
+      "c1dac75f:to-do-item": {
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item"
+      }
+    }
+  }
+}
