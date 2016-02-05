@@ -170,7 +170,7 @@ if (isNode) {
       });
     });
     it('get file url with locale', function() {
-      return DataManager.getFileUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 'de_DE').then(function(url) {
+      return DataManager.getFileUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 'de-DE').then(function(url) {
         expect(url).to.be.ok;
         expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM.jpg');
       });
@@ -204,7 +204,7 @@ if (isNode) {
       });
     });
     it('get image url wit size and locale', function() {
-      DataManager.getImageUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 200, 'de_DE').then(function(url) {
+      DataManager.getImageUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 200, 'de-DE').then(function(url) {
         expect(url).to.be.ok;
         expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_256.jpg');
       });
@@ -250,7 +250,7 @@ if (isNode) {
       });
     });
     it('get thumb url with size and locale', function() {
-      return DataManager.getImageThumbUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 100, 'de_DE').then(function(url) {
+      return DataManager.getImageThumbUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 100, 'de-DE').then(function(url) {
         expect(url).to.be.ok;
         expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_100_thumb.jpg');
       });
@@ -286,8 +286,16 @@ if (isNode) {
         expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM.jpg');
       });
     });
+    it('get file url - server error', function() {
+      return dm.getFileUrl('8b941ee5-3bb9-4911-b5b4-f1e0d558a3aa').then(function(result) {
+        throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+      }).catch(function(err) {
+        expect(err).to.be.ok;
+        expect(err).to.have.property('message', 'Internal Server Error');
+      });
+    });
     it('get file url with locale', function() {
-      return dm.getFileUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 'de_DE').then(function(url) {
+      return dm.getFileUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 'de-DE').then(function(url) {
         expect(url).to.be.ok;
         expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM.jpg');
       });
@@ -298,6 +306,14 @@ if (isNode) {
         expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM.jpg');
       });
     });
+    it('get image url - server error', function() {
+      return dm.getImageUrl('8b941ee5-3bb9-4911-b5b4-f1e0d558a3aa').then(function(result) {
+        throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+      }).catch(function(err) {
+        expect(err).to.be.ok;
+        expect(err).to.have.property('message', 'Internal Server Error');
+      });
+    });
     it('get image url with size', function() {
       return dm.getImageUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 200).then(function(url) {
         expect(url).to.be.ok;
@@ -305,7 +321,7 @@ if (isNode) {
       });
     });
     it('get image url wit size and locale', function() {
-      return dm.getImageUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 200, 'de_DE').then(function(url) {
+      return dm.getImageUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 200, 'de-DE').then(function(url) {
         expect(url).to.be.ok;
         expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_256.jpg');
       });
