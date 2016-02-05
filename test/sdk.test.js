@@ -1482,4 +1482,28 @@ describe('user management', function() {
       });
     });
   });
+  describe('permissions', function() {
+    var dm;
+    beforeEach(function() {
+      dm = new DataManager({
+        url: baseUrl + '58b9a1f5',
+        accessToken: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJlbWFpbCI6bnVsbCwianRpIjoiM2EzYmQ5MzYtOWFlZS00ZWY0LTg0MjUtNjZhOGViODcyODk4IiwiaWF0IjoxNDQ5MTM2Njg0LCJleHAiOjQ2MDI3MzY2ODQsImlzcyI6ImVjX2RhdGFtYW5hZ2VyX3Nka190ZXN0c18xIiwic3ViIjoiMWNmOWUyOGUtZmE1NC00ZGVhLWJlMTQtZDlkYmNjMGMzYzY5In0.VMA0onkx4fpwBdTL9AQ2bzR4JBziY8UIavrAleIl7wj1Rh1-ZU09i-vze2sObarOZSygx74cO1uRkX37CFYj3Lf45mWPpHj-prJtfnS1xkn4KlfffTuz3VWINCorcZX-OyVeFWSexC6AwEQ9cW8FMEZPDpMLKodiFkhDUt1AIQg'
+      });
+    });
+    afterEach(function() {
+      dm = null;
+    });
+    it('permission ok', function() {
+      return dm.can('to-do-item:put:title').then(function(allowed) {
+        expect(allowed).to.be.equal(true);
+      });
+    });
+    it('permission not ok', function() {
+      return dm.can('to-do-item:delete').then(function() {
+        throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+      }).catch(function(error) {
+        expect(error.message).to.be.equal('permission_denied');
+      });
+    });
+  });
 });
