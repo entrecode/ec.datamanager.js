@@ -1,5 +1,8 @@
 {
-  "qs": {},
+  "qs": {
+    "size": "400",
+    "thumb": true
+  },
   "req": {},
   "res": {
     "status": 500,

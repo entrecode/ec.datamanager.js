@@ -332,6 +332,14 @@ if (isNode) {
         expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_400_thumb.jpg');
       });
     });
+    it('get thumb url - server error', function() {
+      return dm.getImageThumbUrl('8b941ee5-3bb9-4911-b5b4-f1e0d558a3aa').then(function(result) {
+        throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+      }).catch(function(err) {
+        expect(err).to.be.ok;
+        expect(err).to.have.property('message', 'Internal Server Error');
+      });
+    });
     it('get thumb url with size', function() {
       return dm.getImageThumbUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 100).then(function(url) {
         expect(url).to.be.ok;
@@ -339,7 +347,7 @@ if (isNode) {
       });
     });
     it('get thumb url with size and locale', function() {
-      return dm.getImageThumbUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 100, 'de_DE').then(function(url) {
+      return dm.getImageThumbUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 100, 'de-DE').then(function(url) {
         expect(url).to.be.ok;
         expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_100_thumb.jpg');
       });
