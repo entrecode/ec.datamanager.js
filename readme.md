@@ -97,7 +97,23 @@ dataManager.resolve()
 .then(function(dm) {
   console.log(dm.metadata.title);
   // Note: dataManager === dm
-}. errorHandler);
+}, errorHandler);
+```
+
+##### Permission Check
+To check if the currently instantiated Data Manager has a specific right you can use `can(…)`.
+
+```js
+dataManager.can('myModel:put:title')
+.then(function(ok) {
+  // the SDK is able to perform this action.
+}, errorHandler);
+
+dataManager.can('myModel:delete')
+.then(okHandler)
+.catch(function(err) {
+  console.log(err.message); // permission_denied
+});
 ```
 
 ### Model
@@ -634,6 +650,7 @@ dataManager.registerAnonymous()
    console.error(error);
 });
 ```
+
 ##### `getAuthLink(linkName)`
 returns an auth link as Promise.
 
@@ -641,6 +658,9 @@ Please see user guide above for details.
 
 ##### `emailAvailable(email)`
 return an email availability check as Promise.
+
+##### `can(permission)`
+Checks if the currently connected Data Manager is able to perform `permission`. Permission format is something like `<model>:<method>:<field>`. Additional documentation can be found in generated documentation of the Data Manager.
 
 #### DataManager Instance Properties
 * `accessToken` Access Token for user, or `null`/`undefined` if not set.
@@ -911,6 +931,7 @@ grunt build
 ### 0.7.0
 - removed usage of `…/options` relation. using templated links directly. requires datamanager 0.7.0+
 - adds syncronous file helper on Assets
+- adds support for public permission checks
 - bugfixes
 
 ### 0.6.3
