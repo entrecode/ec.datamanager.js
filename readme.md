@@ -447,6 +447,29 @@ dataManager.asset('46092f02-7441-4759-b6ff-8f3831d3da4b')
 .catch(errorHandler);
 ```
 
+#### Asset File Helper
+
+```js
+var url = asset.getFileUrl(); // original file
+```
+
+#### Image Helper
+
+```js
+var url = asset.getImageUrl(500) // size 500 image files
+```
+
+`getImageUrl` expects a pixel value. The largest edge of the returned image will be at least this value pixels in size, if available.
+
+#### Thumbnail Helper
+
+```js
+var url = asset.getImageThumbUrl(100); // size 100 thumb files
+```
+
+The returned image will be a square-cropped variant with (in this example) at least 100 pixels (pixel value can be set as with `getImageUrl`). Available sizes are 50, 100, 200 and 400 px. Other values will be mapped to next bigger one.
+
+
 ### Tags
 #### Get TagList
 ```js
@@ -778,6 +801,23 @@ dataManager.asset('8c3b7b55-531f-4a03-b584-09fdef59cb0c')
   console.log('Deleted');
 });
 ```
+
+##### getFileUrl
+syncronously returns a file url. Optionally, a specific `locale` can be requested.
+
+##### getImageUrl
+syncronously returns an image file. `size` is optional and states the size in pixels the largest edge should have at least.
+
+Note that the image may still be smaller if the original image is smaller than `size`. If `size` is omitted, the largest size (i.e. the original image) is returned. Optionally, a specific `locale` can be requested. The following sizes are being returned: 256, 512, 1024, 2048, 4096.
+
+Example: The source image has a largest edge of 3000 pixels. `getImageURL(id, 1000)` will return the 1024px version. `getImageURL(id, 4096)` will return the original file with 3000 pixels.
+
+##### getImageThumbUrl
+syncronously returns an image thumbnail (square cropped). `size` is required and states the size in pixels the thumbnail square edge should have at least.
+
+Note that the image may still be smaller if the original image is smaller than `size`. Optionally, a specific `locale` can be requested. The following sizes are being returned: 50, 100, 200, 400
+
+
 ### Tag Object
 #### Connecting a Tag
 ```js
@@ -870,6 +910,7 @@ grunt build
 ## Changelog
 ### 0.7.0
 - removed usage of `…/options` relation. using templated links directly. requires datamanager 0.7.0+
+- adds syncronous file helper on Assets
 - bugfixes
 
 ### 0.6.3
