@@ -1,0 +1,43 @@
+{
+  "qs": {
+    "size": "10",
+    "page": "2"
+  },
+  "req": {},
+  "res": {
+    "count": 0,
+    "total": 9,
+    "_links": {
+      "curies": {
+        "href": "https://doc.entrecode.de/data_manager/#relation-{rel}",
+        "templated": true
+      },
+      "ec:api/asset/by-id": {
+        "href": "https://datamanager.entrecode.de/asset/58b9a1f5{?assetID}",
+        "templated": true
+      },
+      "ec:api/tags": {
+        "href": "https://datamanager.entrecode.de/tag/58b9a1f5"
+      },
+      "ec:api": {
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5"
+      },
+      "ec:api/assets/options": {
+        "href": "https://datamanager.entrecode.de/asset/58b9a1f5{?assetID,created,createdFrom,createdTo,created~,creator,dataManagerID,deleted,deletedFrom,deletedTo,deleted~,page,size,sort,tag,title,title~,type,type~}",
+        "templated": true
+      },
+      "self": {
+        "href": "https://datamanager.entrecode.de/asset/58b9a1f5?size=10&page=2"
+      },
+      "ec:assets/download": {
+        "href": "https://datamanager.entrecode.de/asset/download/58b9a1f5?size=10&page=2"
+      },
+      "prev": {
+        "href": "https://datamanager.entrecode.de/asset/58b9a1f5?size=10"
+      },
+      "first": {
+        "href": "https://datamanager.entrecode.de/asset/58b9a1f5?size=10"
+      }
+    }
+  }
+}

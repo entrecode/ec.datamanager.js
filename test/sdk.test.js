@@ -812,9 +812,9 @@ describe('asset/assets', function() {
           exact: 'hello'
         }
       }
-    }).then(function(entries) {
-      expect(entries).to.be.instanceOf(Array);
-      expect(entries.length).to.be.equal(0)
+    }).then(function(assets) {
+      expect(assets).to.be.instanceOf(Array);
+      expect(assets.length).to.be.equal(0)
     });
   });
   it('empty result on entry', function() {
@@ -859,6 +859,32 @@ describe('asset/assets', function() {
       expect(list.assets.length).to.be.equal(1);
     });
   });
+  it('list: empty result on list', function() {
+    return dm.assetList({
+      filter: {
+        title: {
+          exact: 'hello'
+        }
+      }
+    }).then(function(assets) {
+      expect(assets).to.be.instanceOf(Object);
+      expect(assets).to.have.property('count', 0);
+      expect(assets).to.have.property('total', 0);
+      expect(assets.assets.length).to.be.equal(0);
+    });
+  });
+  it('empty page', function() {
+    return dm.assetList({
+      page: 2,
+      size: 10
+    }).then(function(assets) {
+      expect(assets).to.be.instanceOf(Object);
+      expect(assets).to.have.property('count', 0);
+      expect(assets).to.have.property('total', 9);
+      expect(assets.assets.length).to.be.equal(0);
+    });
+  });
+
   if (isNode) {
     it('create asset, node', function() {
       return dm.createAsset(__dirname + '/whynotboth.jpg').then(function(assets) {

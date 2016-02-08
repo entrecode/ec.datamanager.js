@@ -386,8 +386,8 @@ DataManager.prototype.model = function(title, metadata) {
             checkResponse(err, res).then(function(res) {
               var body = halfred.parse(JSON.parse(res.body));
               // empty list due to filter
-              if (body.hasOwnProperty('count') && body.count === 0 && body.hasOwnProperty('total') && body.total === 0) {
-                return resolve({entries: [], count: 0, total: 0});
+              if (body.hasOwnProperty('count') && body.count === 0 && body.hasOwnProperty('total')) {
+                return resolve({entries: [], count: body.count, total: body.total});
               }
               var entries = body.embeddedArray(dm.id + ':' + model.title);
               // single result due to filter
@@ -523,8 +523,8 @@ DataManager.prototype.assetList = function(options) {
       .get(function(err, res, traversal) {
         checkResponse(err, res).then(function(res) {
           var body = halfred.parse(JSON.parse(res.body));
-          if (body.hasOwnProperty('count') && body.count === 0 && body.hasOwnProperty('total') && body.total === 0) {
-            return resolve({assets: [], count: 0, total: 0});
+          if (body.hasOwnProperty('count') && body.count === 0 && body.hasOwnProperty('total')) {
+            return resolve({assets: [], count: body.count, total: body.total});
           }
           var assets = body.embeddedArray('ec:api/asset');
           var out    = [];
@@ -643,8 +643,8 @@ DataManager.prototype.tagList = function(options) {
       .get(function(err, res, traversal) {
         checkResponse(err, res).then(function(res) {
           var body = halfred.parse(JSON.parse(res.body));
-          if (body.hasOwnProperty('count') && body.count === 0 && body.hasOwnProperty('total') && body.total === 0) {
-            return resolve({tags: [], count: 0, total: 0});
+          if (body.hasOwnProperty('count') && body.count === 0 && body.hasOwnProperty('total')) {
+            return resolve({tags: [], count: body.count, total: body.total});
           }
           var tags = body.embeddedArray('ec:api/tag');
           var out  = [];
