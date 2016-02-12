@@ -88,6 +88,17 @@ var dataManager = new DataManager({
 });
 ```
 
+Initialization with `errorHandler`:
+
+```js
+var dataManager = new DataManager({
+  id: 'beefbeef',
+  errorHandler: function(error){
+    console.log(error);
+  }
+});
+```
+
 ### DataManager
 ##### Resolve
 Retrieves information about the connected Data Manager. Like title, id, …
@@ -570,7 +581,7 @@ dataManager.tag('tag1')
 returns new DataManager Object
 
 
-`options` contains following keys: `url`, `accessToken`,`id`, and `clientID`. All are optional, but either `url` or `id` have to be set. Depending on the Data Manager Settings you will not be able to modify entries etc. when no accessToken is spcified.
+`options` contains following keys: `url`, `accessToken`,`id`, `errorHandler` and `clientID`. All are optional, but either `url` or `id` have to be set. Depending on the Data Manager Settings you will not be able to modify entries etc. when no accessToken is spcified.
 
 Examples:
 
@@ -581,9 +592,12 @@ var dataManager = new DataManager({
   accessToken: '8c3b7b55-531f-4a03-b584-09fdef59cb0c'
 });
 
-// Initialization without token (will be generated)
+// Initialization without token
 var dataManager = new DataManager({
   url: 'https://datamanager.entrecode.de/api/abcdef'
+  errorHandler: function(error) {
+    handleError(error);
+  }
 });
 
 // Alternative
@@ -682,6 +696,7 @@ Checks if the currently connected Data Manager is able to perform `permission`. 
 * `id` ShortID of the connected Data Manager.
 * `url` The url of the connected Data Manager.
 * `clientID` ClientID which will be used to generate authLinks, or `null`/`undefined` if not set.
+* `errorHandler` The global errorHandler for all erorrs which can occur.
 
 ### Model object
 #### Connecting a Model
@@ -947,7 +962,8 @@ grunt build
 - removed usage of `…/options` relation. using templated links directly. requires datamanager 0.7.0+
 - adds syncronous file helper on Assets
 - adds support for public permission checks
-- adds logout function for deleting and resetting a datamanager sdk instance.
+- adds logout function for deleting and resetting a datamanager sdk instance
+- adds global error callback to datamanager object
 - bugfixes
 
 ### 0.6.3

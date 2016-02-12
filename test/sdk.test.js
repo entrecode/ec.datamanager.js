@@ -291,7 +291,7 @@ if (isNode) {
         throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
       }).catch(function(err) {
         expect(err).to.be.ok;
-        expect(err).to.have.property('message', 'Internal Server Error');
+        expect(err).to.have.property('title', 'Internal Server Error');
       });
     });
     it('get file url with locale', function() {
@@ -311,7 +311,7 @@ if (isNode) {
         throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
       }).catch(function(err) {
         expect(err).to.be.ok;
-        expect(err).to.have.property('message', 'Internal Server Error');
+        expect(err).to.have.property('title', 'Internal Server Error');
       });
     });
     it('get image url with size', function() {
@@ -337,7 +337,7 @@ if (isNode) {
         throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
       }).catch(function(err) {
         expect(err).to.be.ok;
-        expect(err).to.have.property('message', 'Internal Server Error');
+        expect(err).to.have.property('title', 'Internal Server Error');
       });
     });
     it('get thumb url with size', function() {
@@ -725,6 +725,41 @@ describe('entry/entries', function() { // this is basically modelList
     return dm.model('to-do-list').entry('V1EXdcJHl').then(function(entry) {
       var title = entry.getTitle('list-items');
       expect(title).to.be.equal('NewItem');
+    });
+  });
+  it('500 error', function() {
+    return dm.model('to-do-item').entries({
+      filter: {
+        title: {
+          exact: 'thisIsA500Error'
+        }
+      }
+    }).then(function(result) {
+      throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+    }).catch(function(err) {
+      expect(err).to.be.ok;
+      expect(err).to.have.property('code', 2000);
+      expect(err).to.have.property('status', 500);
+    });
+  });
+  it('500 error with error handler', function() {
+    dm.errorHandler = function(err) {
+      expect(err).to.be.ok;
+      expect(err).to.have.property('code', 2000);
+      expect(err).to.have.property('status', 500);
+    };
+    return dm.model('to-do-item').entries({
+      filter: {
+        title: {
+          exact: 'thisIsA500Error'
+        }
+      }
+    }).then(function(result) {
+      throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+    }).catch(function(err) {
+      expect(err).to.be.ok;
+      expect(err).to.have.property('code', 2000);
+      expect(err).to.have.property('status', 500);
     });
   });
 });

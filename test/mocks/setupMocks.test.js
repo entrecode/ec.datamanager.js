@@ -28,9 +28,15 @@ if (isNode) {
         var file = JSON.parse(data);
 
         if (!_.isEmpty(file.req)) {
-          dmMock = dmMock[fileElems[0]](reqPath, file.req).times(1000).query(file.qs).reply(fileElems[1], file.res);
+          dmMock = dmMock[fileElems[0]](reqPath, file.req);
         } else {
-          dmMock = dmMock[fileElems[0]](reqPath).times(1000).query(file.qs).reply(fileElems[1], file.res);
+          dmMock = dmMock[fileElems[0]](reqPath);
+        }
+        dmMock = dmMock.times(1000).query(file.qs);
+        if (fileElems[1] === "500") {
+          dmMock = dmMock.replyWithError(file.res);
+        } else {
+          dmMock = dmMock.reply(fileElems[1], file.res);
         }
 
         return next();

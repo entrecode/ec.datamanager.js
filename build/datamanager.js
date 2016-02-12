@@ -57,6 +57,9 @@ var DataManager = function(options) {
   if (options.hasOwnProperty('clientID')) {
     this.clientID = options.clientID;
   }
+  if (options.hasOwnProperty('errorHandler')) {
+    this.errorHandler = options.errorHandler;
+  }
 };
 
 /**
@@ -263,7 +266,7 @@ DataManager.prototype.resolve = function() {
     traverson.from(dm.url).jsonHal()
     .withRequestOptions(dm._requestOptions())
     .get(function(err, res, traversal) {
-      checkResponse(err, res).then(function(res) {
+      dm._checkResponse(err, res).then(function(res) {
         var body          = halfred.parse(JSON.parse(res.body));
         dm._rootTraversal = traversal;
         dm.metadata       = body;
@@ -279,7 +282,7 @@ DataManager.prototype.modelList = function() {
     traverson.from(dm.url).jsonHal()
     .withRequestOptions(dm._requestOptions())
     .get(function(err, res, traversal) {
-      checkResponse(err, res).then(function(res) {
+      dm._checkResponse(err, res).then(function(res) {
         var body = JSON.parse(res.body);
         var out  = {};
         if (body.models) {
@@ -312,7 +315,7 @@ DataManager.prototype.model = function(title, metadata) {
           dm._rootTraversal.continue().newRequest()
           .withRequestOptions(dm._requestOptions())
           .get(function(err, res, traversal) {
-            checkResponse(err, res).then(function() {
+            dm._checkResponse(err, res).then(function() {
               model._traversal = traversal;
               return resolve(traversal);
             }).catch(reject);
@@ -322,7 +325,7 @@ DataManager.prototype.model = function(title, metadata) {
         traverson.from(dm.url).jsonHal()
         .withRequestOptions(dm._requestOptions())
         .get(function(err, res, traversal) {
-          checkResponse(err, res).then(function(res) {
+          dm._checkResponse(err, res).then(function(res) {
             model._traversal = traversal;
             return resolve(traversal);
           }).catch(reject);
@@ -336,7 +339,7 @@ DataManager.prototype.model = function(title, metadata) {
         traverson.from(dm.url).jsonHal()
         .withRequestOptions(dm._requestOptions())
         .get(function(err, res, traversal) {
-          checkResponse(err, res).then(function(res) {
+          dm._checkResponse(err, res).then(function(res) {
             var body = JSON.parse(res.body);
             for (var i = 0; i < body.models.length; i++) {
               if (body.models[i].title === model.title) {
@@ -365,7 +368,7 @@ DataManager.prototype.model = function(title, metadata) {
         .get(dm.url.replace('/api/', '/api/schema/') + '/' + model.title)
         .query({template: method})
         .end(function(err, res) {
-          checkResponse(err, res).then(function(res) {
+          dm._checkResponse(err, res).then(function(res) {
             return resolve(res.body);
           }).catch(reject);
         });
@@ -383,7 +386,7 @@ DataManager.prototype.model = function(title, metadata) {
           }
           t.withRequestOptions(dm._requestOptions())
           .get(function(err, res, traversal) {
-            checkResponse(err, res).then(function(res) {
+            dm._checkResponse(err, res).then(function(res) {
               var body = halfred.parse(JSON.parse(res.body));
               // empty list due to filter
               if (body.hasOwnProperty('count') && body.count === 0 && body.hasOwnProperty('total')) {
@@ -453,7 +456,7 @@ DataManager.prototype.model = function(title, metadata) {
           .withTemplateParameters(optionsToQueryParameter(options))
           .withRequestOptions(dm._requestOptions())
           .get(function(err, res, traversal) {
-            checkResponse(err, res).then(function(res) {
+            dm._checkResponse(err, res).then(function(res) {
               var body = halfred.parse(JSON.parse(res.body));
               if (body.hasOwnProperty('count') && body.hasOwnProperty('total')) {
                 var entry = body.embeddedResource(dm.id + ':' + model.title);
@@ -480,7 +483,7 @@ DataManager.prototype.model = function(title, metadata) {
             'Content-Type': 'application/json'
           }))
           .post(entry, function(err, res, traversal) {
-            checkResponse(err, res).then(function(res) {
+            dm._checkResponse(err, res).then(function(res) {
               if (res.statusCode === 204) {
                 return resolve(true);
               }
@@ -500,7 +503,7 @@ DataManager.prototype.model = function(title, metadata) {
           .withTemplateParameters({_id: entryId})
           .withRequestOptions(dm._requestOptions())
           .delete(function(err, res) {
-            checkResponse(err, res).then(function() {
+            dm._checkResponse(err, res).then(function() {
               return resolve(true);
             }).catch(reject);
           });
@@ -521,7 +524,7 @@ DataManager.prototype.assetList = function(options) {
       }
       t.withRequestOptions(dm._requestOptions())
       .get(function(err, res, traversal) {
-        checkResponse(err, res).then(function(res) {
+        dm._checkResponse(err, res).then(function(res) {
           var body = halfred.parse(JSON.parse(res.body));
           if (body.hasOwnProperty('count') && body.count === 0 && body.hasOwnProperty('total')) {
             return resolve({assets: [], count: body.count, total: body.total});
@@ -573,7 +576,7 @@ DataManager.prototype.asset = function(assetID) {
       .withTemplateParameters(optionsToQueryParameter(options))
       .withRequestOptions(dm._requestOptions())
       .get(function(err, res, traversal) {
-        checkResponse(err, res).then(function(res) {
+        dm._checkResponse(err, res).then(function(res) {
           var body = halfred.parse(JSON.parse(res.body));
           if (body.hasOwnProperty('count') && body.hasOwnProperty('total')) {
             var asset = body.embeddedResource('ec:api/asset');
@@ -616,7 +619,7 @@ DataManager.prototype.createAsset = function(input) {
           req.send(input);
         }
         req.end(function(err, res) {
-          checkResponse(err, res).then(function(res) {
+          dm._checkResponse(err, res).then(function(res) {
             var regex  = /^.*\?assetID=([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-4[0-9A-Fa-f]{3}-[89ABab][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12})$/;
             var body   = halfred.parse(res.body);
             var assets = body.linkArray('ec:asset');
@@ -641,7 +644,7 @@ DataManager.prototype.tagList = function(options) {
       .withTemplateParameters([null, null, optionsToQueryParameter(options)])
       .withRequestOptions(dm._requestOptions())
       .get(function(err, res, traversal) {
-        checkResponse(err, res).then(function(res) {
+        dm._checkResponse(err, res).then(function(res) {
           var body = halfred.parse(JSON.parse(res.body));
           if (body.hasOwnProperty('count') && body.count === 0 && body.hasOwnProperty('total')) {
             return resolve({tags: [], count: body.count, total: body.total});
@@ -693,7 +696,7 @@ DataManager.prototype.tag = function(tag) {
       .withTemplateParameters([null, null, optionsToQueryParameter(options)])
       .withRequestOptions(dm._requestOptions())
       .get(function(err, res, traversal) {
-        checkResponse(err, res).then(function(res) {
+        dm._checkResponse(err, res).then(function(res) {
           var body = halfred.parse(JSON.parse(res.body));
           if (body.hasOwnProperty('count') && body.hasOwnProperty('total')) {
             var tag = body.embeddedResource('ec:api/tag');
@@ -720,7 +723,7 @@ DataManager.prototype.registerAnonymous = function(validUntil) {
         t.withTemplateParameters({validUntil: validUntil})
       }
       t.post({}, function(err, res, traversal) {
-        checkResponse(err, res).then(function(res) {
+        dm._checkResponse(err, res).then(function(res) {
           var body       = JSON.parse(res.body);
           dm.accessToken = body.jwt;
           dm._user       = new User(true, body, dm, traversal);
@@ -740,7 +743,7 @@ DataManager.prototype.account = function() {
     traverson.from(dm.url).jsonHal()
     .withRequestOptions(dm._requestOptions())
     .get(function(err, res, traversal) {
-      checkResponse(err, res).then(function(res) {
+      dm._checkResponse(err, res).then(function(res) {
         var body          = halfred.parse(JSON.parse(res.body));
         dm._rootTraversal = traversal;
         dm.metadata       = body;
@@ -786,7 +789,7 @@ DataManager.prototype.emailAvailable = function(email) {
       .follow(dm.id + ':_auth/email-available')
       .withTemplateParameters({email: email})
       .get(function(err, res) {
-        checkResponse(err, res).then(function(res) {
+        dm._checkResponse(err, res).then(function(res) {
           return resolve(JSON.parse(res.body).available);
         }).catch(reject);
       });
@@ -803,7 +806,7 @@ DataManager.prototype.can = function(permission) {
       .follow(dm.id + ':' + modelTitle + '/_permissions')
       .withRequestOptions(dm._requestOptions())
       .get(function(err, res) {
-        checkResponse(err, res).then(function(res) {
+        dm._checkResponse(err, res).then(function(res) {
           var body = halfred.parse(JSON.parse(res.body));
           var permissions = shiroTrie.new();
           permissions.add(body.permissions);
@@ -820,7 +823,7 @@ DataManager.prototype.can = function(permission) {
 DataManager.prototype.logout = function() {
   this.accessToken = null;
   this._rootTraversal = null;
-}
+};
 
 DataManager.prototype._getTraversal = function() {
   var dm = this;
@@ -831,7 +834,7 @@ DataManager.prototype._getTraversal = function() {
     traverson.from(dm.url).jsonHal()
     .withRequestOptions(dm._requestOptions())
     .get(function(err, res, traversal) {
-      checkResponse(err, res).then(function(res) {
+      dm._checkResponse(err, res).then(function(res) {
         dm._rootTraversal = traversal;
         return resolve(traversal);
       }).catch(reject);
@@ -878,7 +881,7 @@ var Entry = function(entry, dm, model, traversal) {
           'Content-Type': 'application/json'
         }))
         .put(entry.value, function(err, res, traversal) {
-          checkResponse(err, res).then(function(res) {
+          dm._checkResponse(err, res).then(function(res) {
             if (res.statusCode === 204) {
               return resolve(true);
             }
@@ -902,7 +905,7 @@ var Entry = function(entry, dm, model, traversal) {
         })
         .withRequestOptions(entry._dm._requestOptions())
         .delete(function(err, res) {
-          checkResponse(err, res).then(function() {
+          dm._checkResponse(err, res).then(function() {
             return resolve(true);
           }).catch(reject);
         });
@@ -954,7 +957,7 @@ var Asset = function(asset, dm, traversal) {
           'Content-Type': 'application/json'
         }))
         .put(asset.value, function(err, res, traversal) {
-          checkResponse(err, res).then(function(res) {
+          dm._checkResponse(err, res).then(function(res) {
             if (res.statusCode === 204) {
               return resolve(true);
             }
@@ -978,7 +981,7 @@ var Asset = function(asset, dm, traversal) {
         })
         .withRequestOptions(asset._dm._requestOptions())
         .delete(function(err, res) {
-          checkResponse(err, res).then(function() {
+          dm._checkResponse(err, res).then(function() {
             return resolve(true);
           }).catch(reject);
         });
@@ -1076,7 +1079,7 @@ var Tag = function(tag, dm, traversal) {
           'Content-Type': 'application/json'
         }))
         .put(tag.value, function(err, res, traversal) {
-          checkResponse(err, res).then(function(res) {
+          dm._checkResponse(err, res).then(function(res) {
             if (res.statusCode === 204) {
               return resolve(true);
             }
@@ -1097,7 +1100,7 @@ var Tag = function(tag, dm, traversal) {
         .follow('self')
         .withRequestOptions(tag._dm._requestOptions())
         .delete(function(err, res) {
-          checkResponse(err, res).then(function() {
+          dm._checkResponse(err, res).then(function() {
             return resolve(true);
           }).catch(reject);
         });
@@ -1114,7 +1117,7 @@ var Tag = function(tag, dm, traversal) {
       traverson.from(tag.value.link('self').href).jsonHal()
       .withRequestOptions(entry._dm._requestOptions())
       .get(function(err, res, traversal) {
-        checkResponse(err, res).then(function() {
+        dm._checkResponse(err, res).then(function() {
           tag._traversal = traversal;
           return resolve(traversal);
         }).catch(reject);
@@ -1144,9 +1147,13 @@ var User = function(isAnon, user, dm, traversal) {
   }
 };
 
-function checkResponse(err, res) {
+DataManager.prototype._checkResponse = function(err, res) {
+  var dm = this;
   return new Promise(function(resolve, reject) {
     if (err) {
+      if (dm.hasOwnProperty('errorHandler') && dm.errorHandler) {
+        dm.errorHandler(err);
+      }
       return reject(err);
     }
     if (res.statusCode >= 200 && res.statusCode <= 299) {
