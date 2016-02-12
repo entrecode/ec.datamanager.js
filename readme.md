@@ -261,7 +261,10 @@ dataManager.registerAnonymous()
   // token was already added to dataManager instance.
   console.log(user.value.jwt); // token of the user. please save for later.
   console.log(user.value.accountID); // acocuntID of the user
+  …
   dataManager.model('myModel')… // this will be using the logged in anonymous user.
+  …
+  user.logout()… // this will clear the accessToken and reset the sdk instance.
 }, errorHandler);
 ```
 
@@ -269,6 +272,16 @@ The `accessToken` is a property of the DataManager instance:
 
 ```js
 dataManager.accessToken; // the currently used token for user authentication
+```
+
+#### Logout aka. clear accessToken and reset sdk.
+
+```js
+…
+// dataManager has a accessToken.
+dataManager.logout();
+// accessToken has been cleared and internal API connection was reset.
+…
 ```
 
 #### Email Available
@@ -650,6 +663,8 @@ dataManager.registerAnonymous()
    console.error(error);
 });
 ```
+##### `logout()`
+Syncronous method for clearing the `accessToken` of the SDK and resetting the internal API connection.
 
 ##### `getAuthLink(linkName)`
 returns an auth link as Promise.
@@ -932,6 +947,7 @@ grunt build
 - removed usage of `…/options` relation. using templated links directly. requires datamanager 0.7.0+
 - adds syncronous file helper on Assets
 - adds support for public permission checks
+- adds logout function for deleting and resetting a datamanager sdk instance.
 - bugfixes
 
 ### 0.6.3

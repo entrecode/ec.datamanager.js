@@ -1532,4 +1532,24 @@ describe('user management', function() {
       });
     });
   });
+  describe('logout', function() {
+    var dm;
+    beforeEach(function(done) {
+      dm = new DataManager({
+        url: baseUrl + '58b9a1f5'
+      });
+      dm.registerAnonymous().then(function(user) {
+        return done();
+      }).catch(done);
+    });
+    afterEach(function() {
+      dm = null;
+    });
+    it('removes access token and traversal', function(done) {
+      dm.logout();
+      expect(dm.accessToken).to.be.null;
+      expect(dm._rootTraversal).to.be.null;
+      done();
+    });
+  });
 });
