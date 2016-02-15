@@ -1,0 +1,127 @@
+{
+  "qs": {
+    "assetID": "bce957c9-7512-4dc1-bb19-0d843574c5b7"
+  },
+  "req": {
+    "_links": {
+      "collection": [
+        {
+          "href": "https://datamanager.entrecode.de/asset/58b9a1f5",
+          "templated": false
+        }
+      ],
+      "ec:asset/best-file": [
+        {
+          "href": "https://datamanager.entrecode.de/files/bce957c9-7512-4dc1-bb19-0d843574c5b7{?size,thumb}",
+          "templated": true
+        }
+      ],
+      "self": [
+        {
+          "href": "https://datamanager.entrecode.de/asset/58b9a1f5?assetID=bce957c9-7512-4dc1-bb19-0d843574c5b7",
+          "title": "anotherhardday",
+          "templated": false
+        }
+      ]
+    },
+    "assetID": "bce957c9-7512-4dc1-bb19-0d843574c5b7",
+    "created": "2015-11-26T10:04:02.627Z",
+    "files": [
+      {
+        "url": "https://cdn2.entrecode.de/files/58b9a1f5/Y6piEXU8HhhYaeuSnT2cIyrG_200_thumb.jpg",
+        "mimetype": "image/jpeg",
+        "size": 13144,
+        "resolution": {
+          "width": 200,
+          "height": 200
+        },
+        "locale": null,
+        "created": "2015-11-26T10:04:02.911+00:00",
+        "modified": "2015-11-26T10:04:02.911+00:00",
+        "assetID": "bce957c9-7512-4dc1-bb19-0d843574c5b7"
+      },
+      {
+        "url": "https://cdn2.entrecode.de/files/58b9a1f5/Y6piEXU8HhhYaeuSnT2cIyrG_50_thumb.jpg",
+        "mimetype": "image/jpeg",
+        "size": 4687,
+        "resolution": {
+          "width": 50,
+          "height": 50
+        },
+        "locale": null,
+        "created": "2015-11-26T10:04:02.922+00:00",
+        "modified": "2015-11-26T10:04:02.922+00:00",
+        "assetID": "bce957c9-7512-4dc1-bb19-0d843574c5b7"
+      },
+      {
+        "url": "https://cdn2.entrecode.de/files/58b9a1f5/Y6piEXU8HhhYaeuSnT2cIyrG_400_thumb.jpg",
+        "mimetype": "image/jpeg",
+        "size": 33166,
+        "resolution": {
+          "width": 400,
+          "height": 400
+        },
+        "locale": null,
+        "created": "2015-11-26T10:04:02.912+00:00",
+        "modified": "2015-11-26T10:04:02.912+00:00",
+        "assetID": "bce957c9-7512-4dc1-bb19-0d843574c5b7"
+      },
+      {
+        "url": "https://cdn2.entrecode.de/files/58b9a1f5/Y6piEXU8HhhYaeuSnT2cIyrG_100_thumb.jpg",
+        "mimetype": "image/jpeg",
+        "size": 6779,
+        "resolution": {
+          "width": 100,
+          "height": 100
+        },
+        "locale": null,
+        "created": "2015-11-26T10:04:02.887+00:00",
+        "modified": "2015-11-26T10:04:02.887+00:00",
+        "assetID": "bce957c9-7512-4dc1-bb19-0d843574c5b7"
+      },
+      {
+        "url": "https://cdn2.entrecode.de/files/58b9a1f5/Y6piEXU8HhhYaeuSnT2cIyrG.jpg",
+        "mimetype": "image/jpeg",
+        "size": 129603,
+        "resolution": {
+          "width": 640,
+          "height": 480
+        },
+        "locale": null,
+        "created": "2015-11-26T10:04:02.613+00:00",
+        "modified": "2015-11-26T10:04:02.613+00:00",
+        "assetID": "bce957c9-7512-4dc1-bb19-0d843574c5b7"
+      },
+      {
+        "url": "https://cdn2.entrecode.de/files/58b9a1f5/Y6piEXU8HhhYaeuSnT2cIyrG_512.jpg",
+        "mimetype": "image/jpeg",
+        "size": 38550,
+        "resolution": {
+          "width": 512,
+          "height": 384
+        },
+        "locale": null,
+        "created": "2015-11-26T10:04:02.884+00:00",
+        "modified": "2015-11-26T10:04:02.884+00:00",
+        "assetID": "bce957c9-7512-4dc1-bb19-0d843574c5b7"
+      },
+      {
+        "url": "https://cdn2.entrecode.de/files/58b9a1f5/Y6piEXU8HhhYaeuSnT2cIyrG_256.jpg",
+        "mimetype": "image/jpeg",
+        "size": 14652,
+        "resolution": {
+          "width": 256,
+          "height": 192
+        },
+        "locale": null,
+        "created": "2015-11-26T10:04:02.873+00:00",
+        "modified": "2015-11-26T10:04:02.873+00:00",
+        "assetID": "bce957c9-7512-4dc1-bb19-0d843574c5b7"
+      }
+    ],
+    "tags": [],
+    "title": "michl",
+    "type": "image"
+  },
+  "res": {}
+}

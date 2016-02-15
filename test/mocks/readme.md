@@ -17,5 +17,5 @@ Simply create the path of the request as folders below `datamanager`. Everything
     },
 }
 ```
-***Note for requests without query strings:** Please use a name like `get.200.1.json`. Requests without query strings need to be the first ones in a folder.*
-8
+
+**Note for requests without query strings:** Please use a name like `get.200.1.json`. Requests without query strings need to be the first ones in a folder.

@@ -1070,7 +1070,17 @@ describe('asset/assets', function() {
     });
   });
   it('put asset, 204', function() {
-    // TODO
+    return dm.asset('bce957c9-7512-4dc1-bb19-0d843574c5b7').then(function(asset) {
+      expect(asset).to.be.ok;
+      expect(asset).to.be.instanceOf(Object);
+      expect(asset).to.have.property('value');
+      expect(asset.value).to.have.property('assetID', 'bce957c9-7512-4dc1-bb19-0d843574c5b7');
+      expect(asset.value).to.have.property('title', 'anotherhardday');
+      asset.value.title = 'michl';
+      return asset.save().then(function(saved) {
+        expect(saved).to.be.true;
+      });
+    });
   });
 });
 
@@ -1360,7 +1370,16 @@ describe('tag/tags', function() {
     });
   });
   it('put tag, 204', function() {
-    // TODO
+    return dm.tag('yolo').then(function(tag) {
+      tag._traversal = null;
+      expect(tag).to.be.ok;
+      expect(tag).to.have.property('value');
+      expect(tag.value).to.have.property('tag', 'yolo');
+      tag.value.tag = 'manlebtnureinmal';
+      return tag.save().then(function(saved) {
+        expect(saved).to.be.true;
+      });
+    });
   });
 });
 
@@ -1421,12 +1440,6 @@ describe('filter options', function() {
       expect(entries).to.be.instanceOf(Array);
       expect(entries.length).to.equal(4);
     });
-  });
-  it.skip('get entries, filter any (CMS-1063)', function() {
-    // TODO when CMS-1063 is done
-  });
-  it.skip('get entries, filter all (CMS-1063)', function() {
-    // TODO when CMS-1063 is done
   });
 });
 
