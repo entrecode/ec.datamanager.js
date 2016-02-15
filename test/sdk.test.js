@@ -743,11 +743,14 @@ describe('entry/entries', function() { // this is basically modelList
     });
   });
   it('500 error with error handler', function() {
-    dm.errorHandler = function(err) {
-      expect(err).to.be.ok;
-      expect(err).to.have.property('code', 2000);
-      expect(err).to.have.property('status', 500);
-    };
+    dm = new DataManager({
+      url: baseUrl + '58b9a1f5',
+      errorHandler: function(err) {
+        expect(err).to.be.ok;
+        expect(err).to.have.property('code', 2000);
+        expect(err).to.have.property('status', 500);
+      }
+    });
     return dm.model('to-do-item').entries({
       filter: {
         title: {
@@ -760,6 +763,20 @@ describe('entry/entries', function() { // this is basically modelList
       expect(err).to.be.ok;
       expect(err).to.have.property('code', 2000);
       expect(err).to.have.property('status', 500);
+    });
+  });
+  it('using model cache', function() {
+    return dm.model('to-do-item').entry('VkGhAPQ2Qe').then(function(entry) {
+      expect(entry).to.be.ok;
+      expect(entry).to.be.instanceOf(Object);
+      expect(entry).to.have.property('value');
+      expect(entry.value).to.have.property('_id', 'VkGhAPQ2Qe');
+      return dm.model('to-do-item').entry('VkGhAPQ2Qe').then(function(entry) {
+        expect(entry).to.be.ok;
+        expect(entry).to.be.instanceOf(Object);
+        expect(entry).to.have.property('value');
+        expect(entry.value).to.have.property('_id', 'VkGhAPQ2Qe');
+      });
     });
   });
 });
