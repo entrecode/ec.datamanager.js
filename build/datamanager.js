@@ -285,13 +285,11 @@ DataManager.prototype.modelList = function() {
       dm._checkResponse(err, res).then(function(res) {
         var body = JSON.parse(res.body);
         var out  = {};
-        if (body.models) {
-          for (var i = 0; i < body.models.length; i++) {
-            dm._rootTraversal         = traversal;
-            out[body.models[i].title] = dm.model(body.models[i].title, body.models[i]);
-          }
-        }
+        _.forEach(body.models, function(model) {
+          out[model.title] = dm.model(model.title, model);
+        });
         dm._modelCache = out;
+        dm._rootTraversal = traversal;
         return resolve(out);
       }).catch(reject);
     });
@@ -475,6 +473,16 @@ DataManager.prototype.model = function(title, metadata) {
             }).catch(reject);
           });
         });
+      });
+    },
+
+    nestedEntry: function(id, levels) {
+      var model = this;
+      return new Promise(function(resolve, reject) {
+        model.entry(id, levels).then(function(entry) {
+          _makeNestedToResource(entry, dm, model);
+          resolve(entry);
+        }).catch(reject);
       });
     },
 
@@ -1166,7 +1174,7 @@ DataManager.prototype._checkResponse = function(err, res) {
     }
     return reject(JSON.parse(res.body));
   });
-}
+};
 
 function optionsToQueryParameter(options) {
   var query = {};
@@ -1208,6 +1216,30 @@ function optionsToQueryParameter(options) {
     }
   }
   return query;
+}
+
+function _makeNestedToResource(entry, dm, model) {
+  _.forEach(Object.keys(entry.value._links), function(link) {
+    var l = /^[a-f0-9]{8}:.+\/(.+)$/.exec(link);
+    if (l) {
+      if (Array.isArray(entry.value[l[1]])) {
+        entry.value[l[1]] = _.map(entry.value[l[1]], function(e) {
+          if (e.hasOwnProperty('assetID')) {
+            return new Asset(halfred.parse(e), dm);
+          }
+          e = new Entry(halfred.parse(e), dm, model);
+          _makeNestedToResource(e, dm, model);
+          return e;
+        });
+      } else {
+        if (entry.value[l[1]].hasOwnProperty('assetID')) {
+          return entry.value[l[1]] = new Asset(halfred.parse(entry.value[l[1]]), dm);
+        }
+        entry.value[l[1]] = new Entry(halfred.parse(entry.value[l[1]]), dm, model);
+        _makeNestedToResource(entry.value[l[1]], dm, model);
+      }
+    }
+  });
 }
 
 module.exports = DataManager;

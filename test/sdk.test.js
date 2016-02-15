@@ -781,6 +781,73 @@ describe('entry/entries', function() { // this is basically modelList
   });
 });
 
+describe('nested Entry', function() { // this is basically modelList
+  var dm;
+  beforeEach(function() {
+    dm = new DataManager({
+      url: baseUrl + '58b9a1f5'
+    });
+  });
+  afterEach(function() {
+    dm = null;
+  });
+  it('get single entry', function() {
+    return dm.model('to-do-item').nestedEntry('VkGhAPQ2Qe').then(function(entry) {
+      expect(entry).to.be.ok;
+      expect(entry).to.be.instanceOf(Object);
+      expect(entry).to.have.property('value');
+      expect(entry.value).to.have.property('_id', 'VkGhAPQ2Qe');
+    });
+  });
+  it('get single entry, with levels', function() {
+    return dm.model('to-do-list').nestedEntry('4JMjeO737e', 2).then(function(entry) {
+      expect(entry).to.be.ok;
+      expect(entry).to.be.instanceOf(Object);
+      expect(entry).to.have.property('value');
+      expect(entry.value).to.have.property('_id', '4JMjeO737e');
+      expect(entry.value).to.have.property('list-items')
+      .that.is.instanceOf(Array);
+      expect(entry.value['list-items'][0].value).to.have.property('_id', '4JGrCvm27e');
+    });
+  });
+  it('get single entry, with levels, with object', function() {
+    return dm.model('to-do-list').nestedEntry({ id: '4JMjeO737e', levels: 2 }).then(function(entry) {
+      expect(entry).to.be.ok;
+      expect(entry).to.be.instanceOf(Object);
+      expect(entry).to.have.property('value');
+      expect(entry.value).to.have.property('_id', '4JMjeO737e');
+      expect(entry.value).to.have.property('list-items')
+      .that.is.instanceOf(Array);
+      expect(entry.value['list-items'][0].value).to.have.property('_id', '4JGrCvm27e');
+    });
+  });
+  it('get single entry, with levels, with object 2', function() {
+    return dm.model('to-do-list').nestedEntry({ _id: '4JMjeO737e', levels: 2 }).then(function(entry) {
+      expect(entry).to.be.ok;
+      expect(entry).to.be.instanceOf(Object);
+      expect(entry).to.have.property('value');
+      expect(entry.value).to.have.property('_id', '4JMjeO737e');
+      expect(entry.value).to.have.property('list-items')
+      .that.is.instanceOf(Array);
+      expect(entry.value['list-items'][0].value).to.have.property('_id', '4JGrCvm27e');
+    });
+  });
+  it('empty result on entry', function() {
+    return dm.model('to-do-item').nestedEntry({
+      filter: {
+        title: {
+          exact: 'asdfasdf'
+        }
+      }
+    }).then(function(result) {
+      throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+    }, function(err) {
+      expect(err).to.be.ok;
+      expect(err).to.have.property('message', 'ec_sdk_no_match_due_to_filter');
+    });
+  });
+});
+
 describe('asset/assets', function() {
   var dm;
   beforeEach(function() {

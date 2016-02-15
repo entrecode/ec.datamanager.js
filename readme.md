@@ -193,14 +193,25 @@ dataManager.model('myModel').entries({size: 0, sort: ['property' , '-date']})
 ```js
 dataManager.model('myModel').entry('my7fmeXh')
 .then(function(entry) {
-  console.log(entries); // success! an Entry
+  console.log(entry); // success! an Entry
 }, errorHandler);
 
 // OR for nested entries
 
 dataManager.model('myModel').entry('my7fmeXh', 2}) // since 0.6.0 no longer object
 .then(function(entry) {
-  console.log(entries); // success! an Entry
+  console.log(entry); // success! an Entry
+}, errorHandler);
+```
+
+#### Get nested Entry
+Just like get entry but nested entries will be resolved as proper datamanager SDK objects.
+
+```js
+dataManager.model('myModel').nestedEntry('my7fmeXh', 2}) // since 0.6.0 no longer object
+.then(function(entry) {
+  console.log(entry); // success! an Entry
+  entry.value.nestedEntry.delete().then(console.log)); // this will work now.
 }, errorHandler);
 ```
 
@@ -747,8 +758,11 @@ dataManager.model('myModel').entries({size: 100, sort: ['property' , '-date'])
 }
 ```
 
-##### entry(id [, levels)
+##### entry(id [, levels])
 returns a Entry object as Promise. Levels property can be used to request nested entries.
+
+##### nestedEntry(id [, levels])
+returns a Entry object as Promise. Levels property can be used to request nested entries. Resolved nested elementes are proper SDK objects with all functions like `save()` and `delete()`.
 
 ##### createEntry(object)
 create a new entry. Returns the Entry.
@@ -964,6 +978,7 @@ grunt build
 - adds support for public permission checks
 - adds logout function for deleting and resetting a datamanager sdk instance
 - adds global error callback to datamanager object
+- nested elements are proper resources with `nestedEntry`
 - bugfixes
 
 ### 0.6.3
