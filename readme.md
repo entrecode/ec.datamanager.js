@@ -972,6 +972,9 @@ grunt build
 
 
 ## Changelog
+### 0.7.2
+- fixed bug when handling accessTokens
+
 ### 0.7.1
 - day one bugfixes :)
 
