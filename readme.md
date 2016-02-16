@@ -979,6 +979,7 @@ grunt build
 - adds logout function for deleting and resetting a datamanager sdk instance
 - adds global error callback to datamanager object
 - nested elements are proper resources with `nestedEntry`
+- some refactoring
 - bugfixes
 
 ### 0.6.3
