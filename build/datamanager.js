@@ -426,7 +426,7 @@ DataManager.prototype.modelList = function() {
         var body = JSON.parse(res.body);
         var out  = {};
         for (var i in body.models) {
-          out[body.models[i].title] = new Model(body.models[i].title, body.models[i]);
+          out[body.models[i].title] = new Model(body.models[i].title, body.models[i], dm);
         }
         dm._modelCache = out;
         dm._rootTraversal = traversal;
@@ -902,7 +902,7 @@ var Model = function(title, metadata, dm) {
   this.title = title;
   this.metadata = metadata;
   this._traversal = null;
-  this._dm = dm;
+  this._dm = dm || null;
 };
 
 Model.prototype._getTraversal = function() {
