@@ -27,7 +27,7 @@ Asset.prototype.save = function() {
       .follow('ec:api/assets')
       .withTemplateParameters({
         assetID: asset.value.assetID
-      }).withRequestOptions(util.requestOptions({
+      }).withRequestOptions(asset._dm._requestOptions({
         'Content-Type': 'application/json'
       }))
       .put(asset.value, function(err, res, traversal) {
@@ -53,7 +53,7 @@ Asset.prototype.delete = function() {
       .withTemplateParameters({
         assetID: asset.value.assetID
       })
-      .withRequestOptions(util.requestOptions())
+      .withRequestOptions(asset._dm._requestOptions())
       .delete(function(err, res) {
         util.checkResponse(err, res).then(function() {
           return resolve(true);
@@ -404,7 +404,7 @@ DataManager.prototype.resolve = function() {
   var dm = this;
   return new Promise(function(resolve, reject) {
     traverson.from(dm.url).jsonHal()
-    .withRequestOptions(util.requestOptions())
+    .withRequestOptions(dm._requestOptions())
     .get(function(err, res, traversal) {
       util.checkResponse(err, res).then(function(res) {
         var body          = halfred.parse(JSON.parse(res.body));
@@ -420,7 +420,7 @@ DataManager.prototype.modelList = function() {
   var dm = this;
   return new Promise(function(resolve, reject) {
     traverson.from(dm.url).jsonHal()
-    .withRequestOptions(util.requestOptions())
+    .withRequestOptions(dm._requestOptions())
     .get(function(err, res, traversal) {
       util.checkResponse(err, res).then(function(res) {
         var body = JSON.parse(res.body);
@@ -453,7 +453,7 @@ DataManager.prototype.assetList = function(options) {
       if (options) {
         t.withTemplateParameters(util.optionsToQueryParameter(options));
       }
-      t.withRequestOptions(util.requestOptions())
+      t.withRequestOptions(dm._requestOptions())
       .get(function(err, res, traversal) {
         util.checkResponse(err, res).then(function(res) {
           var body = halfred.parse(JSON.parse(res.body));
@@ -508,7 +508,7 @@ DataManager.prototype.asset = function(assetID) {
       traversal.continue().newRequest()
       .follow('ec:api/assets')
       .withTemplateParameters(util.optionsToQueryParameter(options))
-      .withRequestOptions(util.requestOptions())
+      .withRequestOptions(dm._requestOptions())
       .get(function(err, res, traversal) {
         util.checkResponse(err, res).then(function(res) {
           var body = halfred.parse(JSON.parse(res.body));
@@ -579,7 +579,7 @@ DataManager.prototype.tagList = function(options) {
       traversal.continue().newRequest()
       .follow('ec:api/assets', 'ec:api/tags')
       .withTemplateParameters([null, null, util.optionsToQueryParameter(options)])
-      .withRequestOptions(util.requestOptions())
+      .withRequestOptions(dm._requestOptions())
       .get(function(err, res, traversal) {
         util.checkResponse(err, res).then(function(res) {
           var body = halfred.parse(JSON.parse(res.body));
@@ -631,7 +631,7 @@ DataManager.prototype.tag = function(tag) {
       traversal.continue().newRequest()
       .follow('ec:api/assets', 'ec:api/tags')
       .withTemplateParameters([null, null, util.optionsToQueryParameter(options)])
-      .withRequestOptions(util.requestOptions())
+      .withRequestOptions(dm._requestOptions())
       .get(function(err, res, traversal) {
         util.checkResponse(err, res).then(function(res) {
           var body = halfred.parse(JSON.parse(res.body));
@@ -678,7 +678,7 @@ DataManager.prototype.account = function() {
       return reject(new Error('ec_sdk_not_logged_in'));
     }
     traverson.from(dm.url).jsonHal()
-    .withRequestOptions(util.requestOptions())
+    .withRequestOptions(dm._requestOptions())
     .get(function(err, res, traversal) {
       util.checkResponse(err, res).then(function(res) {
         var body          = halfred.parse(JSON.parse(res.body));
@@ -741,7 +741,7 @@ DataManager.prototype.can = function(permission) {
     dm._getTraversal().then(function(traversal) {
       traversal.continue().newRequest()
       .follow(dm.id + ':' + modelTitle + '/_permissions')
-      .withRequestOptions(util.requestOptions())
+      .withRequestOptions(dm._requestOptions())
       .get(function(err, res) {
         util.checkResponse(err, res).then(function(res) {
           var body = halfred.parse(JSON.parse(res.body));
@@ -769,7 +769,7 @@ DataManager.prototype._getTraversal = function() {
       return resolve(dm._rootTraversal);
     }
     traverson.from(dm.url).jsonHal()
-    .withRequestOptions(util.requestOptions())
+    .withRequestOptions(dm._requestOptions())
     .get(function(err, res, traversal) {
       util.checkResponse(err, res).then(function(res) {
         dm._rootTraversal = traversal;
@@ -778,6 +778,21 @@ DataManager.prototype._getTraversal = function() {
     });
   });
 };
+
+DataManager.prototype._requestOptions = function(additionalHeaders) {
+  var out = {};
+  out.headers = {};
+  if (this.accessToken) {
+    out.headers['Authorization'] = 'Bearer ' + this.accessToken;
+  }
+  if (additionalHeaders) {
+    for (var header in additionalHeaders) {
+      out.headers[header] = additionalHeaders[header];
+    }
+  }
+  return out;
+}
+;
 
 module.exports = DataManager;
 
@@ -809,7 +824,7 @@ Entry.prototype.save = function() {
       .withTemplateParameters({
         _id: entry.value._id
       })
-      .withRequestOptions(util.requestOptions({
+      .withRequestOptions(entry._dm._requestOptions({
         'Content-Type': 'application/json'
       }))
       .put(entry.value, function(err, res, traversal) {
@@ -835,7 +850,7 @@ Entry.prototype.delete = function() {
       .withTemplateParameters({
         _id: entry.value._id
       })
-      .withRequestOptions(util.requestOptions())
+      .withRequestOptions(entry._dm._requestOptions())
       .delete(function(err, res) {
         util.checkResponse(err, res).then(function() {
           return resolve(true);
@@ -898,7 +913,7 @@ Model.prototype._getTraversal = function() {
     }
     if (model._dm._rootTraversal) {
       model._dm._rootTraversal.continue().newRequest()
-      .withRequestOptions(util.requestOptions())
+      .withRequestOptions(model._dm._requestOptions())
       .get(function(err, res, traversal) {
         util.checkResponse(err, res).then(function() {
           model._traversal = traversal;
@@ -908,7 +923,7 @@ Model.prototype._getTraversal = function() {
     }
 
     traverson.from(model._dm.url).jsonHal()
-    .withRequestOptions(util.requestOptions())
+    .withRequestOptions(model._dm._requestOptions())
     .get(function(err, res, traversal) {
       util.checkResponse(err, res).then(function(res) {
         model._traversal = traversal;
@@ -922,7 +937,7 @@ Model.prototype.resolve = function() {
   var model = this;
   return new Promise(function(resolve, reject) {
     traverson.from(model._dm.url).jsonHal()
-    .withRequestOptions(util.requestOptions())
+    .withRequestOptions(model._dm._requestOptions())
     .get(function(err, res, traversal) {
       util.checkResponse(err, res).then(function(res) {
         var body = JSON.parse(res.body);
@@ -969,7 +984,7 @@ Model.prototype.entryList = function(options) {
       if (options) {
         t.withTemplateParameters(util.optionsToQueryParameter(options));
       }
-      t.withRequestOptions(util.requestOptions())
+      t.withRequestOptions(model._dm._requestOptions())
       .get(function(err, res, traversal) {
         util.checkResponse(err, res).then(function(res) {
           var body = halfred.parse(JSON.parse(res.body));
@@ -1039,7 +1054,7 @@ Model.prototype.entry = function(id, levels) {
       traversal.continue().newRequest()
       .follow(model._dm.id + ':' + model.title)
       .withTemplateParameters(util.optionsToQueryParameter(options))
-      .withRequestOptions(util.requestOptions())
+      .withRequestOptions(model._dm._requestOptions())
       .get(function(err, res, traversal) {
         util.checkResponse(err, res).then(function(res) {
           var body = halfred.parse(JSON.parse(res.body));
@@ -1074,7 +1089,7 @@ Model.prototype.createEntry = function(entry) {
     return new Promise(function(resolve, reject) {
       traversal.continue().newRequest()
       .follow(model._dm.id + ':' + model.title)
-      .withRequestOptions(util.requestOptions({
+      .withRequestOptions(model._dm._requestOptions({
         'Content-Type': 'application/json'
       }))
       .post(entry, function(err, res, traversal) {
@@ -1096,7 +1111,7 @@ Model.prototype.deleteEntry = function(entryId) {
       traversal.continue().newRequest()
       .follow(model._dm.id + ':' + model.title)
       .withTemplateParameters({ _id: entryId })
-      .withRequestOptions(util.requestOptions())
+      .withRequestOptions(model._dm._requestOptions())
       .delete(function(err, res) {
         util.checkResponse(err, res).then(function() {
           return resolve(true);
@@ -1158,7 +1173,7 @@ Tag.prototype.save = function() {
       delete tag.value._embedded;
       traversal.continue().newRequest()
       .follow('self')
-      .withRequestOptions(util.requestOptions({
+      .withRequestOptions(tag._dm._requestOptions({
         'Content-Type': 'application/json'
       }))
       .put(tag.value, function(err, res, traversal) {
@@ -1181,7 +1196,7 @@ Tag.prototype.delete = function() {
     tag._getTraversal().then(function(traversal) {
       traversal.continue().newRequest()
       .follow('self')
-      .withRequestOptions(util.requestOptions())
+      .withRequestOptions(tag._dm._requestOptions())
       .delete(function(err, res) {
         util.checkResponse(err, res).then(function() {
           return resolve(true);
@@ -1198,7 +1213,7 @@ Tag.prototype._getTraversal = function() {
       return resolve(tag._traversal);
     }
     traverson.from(tag.value.link('self').href).jsonHal()
-    .withRequestOptions(util.requestOptions())
+    .withRequestOptions(tag._dm._requestOptions())
     .get(function(err, res, traversal) {
       util.checkResponse(err, res).then(function() {
         tag._traversal = traversal;
@@ -1287,20 +1302,6 @@ util.optionsToQueryParameter = function(options) {
     }
   }
   return query;
-};
-
-util.requestOptions = function(additionalHeaders) {
-  var out = {};
-  out.headers = {};
-  if (this._dm.accessToken) {
-    out.headers['Authorization'] = 'Bearer ' + this._dm.accessToken;
-  }
-  if (additionalHeaders) {
-    for (var header in additionalHeaders) {
-      out.headers[header] = additionalHeaders[header];
-    }
-  }
-  return out;
 };
 
 util.checkResponse = function(err, res) {
