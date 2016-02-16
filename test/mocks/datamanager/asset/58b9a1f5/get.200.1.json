@@ -14,7 +14,8 @@
         "templated": true
       },
       "ec:api/tags": {
-        "href": "https://datamanager.entrecode.de/tag/58b9a1f5"
+        "href": "https://datamanager.entrecode.de/tag/58b9a1f5{?dataManagerID,page,size,sort,tag,tag~}",
+        "templated": true
       },
       "ec:api": {
         "href": "https://datamanager.entrecode.de/api/58b9a1f5"

@@ -62,8 +62,7 @@ describe('tests for working mocks', function() {
     return traverson.from(baseUrl + '58b9a1f5')
     .jsonHal()
     .follow('58b9a1f5:to-do-list')
-    .follow('58b9a1f5:to-do-list/options')
-    .withTemplateParameters({ _id: '4JMjeO737e' })
+    .withTemplateParameters({_id: '4JMjeO737e'})
     .getResource(function(err, res, traversal) {
       expect(err).to.be.not.ok;
       expect(res).to.be.ok;
@@ -171,7 +170,7 @@ if (isNode) {
       });
     });
     it('get file url with locale', function() {
-      return DataManager.getFileUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 'de_DE').then(function(url) {
+      return DataManager.getFileUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 'de-DE').then(function(url) {
         expect(url).to.be.ok;
         expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM.jpg');
       });
@@ -205,7 +204,7 @@ if (isNode) {
       });
     });
     it('get image url wit size and locale', function() {
-      DataManager.getImageUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 200, 'de_DE').then(function(url) {
+      DataManager.getImageUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 200, 'de-DE').then(function(url) {
         expect(url).to.be.ok;
         expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_256.jpg');
       });
@@ -251,7 +250,7 @@ if (isNode) {
       });
     });
     it('get thumb url with size and locale', function() {
-      return DataManager.getImageThumbUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 100, 'de_DE').then(function(url) {
+      return DataManager.getImageThumbUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 100, 'de-DE').then(function(url) {
         expect(url).to.be.ok;
         expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_100_thumb.jpg');
       });
@@ -287,8 +286,16 @@ if (isNode) {
         expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM.jpg');
       });
     });
+    it('get file url - server error', function() {
+      return dm.getFileUrl('8b941ee5-3bb9-4911-b5b4-f1e0d558a3aa').then(function(result) {
+        throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+      }).catch(function(err) {
+        expect(err).to.be.ok;
+        expect(err).to.have.property('title', 'Internal Server Error');
+      });
+    });
     it('get file url with locale', function() {
-      return dm.getFileUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 'de_DE').then(function(url) {
+      return dm.getFileUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 'de-DE').then(function(url) {
         expect(url).to.be.ok;
         expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM.jpg');
       });
@@ -299,6 +306,14 @@ if (isNode) {
         expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM.jpg');
       });
     });
+    it('get image url - server error', function() {
+      return dm.getImageUrl('8b941ee5-3bb9-4911-b5b4-f1e0d558a3aa').then(function(result) {
+        throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+      }).catch(function(err) {
+        expect(err).to.be.ok;
+        expect(err).to.have.property('title', 'Internal Server Error');
+      });
+    });
     it('get image url with size', function() {
       return dm.getImageUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 200).then(function(url) {
         expect(url).to.be.ok;
@@ -306,7 +321,7 @@ if (isNode) {
       });
     });
     it('get image url wit size and locale', function() {
-      return dm.getImageUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 200, 'de_DE').then(function(url) {
+      return dm.getImageUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 200, 'de-DE').then(function(url) {
         expect(url).to.be.ok;
         expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_256.jpg');
       });
@@ -317,6 +332,14 @@ if (isNode) {
         expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_400_thumb.jpg');
       });
     });
+    it('get thumb url - server error', function() {
+      return dm.getImageThumbUrl('8b941ee5-3bb9-4911-b5b4-f1e0d558a3aa').then(function(result) {
+        throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+      }).catch(function(err) {
+        expect(err).to.be.ok;
+        expect(err).to.have.property('title', 'Internal Server Error');
+      });
+    });
     it('get thumb url with size', function() {
       return dm.getImageThumbUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 100).then(function(url) {
         expect(url).to.be.ok;
@@ -324,7 +347,7 @@ if (isNode) {
       });
     });
     it('get thumb url with size and locale', function() {
-      return dm.getImageThumbUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 100, 'de_DE').then(function(url) {
+      return dm.getImageThumbUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 100, 'de-DE').then(function(url) {
         expect(url).to.be.ok;
         expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_100_thumb.jpg');
       });
@@ -704,6 +727,125 @@ describe('entry/entries', function() { // this is basically modelList
       expect(title).to.be.equal('NewItem');
     });
   });
+  it('500 error', function() {
+    return dm.model('to-do-item').entries({
+      filter: {
+        title: {
+          exact: 'thisIsA500Error'
+        }
+      }
+    }).then(function(result) {
+      throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+    }).catch(function(err) {
+      expect(err).to.be.ok;
+      expect(err).to.have.property('code', 2000);
+      expect(err).to.have.property('status', 500);
+    });
+  });
+  it('500 error with error handler', function() {
+    dm = new DataManager({
+      url: baseUrl + '58b9a1f5',
+      errorHandler: function(err) {
+        expect(err).to.be.ok;
+        expect(err).to.have.property('code', 2000);
+        expect(err).to.have.property('status', 500);
+      }
+    });
+    return dm.model('to-do-item').entries({
+      filter: {
+        title: {
+          exact: 'thisIsA500Error'
+        }
+      }
+    }).then(function(result) {
+      throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+    }).catch(function(err) {
+      expect(err).to.be.ok;
+      expect(err).to.have.property('code', 2000);
+      expect(err).to.have.property('status', 500);
+    });
+  });
+  it('using model cache', function() {
+    return dm.model('to-do-item').entry('VkGhAPQ2Qe').then(function(entry) {
+      expect(entry).to.be.ok;
+      expect(entry).to.be.instanceOf(Object);
+      expect(entry).to.have.property('value');
+      expect(entry.value).to.have.property('_id', 'VkGhAPQ2Qe');
+      return dm.model('to-do-item').entry('VkGhAPQ2Qe').then(function(entry) {
+        expect(entry).to.be.ok;
+        expect(entry).to.be.instanceOf(Object);
+        expect(entry).to.have.property('value');
+        expect(entry.value).to.have.property('_id', 'VkGhAPQ2Qe');
+      });
+    });
+  });
+});
+
+describe('nested Entry', function() { // this is basically modelList
+  var dm;
+  beforeEach(function() {
+    dm = new DataManager({
+      url: baseUrl + '58b9a1f5'
+    });
+  });
+  afterEach(function() {
+    dm = null;
+  });
+  it('get single entry', function() {
+    return dm.model('to-do-item').nestedEntry('VkGhAPQ2Qe').then(function(entry) {
+      expect(entry).to.be.ok;
+      expect(entry).to.be.instanceOf(Object);
+      expect(entry).to.have.property('value');
+      expect(entry.value).to.have.property('_id', 'VkGhAPQ2Qe');
+    });
+  });
+  it('get single entry, with levels', function() {
+    return dm.model('to-do-list').nestedEntry('4JMjeO737e', 2).then(function(entry) {
+      expect(entry).to.be.ok;
+      expect(entry).to.be.instanceOf(Object);
+      expect(entry).to.have.property('value');
+      expect(entry.value).to.have.property('_id', '4JMjeO737e');
+      expect(entry.value).to.have.property('list-items')
+      .that.is.instanceOf(Array);
+      expect(entry.value['list-items'][0].value).to.have.property('_id', '4JGrCvm27e');
+    });
+  });
+  it('get single entry, with levels, with object', function() {
+    return dm.model('to-do-list').nestedEntry({ id: '4JMjeO737e', levels: 2 }).then(function(entry) {
+      expect(entry).to.be.ok;
+      expect(entry).to.be.instanceOf(Object);
+      expect(entry).to.have.property('value');
+      expect(entry.value).to.have.property('_id', '4JMjeO737e');
+      expect(entry.value).to.have.property('list-items')
+      .that.is.instanceOf(Array);
+      expect(entry.value['list-items'][0].value).to.have.property('_id', '4JGrCvm27e');
+    });
+  });
+  it('get single entry, with levels, with object 2', function() {
+    return dm.model('to-do-list').nestedEntry({ _id: '4JMjeO737e', levels: 2 }).then(function(entry) {
+      expect(entry).to.be.ok;
+      expect(entry).to.be.instanceOf(Object);
+      expect(entry).to.have.property('value');
+      expect(entry.value).to.have.property('_id', '4JMjeO737e');
+      expect(entry.value).to.have.property('list-items')
+      .that.is.instanceOf(Array);
+      expect(entry.value['list-items'][0].value).to.have.property('_id', '4JGrCvm27e');
+    });
+  });
+  it('empty result on entry', function() {
+    return dm.model('to-do-item').nestedEntry({
+      filter: {
+        title: {
+          exact: 'asdfasdf'
+        }
+      }
+    }).then(function(result) {
+      throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+    }, function(err) {
+      expect(err).to.be.ok;
+      expect(err).to.have.property('message', 'ec_sdk_no_match_due_to_filter');
+    });
+  });
 });
 
 describe('asset/assets', function() {
@@ -745,6 +887,20 @@ describe('asset/assets', function() {
       expect(asset.value).to.have.property('assetID', '443163b2-71a9-4f2a-987b-c7c7f31c7e30');
     });
   });
+  it('get single asset, on list', function() {
+    return dm.asset({
+      filter: {
+        title: {
+          exact: 'anotherhardday'
+        }
+      }
+    }).then(function(asset) {
+      expect(asset).to.be.ok;
+      expect(asset).to.be.instanceOf(Object);
+      expect(asset.value).to.have.property('assetID', 'bce957c9-7512-4dc1-bb19-0d843574c5b7');
+      expect(asset.value).to.have.property('title', 'anotherhardday');
+    });
+  });
   it('no assetID provided', function() {
     return dm.asset().then(function(result) {
       throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
@@ -775,9 +931,9 @@ describe('asset/assets', function() {
           exact: 'hello'
         }
       }
-    }).then(function(entries) {
-      expect(entries).to.be.instanceOf(Array);
-      expect(entries.length).to.be.equal(0)
+    }).then(function(assets) {
+      expect(assets).to.be.instanceOf(Array);
+      expect(assets.length).to.be.equal(0)
     });
   });
   it('empty result on entry', function() {
@@ -822,6 +978,32 @@ describe('asset/assets', function() {
       expect(list.assets.length).to.be.equal(1);
     });
   });
+  it('list: empty result on list', function() {
+    return dm.assetList({
+      filter: {
+        title: {
+          exact: 'hello'
+        }
+      }
+    }).then(function(assets) {
+      expect(assets).to.be.instanceOf(Object);
+      expect(assets).to.have.property('count', 0);
+      expect(assets).to.have.property('total', 0);
+      expect(assets.assets.length).to.be.equal(0);
+    });
+  });
+  it('empty page', function() {
+    return dm.assetList({
+      page: 2,
+      size: 10
+    }).then(function(assets) {
+      expect(assets).to.be.instanceOf(Object);
+      expect(assets).to.have.property('count', 0);
+      expect(assets).to.have.property('total', 9);
+      expect(assets.assets.length).to.be.equal(0);
+    });
+  });
+
   if (isNode) {
     it('create asset, node', function() {
       return dm.createAsset(__dirname + '/whynotboth.jpg').then(function(assets) {
@@ -888,7 +1070,155 @@ describe('asset/assets', function() {
     });
   });
   it('put asset, 204', function() {
-    // TODO
+    return dm.asset('bce957c9-7512-4dc1-bb19-0d843574c5b7').then(function(asset) {
+      expect(asset).to.be.ok;
+      expect(asset).to.be.instanceOf(Object);
+      expect(asset).to.have.property('value');
+      expect(asset.value).to.have.property('assetID', 'bce957c9-7512-4dc1-bb19-0d843574c5b7');
+      expect(asset.value).to.have.property('title', 'anotherhardday');
+      asset.value.title = 'michl';
+      return asset.save().then(function(saved) {
+        expect(saved).to.be.true;
+      });
+    });
+  });
+});
+
+describe('asset best file helper', function() {
+  describe('image', function() {
+    var dm;
+    var asset;
+    beforeEach(function(done) {
+      dm = new DataManager({
+        url: baseUrl + '58b9a1f5',
+        accessToken: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJlbWFpbCI6bnVsbCwianRpIjoiM2EzYmQ5MzYtOWFlZS00ZWY0LTg0MjUtNjZhOGViODcyODk4IiwiaWF0IjoxNDQ5MTM2Njg0LCJleHAiOjQ2MDI3MzY2ODQsImlzcyI6ImVjX2RhdGFtYW5hZ2VyX3Nka190ZXN0c18xIiwic3ViIjoiMWNmOWUyOGUtZmE1NC00ZGVhLWJlMTQtZDlkYmNjMGMzYzY5In0.VMA0onkx4fpwBdTL9AQ2bzR4JBziY8UIavrAleIl7wj1Rh1-ZU09i-vze2sObarOZSygx74cO1uRkX37CFYj3Lf45mWPpHj-prJtfnS1xkn4KlfffTuz3VWINCorcZX-OyVeFWSexC6AwEQ9cW8FMEZPDpMLKodiFkhDUt1AIQg'
+      });
+      dm.asset('443163b2-71a9-4f2a-987b-c7c7f31c7e30').then(function(a) {
+        expect(a).to.be.ok;
+        expect(a).to.be.instanceOf(Object);
+        expect(a).to.have.property('value');
+        expect(a.value).to.have.property('assetID', '443163b2-71a9-4f2a-987b-c7c7f31c7e30');
+        asset = a;
+        done();
+      }).catch(done);
+    });
+    afterEach(function() {
+      dm = null;
+      asset = null;
+    });
+    it('get file url', function() {
+      expect(asset.getFileUrl()).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/b_in72f5iM6szybZ4Un4W1zr.jpg');
+    });
+    it('get file url with locale', function() {
+      expect(asset.getFileUrl('de-DE')).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/b_in72f5iM6szybZ4Un4W1zr.jpg');
+    });
+    it('get image url', function() {
+      expect(asset.getImageUrl()).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/b_in72f5iM6szybZ4Un4W1zr.jpg');
+    });
+    it('get image url with size', function() {
+      expect(asset.getImageUrl(200)).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/b_in72f5iM6szybZ4Un4W1zr_256.jpg');
+    });
+    it('get image url with bigger size', function() {
+      expect(asset.getImageUrl(200000)).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/b_in72f5iM6szybZ4Un4W1zr.jpg');
+    });
+    it('get image url wit size and locale', function() {
+      expect(asset.getImageUrl(200, 'de-DE')).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/b_in72f5iM6szybZ4Un4W1zr_256.jpg');
+    });
+    it('get thumb url', function() {
+      expect(asset.getImageThumbUrl()).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/b_in72f5iM6szybZ4Un4W1zr_400_thumb.jpg');
+    });
+    it('get thumb url with size', function() {
+      expect(asset.getImageThumbUrl(100)).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/b_in72f5iM6szybZ4Un4W1zr_100_thumb.jpg');
+    });
+    it('get thumb url with size and locale', function() {
+      expect(asset.getImageThumbUrl(100, 'de-DE')).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/b_in72f5iM6szybZ4Un4W1zr_100_thumb.jpg');
+    });
+  });
+  describe('text', function() {
+    var dm;
+    var asset;
+    beforeEach(function(done) {
+      dm = new DataManager({
+        url: baseUrl + '58b9a1f5',
+        accessToken: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJlbWFpbCI6bnVsbCwianRpIjoiM2EzYmQ5MzYtOWFlZS00ZWY0LTg0MjUtNjZhOGViODcyODk4IiwiaWF0IjoxNDQ5MTM2Njg0LCJleHAiOjQ2MDI3MzY2ODQsImlzcyI6ImVjX2RhdGFtYW5hZ2VyX3Nka190ZXN0c18xIiwic3ViIjoiMWNmOWUyOGUtZmE1NC00ZGVhLWJlMTQtZDlkYmNjMGMzYzY5In0.VMA0onkx4fpwBdTL9AQ2bzR4JBziY8UIavrAleIl7wj1Rh1-ZU09i-vze2sObarOZSygx74cO1uRkX37CFYj3Lf45mWPpHj-prJtfnS1xkn4KlfffTuz3VWINCorcZX-OyVeFWSexC6AwEQ9cW8FMEZPDpMLKodiFkhDUt1AIQg'
+      });
+      dm.asset('162e97bd-cbc7-4821-ba6a-0d5299324bb6').then(function(a) {
+        expect(a).to.be.ok;
+        expect(a).to.be.instanceOf(Object);
+        expect(a).to.have.property('value');
+        expect(a.value).to.have.property('assetID', '162e97bd-cbc7-4821-ba6a-0d5299324bb6');
+        asset = a;
+        done();
+      }).catch(done);
+    });
+    afterEach(function() {
+      dm = null;
+      asset = null;
+    });
+    it('get file url', function() {
+      expect(asset.getFileUrl()).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/KTQMkX_MY5d0BrJmE6rxWS44.txt');
+    });
+    it('get file url with locale', function() {
+      expect(asset.getFileUrl('de-DE')).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/KTQMkX_MY5d0BrJmE6rxWS44.txt');
+    });
+    it('get image url', function() {
+      expect(asset.getImageUrl.bind(asset)).to.throw('ec.datamanager.js getImageUrl only works on image assets');
+    });
+    it('get thumb url', function() {
+      expect(asset.getImageThumbUrl.bind(asset)).to.throw('ec.datamanager.js getImageThumbUrl only works on image assets');
+    });
+  });
+  describe('svg with locale', function() {
+    var dm;
+    var asset;
+    beforeEach(function(done) {
+      dm = new DataManager({
+        url: baseUrl + '58b9a1f5',
+        accessToken: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJlbWFpbCI6bnVsbCwianRpIjoiM2EzYmQ5MzYtOWFlZS00ZWY0LTg0MjUtNjZhOGViODcyODk4IiwiaWF0IjoxNDQ5MTM2Njg0LCJleHAiOjQ2MDI3MzY2ODQsImlzcyI6ImVjX2RhdGFtYW5hZ2VyX3Nka190ZXN0c18xIiwic3ViIjoiMWNmOWUyOGUtZmE1NC00ZGVhLWJlMTQtZDlkYmNjMGMzYzY5In0.VMA0onkx4fpwBdTL9AQ2bzR4JBziY8UIavrAleIl7wj1Rh1-ZU09i-vze2sObarOZSygx74cO1uRkX37CFYj3Lf45mWPpHj-prJtfnS1xkn4KlfffTuz3VWINCorcZX-OyVeFWSexC6AwEQ9cW8FMEZPDpMLKodiFkhDUt1AIQg'
+      });
+      dm.asset('55628c81-abb0-4a21-8420-a5b06e2e9ce0').then(function(a) {
+        expect(a).to.be.ok;
+        expect(a).to.be.instanceOf(Object);
+        expect(a).to.have.property('value');
+        expect(a.value).to.have.property('assetID', '55628c81-abb0-4a21-8420-a5b06e2e9ce0');
+        asset = a;
+        done();
+      }).catch(done);
+    });
+    afterEach(function() {
+      dm = null;
+      asset = null;
+    });
+    it('get file url', function() {
+      expect(asset.getFileUrl()).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/ZX5FmOjwGeRVJH-F1htU_5cg_de.svg');
+    });
+    it('get file url with locale', function() {
+      expect(asset.getFileUrl('de-DE')).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/ZX5FmOjwGeRVJH-F1htU_5cg_de.svg');
+    });
+    it('get file url with locale en', function() {
+      expect(asset.getFileUrl('en-US')).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/ZX5FmOjwGeRVJH-F1htU_5cg_en.svg');
+    });
+    it('get file url with locale hu', function() {
+      expect(asset.getFileUrl('hu-HU')).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/ZX5FmOjwGeRVJH-F1htU_5cg_de.svg');
+    });
+    it('get image url', function() {
+      expect(asset.getImageUrl()).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/ZX5FmOjwGeRVJH-F1htU_5cg_de.svg');
+    });
+    it('get image url with size', function() {
+      expect(asset.getImageUrl(200)).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/ZX5FmOjwGeRVJH-F1htU_5cg_de.svg');
+    });
+    it('get image url wit size and locale', function() {
+      expect(asset.getImageUrl(200, 'de-DE')).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/ZX5FmOjwGeRVJH-F1htU_5cg_de.svg');
+    });
+    it('get thumb url', function() {
+      expect(asset.getImageThumbUrl()).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/ZX5FmOjwGeRVJH-F1htU_5cg_de.svg');
+    });
+    it('get thumb url with size', function() {
+      expect(asset.getImageThumbUrl(100)).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/ZX5FmOjwGeRVJH-F1htU_5cg_de.svg');
+    });
+    it('get thumb url with size and locale', function() {
+      expect(asset.getImageThumbUrl(100, 'de-DE')).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/ZX5FmOjwGeRVJH-F1htU_5cg_de.svg');
+    });
   });
 });
 
@@ -930,6 +1260,27 @@ describe('tag/tags', function() {
       expect(tag).to.have.property('value');
       expect(tag.value).to.have.property('tag', 'work-memes');
       expect(tag.value).to.have.property('count', 2);
+    });
+  });
+  it('get single tag, on list', function() {
+    return dm.tag({
+      filter: {
+        tag: {
+          search: 'meme'
+        }
+      }
+    }).then(function(tag) {
+      expect(tag).to.be.ok;
+      expect(tag).to.be.instanceOf(Object);
+      expect(tag.value).to.have.property('tag', 'work-memes');
+    });
+  });
+  it('no tag name', function() {
+    return dm.tag().then(function(result) {
+      throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+    }, function(err){
+      expect(err).to.be.ok;
+      expect(err).to.have.property('message', 'ec_sdk_no_tag_name_provided');
     });
   });
   it('single result on list', function() {
@@ -1019,7 +1370,16 @@ describe('tag/tags', function() {
     });
   });
   it('put tag, 204', function() {
-    // TODO
+    return dm.tag('yolo').then(function(tag) {
+      tag._traversal = null;
+      expect(tag).to.be.ok;
+      expect(tag).to.have.property('value');
+      expect(tag.value).to.have.property('tag', 'yolo');
+      tag.value.tag = 'manlebtnureinmal';
+      return tag.save().then(function(saved) {
+        expect(saved).to.be.true;
+      });
+    });
   });
 });
 
@@ -1080,12 +1440,6 @@ describe('filter options', function() {
       expect(entries).to.be.instanceOf(Array);
       expect(entries.length).to.equal(4);
     });
-  });
-  it.skip('get entries, filter any (CMS-1063)', function() {
-    // TODO when CMS-1063 is done
-  });
-  it.skip('get entries, filter all (CMS-1063)', function() {
-    // TODO when CMS-1063 is done
   });
 });
 
@@ -1284,6 +1638,50 @@ describe('user management', function() {
         expect(datamanager.metadata).to.have.property('locales');
         expect(datamanager.metadata).to.have.property('defaultLocale');
       });
+    });
+  });
+  describe('permissions', function() {
+    var dm;
+    beforeEach(function() {
+      dm = new DataManager({
+        url: baseUrl + '58b9a1f5',
+        accessToken: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJlbWFpbCI6bnVsbCwianRpIjoiM2EzYmQ5MzYtOWFlZS00ZWY0LTg0MjUtNjZhOGViODcyODk4IiwiaWF0IjoxNDQ5MTM2Njg0LCJleHAiOjQ2MDI3MzY2ODQsImlzcyI6ImVjX2RhdGFtYW5hZ2VyX3Nka190ZXN0c18xIiwic3ViIjoiMWNmOWUyOGUtZmE1NC00ZGVhLWJlMTQtZDlkYmNjMGMzYzY5In0.VMA0onkx4fpwBdTL9AQ2bzR4JBziY8UIavrAleIl7wj1Rh1-ZU09i-vze2sObarOZSygx74cO1uRkX37CFYj3Lf45mWPpHj-prJtfnS1xkn4KlfffTuz3VWINCorcZX-OyVeFWSexC6AwEQ9cW8FMEZPDpMLKodiFkhDUt1AIQg'
+      });
+    });
+    afterEach(function() {
+      dm = null;
+    });
+    it('permission ok', function() {
+      return dm.can('to-do-item:put:title').then(function(allowed) {
+        expect(allowed).to.be.equal(true);
+      });
+    });
+    it('permission not ok', function() {
+      return dm.can('to-do-item:delete').then(function() {
+        throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+      }).catch(function(error) {
+        expect(error.message).to.be.equal('permission_denied');
+      });
+    });
+  });
+  describe('logout', function() {
+    var dm;
+    beforeEach(function(done) {
+      dm = new DataManager({
+        url: baseUrl + '58b9a1f5'
+      });
+      dm.registerAnonymous().then(function(user) {
+        return done();
+      }).catch(done);
+    });
+    afterEach(function() {
+      dm = null;
+    });
+    it('removes access token and traversal', function(done) {
+      dm.logout();
+      expect(dm.accessToken).to.be.null;
+      expect(dm._rootTraversal).to.be.null;
+      done();
     });
   });
 });

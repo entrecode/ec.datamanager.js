@@ -88,6 +88,17 @@ var dataManager = new DataManager({
 });
 ```
 
+Initialization with `errorHandler`:
+
+```js
+var dataManager = new DataManager({
+  id: 'beefbeef',
+  errorHandler: function(error){
+    console.log(error);
+  }
+});
+```
+
 ### DataManager
 ##### Resolve
 Retrieves information about the connected Data Manager. Like title, id, …
@@ -97,7 +108,23 @@ dataManager.resolve()
 .then(function(dm) {
   console.log(dm.metadata.title);
   // Note: dataManager === dm
-}. errorHandler);
+}, errorHandler);
+```
+
+##### Permission Check
+To check if the currently instantiated Data Manager has a specific right you can use `can(…)`.
+
+```js
+dataManager.can('myModel:put:title')
+.then(function(ok) {
+  // the SDK is able to perform this action.
+}, errorHandler);
+
+dataManager.can('myModel:delete')
+.then(okHandler)
+.catch(function(err) {
+  console.log(err.message); // permission_denied
+});
 ```
 
 ### Model
@@ -166,14 +193,25 @@ dataManager.model('myModel').entries({size: 0, sort: ['property' , '-date']})
 ```js
 dataManager.model('myModel').entry('my7fmeXh')
 .then(function(entry) {
-  console.log(entries); // success! an Entry
+  console.log(entry); // success! an Entry
 }, errorHandler);
 
 // OR for nested entries
 
 dataManager.model('myModel').entry('my7fmeXh', 2}) // since 0.6.0 no longer object
 .then(function(entry) {
-  console.log(entries); // success! an Entry
+  console.log(entry); // success! an Entry
+}, errorHandler);
+```
+
+#### Get nested Entry
+Just like get entry but nested entries will be resolved as proper datamanager SDK objects.
+
+```js
+dataManager.model('myModel').nestedEntry('my7fmeXh', 2}) // since 0.6.0 no longer object
+.then(function(entry) {
+  console.log(entry); // success! an Entry
+  entry.value.nestedEntry.delete().then(console.log)); // this will work now.
 }, errorHandler);
 ```
 
@@ -245,7 +283,10 @@ dataManager.registerAnonymous()
   // token was already added to dataManager instance.
   console.log(user.value.jwt); // token of the user. please save for later.
   console.log(user.value.accountID); // acocuntID of the user
+  …
   dataManager.model('myModel')… // this will be using the logged in anonymous user.
+  …
+  user.logout()… // this will clear the accessToken and reset the sdk instance.
 }, errorHandler);
 ```
 
@@ -253,6 +294,16 @@ The `accessToken` is a property of the DataManager instance:
 
 ```js
 dataManager.accessToken; // the currently used token for user authentication
+```
+
+#### Logout aka. clear accessToken and reset sdk.
+
+```js
+…
+// dataManager has a accessToken.
+dataManager.logout();
+// accessToken has been cleared and internal API connection was reset.
+…
 ```
 
 #### Email Available
@@ -447,6 +498,29 @@ dataManager.asset('46092f02-7441-4759-b6ff-8f3831d3da4b')
 .catch(errorHandler);
 ```
 
+#### Asset File Helper
+
+```js
+var url = asset.getFileUrl(); // original file
+```
+
+#### Asset Image Helper
+
+```js
+var url = asset.getImageUrl(500) // size 500 image files
+```
+
+`getImageUrl` expects a pixel value. The largest edge of the returned image will be at least this value pixels in size, if available.
+
+#### Asset Thumbnail Helper
+
+```js
+var url = asset.getImageThumbUrl(100); // size 100 thumb files
+```
+
+The returned image will be a square-cropped variant with (in this example) at least 100 pixels (pixel value can be set as with `getImageUrl`). Available sizes are 50, 100, 200 and 400 px. Other values will be mapped to next bigger one.
+
+
 ### Tags
 #### Get TagList
 ```js
@@ -518,7 +592,7 @@ dataManager.tag('tag1')
 returns new DataManager Object
 
 
-`options` contains following keys: `url`, `accessToken`,`id`, and `clientID`. All are optional, but either `url` or `id` have to be set. Depending on the Data Manager Settings you will not be able to modify entries etc. when no accessToken is spcified.
+`options` contains following keys: `url`, `accessToken`,`id`, `errorHandler` and `clientID`. All are optional, but either `url` or `id` have to be set. Depending on the Data Manager Settings you will not be able to modify entries etc. when no accessToken is spcified.
 
 Examples:
 
@@ -529,9 +603,12 @@ var dataManager = new DataManager({
   accessToken: '8c3b7b55-531f-4a03-b584-09fdef59cb0c'
 });
 
-// Initialization without token (will be generated)
+// Initialization without token
 var dataManager = new DataManager({
   url: 'https://datamanager.entrecode.de/api/abcdef'
+  errorHandler: function(error) {
+    handleError(error);
+  }
 });
 
 // Alternative
@@ -611,6 +688,9 @@ dataManager.registerAnonymous()
    console.error(error);
 });
 ```
+##### `logout()`
+Syncronous method for clearing the `accessToken` of the SDK and resetting the internal API connection.
+
 ##### `getAuthLink(linkName)`
 returns an auth link as Promise.
 
@@ -619,11 +699,15 @@ Please see user guide above for details.
 ##### `emailAvailable(email)`
 return an email availability check as Promise.
 
+##### `can(permission)`
+Checks if the currently connected Data Manager is able to perform `permission`. Permission format is something like `<model>:<method>:<field>`. Additional documentation can be found in generated documentation of the Data Manager.
+
 #### DataManager Instance Properties
 * `accessToken` Access Token for user, or `null`/`undefined` if not set.
 * `id` ShortID of the connected Data Manager.
 * `url` The url of the connected Data Manager.
 * `clientID` ClientID which will be used to generate authLinks, or `null`/`undefined` if not set.
+* `errorHandler` The global errorHandler for all erorrs which can occur.
 
 ### Model object
 #### Connecting a Model
@@ -674,8 +758,11 @@ dataManager.model('myModel').entries({size: 100, sort: ['property' , '-date'])
 }
 ```
 
-##### entry(id [, levels)
+##### entry(id [, levels])
 returns a Entry object as Promise. Levels property can be used to request nested entries.
+
+##### nestedEntry(id [, levels])
+returns a Entry object as Promise. Levels property can be used to request nested entries. Resolved nested elementes are proper SDK objects with all functions like `save()` and `delete()`.
 
 ##### createEntry(object)
 create a new entry. Returns the Entry.
@@ -778,6 +865,23 @@ dataManager.asset('8c3b7b55-531f-4a03-b584-09fdef59cb0c')
   console.log('Deleted');
 });
 ```
+
+##### getFileUrl
+syncronously returns a file url. Optionally, a specific `locale` can be requested.
+
+##### getImageUrl
+syncronously returns an image file. `size` is optional and states the size in pixels the largest edge should have at least.
+
+Note that the image may still be smaller if the original image is smaller than `size`. If `size` is omitted, the largest size (i.e. the original image) is returned. Optionally, a specific `locale` can be requested. The following sizes are being returned: 256, 512, 1024, 2048, 4096.
+
+Example: The source image has a largest edge of 3000 pixels. `getImageURL(id, 1000)` will return the 1024px version. `getImageURL(id, 4096)` will return the original file with 3000 pixels.
+
+##### getImageThumbUrl
+syncronously returns an image thumbnail (square cropped). `size` is required and states the size in pixels the thumbnail square edge should have at least.
+
+Note that the image may still be smaller if the original image is smaller than `size`. Optionally, a specific `locale` can be requested. The following sizes are being returned: 50, 100, 200, 400
+
+
 ### Tag Object
 #### Connecting a Tag
 ```js
@@ -868,6 +972,16 @@ grunt build
 
 
 ## Changelog
+### 0.7.0
+- removed usage of `…/options` relation. using templated links directly. requires datamanager 0.7.0+
+- adds syncronous file helper on Assets
+- adds support for public permission checks
+- adds logout function for deleting and resetting a datamanager sdk instance
+- adds global error callback to datamanager object
+- nested elements are proper resources with `nestedEntry`
+- some refactoring
+- bugfixes
+
 ### 0.6.3
 - fixed error when adding new values to previously created entry when model gets additional fields. thx felix...
 

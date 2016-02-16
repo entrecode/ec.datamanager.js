@@ -1,0 +1,22 @@
+{
+  "qs": {},
+  "req": {},
+  "res": {
+    "status": 500,
+    "code": 2000,
+    "title": "Internal Server Error",
+    "type": "https://doc.entrecode.de/#error-001",
+    "_links": {
+      "up": {
+        "title": "Data Manager Home Page",
+        "href": "https://datamanager.entrecode.de"
+      },
+      "describedby": {
+        "title": "Error Description",
+        "href": "https://doc.entrecode.de/#error-000"
+      }
+    },
+    "detail": "",
+    "verbose": ""
+  }
+}

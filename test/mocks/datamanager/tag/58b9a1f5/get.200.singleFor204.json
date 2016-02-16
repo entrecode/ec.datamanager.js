@@ -1,0 +1,21 @@
+{
+  "qs": {
+    "tag": "yolo"
+  },
+  "req": {},
+  "res": {
+    "count": 1,
+    "tag": "yolo",
+    "_links": {
+      "collection": {
+        "href": "https://datamanager.entrecode.de/tag/58b9a1f5"
+      },
+      "ec:api/assets/with-tag": {
+        "href": "https://datamanager.entrecode.de/tag/58b9a1f5?tag=yolo"
+      },
+      "self": {
+        "href": "https://datamanager.entrecode.de/tag/58b9a1f5?tag=yolo"
+      }
+    }
+  }
+}

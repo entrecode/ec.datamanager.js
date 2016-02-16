@@ -1,0 +1,62 @@
+{
+  "qs": {
+    "assetID": "55628c81-abb0-4a21-8420-a5b06e2e9ce0"
+  },
+  "req": {},
+  "res": {
+    "assetID": "55628c81-abb0-4a21-8420-a5b06e2e9ce0",
+    "created": "2016-02-05T10:25:20.567Z",
+    "files": [
+      {
+        "url": "https://cdn2.entrecode.de/files/58b9a1f5/ZX5FmOjwGeRVJH-F1htU_5cg_de.svg",
+        "mimetype": "image/svg+xml",
+        "size": 2310,
+        "resolution": null,
+        "locale": "de-DE",
+        "created": "2016-02-05T10:25:20.52+00:00",
+        "modified": "2016-02-05T10:25:20.52+00:00",
+        "assetID": "55628c81-abb0-4a21-8420-a5b06e2e9ce0"
+      },
+      {
+        "url": "https://cdn2.entrecode.de/files/58b9a1f5/ZX5FmOjwGeRVJH-F1htU_5cg_en.svg",
+        "mimetype": "image/svg+xml",
+        "size": 2310,
+        "resolution": null,
+        "locale": "en-US",
+        "created": "2016-02-05T10:25:20.52+00:00",
+        "modified": "2016-02-05T10:25:20.52+00:00",
+        "assetID": "55628c81-abb0-4a21-8420-a5b06e2e9ce0"
+      },
+      {
+        "url": "https://cdn2.entrecode.de/files/58b9a1f5/ZX5FmOjwGeRVJH-F1htU_5cg.svg",
+        "mimetype": "image/svg+xml",
+        "size": 2310,
+        "resolution": null,
+        "locale": null,
+        "created": "2016-02-05T10:25:20.52+00:00",
+        "modified": "2016-02-05T10:25:20.52+00:00",
+        "assetID": "55628c81-abb0-4a21-8420-a5b06e2e9ce0"
+      }
+    ],
+    "tags": [],
+    "title": "svg",
+    "type": "image",
+    "_links": {
+      "collection": {
+        "href": "https://datamanager.entrecode.de/asset/58b9a1f5"
+      },
+      "ec:asset/best-file": {
+        "href": "https://datamanager.entrecode.de/files/55628c81-abb0-4a21-8420-a5b06e2e9ce0{?size,thumb}",
+        "templated": true
+      },
+      "self": {
+        "href": "https://datamanager.entrecode.de/asset/58b9a1f5?assetID=55628c81-abb0-4a21-8420-a5b06e2e9ce0",
+        "title": "svg"
+      },
+      "curies": {
+        "href": "https://doc.entrecode.de/data_manager/#relation-{rel}",
+        "templated": true
+      }
+    }
+  }
+}

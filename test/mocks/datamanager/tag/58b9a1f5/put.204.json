@@ -1,0 +1,30 @@
+{
+  "qs": {
+    "tag": "yolo"
+  },
+  "req": {
+    "_links": {
+      "collection": [
+        {
+          "href": "https://datamanager.entrecode.de/tag/58b9a1f5",
+          "templated": false
+        }
+      ],
+      "ec:api/assets/with-tag": [
+        {
+          "href": "https://datamanager.entrecode.de/tag/58b9a1f5?tag=yolo",
+          "templated": false
+        }
+      ],
+      "self": [
+        {
+          "href": "https://datamanager.entrecode.de/tag/58b9a1f5?tag=yolo",
+          "templated": false
+        }
+      ]
+    },
+    "count": 1,
+    "tag": "manlebtnureinmal"
+  },
+  "res": {}
+}
