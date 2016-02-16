@@ -972,6 +972,9 @@ grunt build
 
 
 ## Changelog
+### 0.7.3
+- fixed bug when using modelList and new model caching
+
 ### 0.7.2
 - fixed bug when handling accessTokens
 
