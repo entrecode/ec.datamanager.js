@@ -972,6 +972,9 @@ grunt build
 
 
 ## Changelog
+### 0.7.1
+- day one bugfixes :)
+
 ### 0.7.0
 - removed usage of `…/options` relation. using templated links directly. requires datamanager 0.7.0+
 - adds syncronous file helper on Assets
