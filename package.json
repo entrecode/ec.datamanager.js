@@ -63,7 +63,7 @@
     "halfred": "1.0.0",
     "locale": "0.0.20",
     "lodash": "4.4.0",
-    "shiro-trie": "^0.3.3",
+    "shiro-trie": "^0.3.5",
     "superagent": "1.7.2",
     "traverson": "3.1.3",
     "traverson-hal": "4.1.1"
