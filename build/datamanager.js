@@ -942,7 +942,7 @@ var Model = function(title, metadata, dm) {
   this.title = title;
   this.metadata = metadata;
   this._traversal = null;
-  this._dm = dm || null;
+  this._dm = dm;
 };
 
 Model.prototype._getTraversal = function() {

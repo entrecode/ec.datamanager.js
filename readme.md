@@ -972,6 +972,10 @@ grunt build
 
 
 ## Changelog
+### 0.7.4
+- removes lodash dependency
+- shiro-trie version without lodash dependency
+
 ### 0.7.3
 - fixed bug when using modelList and new model caching
 
