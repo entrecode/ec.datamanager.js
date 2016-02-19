@@ -62,7 +62,7 @@ describe('tests for working mocks', function() {
     return traverson.from(baseUrl + '58b9a1f5')
     .jsonHal()
     .follow('58b9a1f5:to-do-list')
-    .withTemplateParameters({_id: '4JMjeO737e'})
+    .withTemplateParameters({ _id: '4JMjeO737e' })
     .getResource(function(err, res, traversal) {
       expect(err).to.be.not.ok;
       expect(res).to.be.ok;
@@ -458,6 +458,41 @@ describe('model', function() {
       expect(err).to.be.ok;
       expect(err).to.have.property('message', 'ec_sdk_invalid_method_for_schema');
     });
+  });
+});
+
+describe('offline model', function() {
+  var dm;
+  beforeEach(function() {
+    dm = new DataManager({
+      url: baseUrl + '58b9a1f5'
+    });
+  });
+  afterEach(function() {
+    dm = null;
+  });
+  it('make single model offline by dm', function() {
+    return dm.enableCache('to-do-list').then(function(models) {
+      expect(models[0]).to.be.a('object');
+      expect(models[0].id).to.be.equal('to-do-list');
+      expect(models[0]._collection).to.be.a('object');
+    });
+  });
+  it('make single model offline by model', function() {
+    return dm.model('to-do-list').enableCache().then(function(model) {
+      expect(model).to.be.a('object');
+      expect(model.id).to.be.equal('to-do-list');
+      expect(model._collection).to.be.a('object');
+    });
+  });
+  it('make multiple models offline by dm', function() {
+    return dm.enableCache([
+      'to-do-list',
+      'to-do-item'
+    ]).then(function(models) {
+      expect(models).to.be.a('array');
+      expect(models.length).to.be.equal(2);
+    }).catch();
   });
 });
 
@@ -1278,7 +1313,7 @@ describe('tag/tags', function() {
   it('no tag name', function() {
     return dm.tag().then(function(result) {
       throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
-    }, function(err){
+    }, function(err) {
       expect(err).to.be.ok;
       expect(err).to.have.property('message', 'ec_sdk_no_tag_name_provided');
     });
