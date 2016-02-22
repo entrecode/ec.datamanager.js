@@ -423,6 +423,13 @@ describe('model', function() {
       expect(err).to.have.property('message', 'ec_sdk_model_not_found');
     });
   });
+  it('model not found on entries', function() {
+    return dm.model('not-found').entries().then(function(result) {
+      throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+    }).catch(function(err) {
+      expect(err).to.be.ok;
+    });
+  });
   it('get schema', function() {
     return dm.model('to-do-list').getSchema().then(function(schema) {
       expect(schema).to.be.ok;
