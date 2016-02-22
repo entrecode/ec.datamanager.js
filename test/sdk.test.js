@@ -62,7 +62,7 @@ describe('tests for working mocks', function() {
     return traverson.from(baseUrl + '58b9a1f5')
     .jsonHal()
     .follow('58b9a1f5:to-do-list')
-    .withTemplateParameters({_id: '4JMjeO737e'})
+    .withTemplateParameters({ _id: '4JMjeO737e' })
     .getResource(function(err, res, traversal) {
       expect(err).to.be.not.ok;
       expect(res).to.be.ok;
@@ -421,6 +421,13 @@ describe('model', function() {
     }).catch(function(err) {
       expect(err).to.be.ok;
       expect(err).to.have.property('message', 'ec_sdk_model_not_found');
+    });
+  });
+  it('model not found on entries', function() {
+    return dm.model('not-found').entries().then(function(result) {
+      throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+    }).catch(function(err) {
+      expect(err).to.be.ok;
     });
   });
   it('get schema', function() {
@@ -1278,7 +1285,7 @@ describe('tag/tags', function() {
   it('no tag name', function() {
     return dm.tag().then(function(result) {
       throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
-    }, function(err){
+    }, function(err) {
       expect(err).to.be.ok;
       expect(err).to.have.property('message', 'ec_sdk_no_tag_name_provided');
     });
