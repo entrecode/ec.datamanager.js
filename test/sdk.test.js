@@ -468,40 +468,104 @@ describe('model', function() {
   });
 });
 
-describe('offline model', function() {
-  var dm;
-  beforeEach(function() {
-    dm = new DataManager({
-      url: baseUrl + '58b9a1f5'
+if (isNode) {
+  describe('offline model', function() {
+    var dm;
+    beforeEach(function() {
+      dm = new DataManager({
+        url: baseUrl + '58b9a1f5'
+      });
+    });
+    afterEach(function() {
+      dm = null;
+    });
+    it('make single model offline by dm', function() {
+      return dm.enableCache('to-do-list').then(function(models) {
+        expect(dm._cacheMetaData).to.be.a('object');
+        expect(models[0]).to.be.a('object');
+        expect(models[0].name).to.be.equal('to-do-list');
+      });
+    });
+    it('make single model offline by model', function() {
+      return dm.model('to-do-list').enableCache().then(function(model) {
+        expect(dm._cacheMetaData).to.be.a('object');
+        expect(model).to.be.a('object');
+        expect(model.name).to.be.equal('to-do-list');
+      });
+    });
+    it('make multiple models offline by dm', function() {
+      return dm.enableCache([
+        'to-do-list',
+        'to-do-item'
+      ]).then(function(models) {
+        expect(models).to.be.a('array');
+        expect(models.length).to.be.equal(2);
+      }).catch();
     });
   });
-  afterEach(function() {
-    dm = null;
-  });
-  it('make single model offline by dm', function() {
-    return dm.enableCache('to-do-list').then(function(models) {
-      expect(models[0]).to.be.a('object');
-      expect(models[0].id).to.be.equal('to-do-list');
-      expect(models[0]._collection).to.be.a('object');
+  describe('stale data', function() {
+    var dm;
+    beforeEach(function(done) {
+      dm = new DataManager({
+        url: baseUrl + '58b9a1f5'
+      });
+      dm.enableCache([
+        'to-do-item',
+        'to-do-list'
+      ], 1)
+      .then(function() {
+        done();
+      })
+      .catch(done);
+    });
+    afterEach(function() {
+      dm = null;
+    });
+    it('entries size 0', function() {
+      return dm.model('to-do-list').entries({ size: 0 })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+      });
     });
   });
-  it('make single model offline by model', function() {
-    return dm.model('to-do-list').enableCache().then(function(model) {
-      expect(model).to.be.a('object');
-      expect(model.id).to.be.equal('to-do-list');
-      expect(model._collection).to.be.a('object');
+  describe('valid cache data', function() {
+    var dm;
+    beforeEach(function(done) {
+      dm = new DataManager({
+        url: baseUrl + '58b9a1f5'
+      });
+      dm.enableCache([
+        'to-do-item',
+        'to-do-list'
+      ])
+      .then(function() {
+        done();
+      })
+      .catch(done);
+    });
+    afterEach(function() {
+      dm = null;
+    });
+    it('entries size 0', function() {
+      return dm.model('to-do-list').entries({ size: 0 })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+      });
+    });
+    it('entries size 0', function() {
+      return dm.model('to-do-list').entries({ size: 0, cacheType: 'refresh' })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+      });
+    });
+    it.skip('entries size 0', function() {
+      return dm.model('to-do-list').entries({ size: 0, cacheType: 'stale' })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+      });
     });
   });
-  it('make multiple models offline by dm', function() {
-    return dm.enableCache([
-      'to-do-list',
-      'to-do-item'
-    ]).then(function(models) {
-      expect(models).to.be.a('array');
-      expect(models.length).to.be.equal(2);
-    }).catch();
-  });
-});
+}
 
 describe('entry/entries', function() { // this is basically modelList
   var dm;
