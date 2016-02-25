@@ -100,7 +100,7 @@ var dataManager = new DataManager({
 ```
 
 ### DataManager
-##### Resolve
+#### Resolve
 Retrieves information about the connected Data Manager. Like title, id, …
 
 ```js
@@ -111,7 +111,7 @@ dataManager.resolve()
 }, errorHandler);
 ```
 
-##### Permission Check
+#### Permission Check
 To check if the currently instantiated Data Manager has a specific right you can use `can(…)`.
 
 ```js
@@ -125,6 +125,21 @@ dataManager.can('myModel:delete')
 .catch(function(err) {
   console.log(err.message); // permission_denied
 });
+```
+
+#### Enable Cache
+
+```js
+dataManager.enableCache('myModel')…
+// OR
+dataManager.enableCache([
+  'myModel',
+  'myOtherModel'
+])
+.then(function(models){
+  console.log(models); // Array of LokiJS collections
+  models[0].find({ lokiJS: 'doesThis' });
+}, errorHandler);
 ```
 
 ### Model
@@ -148,6 +163,15 @@ dataManager.model('myModel').resolve()
 .then(function(model){
   console.log(model.metadata.titleField);
   model.entries()…
+}, errorHandler);
+```
+
+#### Model enable cache
+
+```js
+dataManager.model('myModel').enableCache(3600)
+.then(function(lokiJSCollection){
+  lokiJSCollection.find({ lokiJS: 'doesThis' });
 }, errorHandler);
 ```
 
@@ -176,6 +200,36 @@ dataManager.model('myModel').entryList({size: 100, sort: ['property', '-date']})
   console.log(res.count); // no. of received entries
   console.log(res.total); // total no. of available entries (accesss with pagination)
 }, errorHandler);
+```
+
+#### Get EntryList with cacheType
+also works on `entry(…)` and `entries(…)`
+
+```js
+dataManager.model('myModel').entryList({ cacheType: 'default' })
+.then(function(list){
+  console.log(list.entries); // refreshed data when cache was stale, cached data otherwise
+}, errorHandler);
+…
+dataManager.model('myModel').entryList()
+.then(function(list){
+  console.log(list.entries); // same as cacheType: 'default'
+}, errorHandler);
+…
+dataManager.model('myModel').entryList({ cacheType: 'refresh' })
+.then(function(list){
+  console.log(list.entries); // contains refreshed entries
+}, errorHandler);
+…
+// the following type only works on entryList, is handled like default on entry/entries
+dataManager.model('myModel').entryList({ cacheType: 'stale' })
+.then(function(list){
+  console.log(list.entries); // contains cache data, even stale
+  list.refreshedData().then(function(list){
+    console.log(list.entries); // contains refreshed data
+  }, errorHandler);
+}, errorHandler);
+
 ```
 
 #### Get Entries
@@ -640,6 +694,9 @@ Note that the image may still be smaller if the original image is smaller than `
 
 
 #### DataManager Instance Methods
+##### `enableCache(stringOrArray[, maxCacheAge])`
+enables caching for the given models. Either one model title (`String`) or multiple model titles (`Array`). returns a Promise which resolves to a array of LokiJS collections.
+
 ##### `asset(identifier)`
 returns an Asset object as Promise. `identifier` (String) is required.
 
@@ -717,7 +774,10 @@ var myModel = dataManager.model('myModel');
 returns Model Object which is a promise.
 
 #### Model Instance Methods
-##### entries(options)/entryList(options)
+##### `enableCache([maxCacheAge])`
+enables caching for the connected model with `maxCacheAge` (in ms). Returns a Promise which resolves to a LokiJS collection.
+
+##### `entries(options)`/`entryList(options)`
 returns JSON Array of Entries (async).
 The request can be configured using `options`.
 Valid keys are:
@@ -732,6 +792,11 @@ Valid keys are:
     - `to`: Range filter: value is the value to have as upper end (≤) 
     - `any`: Multiple-exact-match filter. Value is an Array containing allowed values (OR)
     - `all`: Multiple-exact-match filter. Value is an Array containing required values (AND)
+- `cacheType` - selected cachedType (default: `default`)
+	- `default` - refreshes data when stale, cached otherwise
+	- `refresh` - refreshes data every time
+	- `stale` - resolves promise directly with stale data. add `refreshedData` (`Promise`) to result which can be used to refresh the data asyncronously. This only works on `entryList`.
+
 
 Example:
 
@@ -758,22 +823,22 @@ dataManager.model('myModel').entries({size: 100, sort: ['property' , '-date'])
 }
 ```
 
-##### entry(id [, levels])
+##### `entry(id [, levels])`
 returns a Entry object as Promise. Levels property can be used to request nested entries.
 
-##### nestedEntry(id [, levels])
+##### `nestedEntry(id [, levels])`
 returns a Entry object as Promise. Levels property can be used to request nested entries. Resolved nested elementes are proper SDK objects with all functions like `save()` and `delete()`.
 
-##### createEntry(object)
+##### `createEntry(object)`
 create a new entry. Returns the Entry.
 
-##### deleteEntry(id)
+##### `deleteEntry(id)`
 return a Promise for deleting an entry.
 
-##### getSchema([method])
+##### `getSchema([method])`
 retrieve JSON Schema. `method` is `get` by default. Other possible values: `put`, `post`.
 
-##### resolve()
+##### `resolve()`
 return a resolved model as Promise.
 
 Can be used when creating a model object without calling `modelList()` to resolve model metadata.
@@ -972,6 +1037,11 @@ grunt build
 
 
 ## Changelog
+### 0.8.0
+- cache entries with [LokiJS](http://lokijs.org/)
+- cache functionality has to be enable per model basis with `enableCache(…)`
+- IMPORTANT: if cache is enabled ALL entries of the model will be loaded
+
 ### 0.7.4
 - removes lodash dependency
 - shiro-trie version without lodash dependency
