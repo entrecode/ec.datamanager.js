@@ -12,6 +12,7 @@ var bodyParser = require('body-parser')
   , fs = require('fs')
   , path = require('path')
   , walk = require('walk')
+  , etag = require('etag')
   , _ = {};
 
 _.isEqual = require('lodash.isequal');
@@ -64,7 +65,7 @@ app.all('/*', function(req, res, next) {
       .split('https://datamanager.entrecode.de').join('http://localhost:54815/datamanager')
       .split('https://appserver.entrecode.de').join('http://localhost:54815/appserver')
       .split('https://accounts.entrecode.de').join('http://localhost:54815/accounts'));
-      res.status(fileStat.name.split('.')[1]).send(file.res);
+      res.status(fileStat.name.split('.')[1]).header('etag', etag(JSON.stringify(file.res))).send(file.res);
       return nextFile();
     });
   });

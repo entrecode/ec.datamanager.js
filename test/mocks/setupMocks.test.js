@@ -7,6 +7,7 @@ if (isNode) {
     , walk = require('walk')
     , path = require('path')
     , fs = require('fs')
+    , etag = require('etag')
     , _ = {}
     ;
   _.isEmpty = require('lodash.isempty');
@@ -37,7 +38,7 @@ if (isNode) {
         if (fileElems[1] === "500") {
           dmMock = dmMock.replyWithError(file.res);
         } else {
-          dmMock = dmMock.reply(fileElems[1], file.res);
+          dmMock = dmMock.reply(fileElems[1], file.res, { 'ETag': etag(JSON.stringify(file.res)) });
         }
 
         return next();
