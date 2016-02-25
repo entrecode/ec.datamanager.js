@@ -517,7 +517,7 @@ if (isNode) {
         'to-do-list'
       ], -1)
       .then(function() {
-        fs.unlink(path.resolve(__dirname, '..', '58b9a1f5.db.json'), done);
+        done();
       })
       .catch(done);
     });
@@ -701,7 +701,7 @@ if (isNode) {
         'to-do-list'
       ], 120000)
       .then(function() {
-        fs.unlink(path.resolve(__dirname, '..', '58b9a1f5.db.json'), done);
+        done();
       })
       .catch(done);
     });
@@ -885,7 +885,7 @@ if (isNode) {
         'to-do-list'
       ])
       .then(function() {
-        fs.unlink(path.resolve(__dirname, '..', '58b9a1f5.db.json'), done);
+        done();
       })
       .catch(done);
     });
