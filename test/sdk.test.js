@@ -505,151 +505,559 @@ if (isNode) {
       }).catch();
     });
   });
-  var maxCacheAges = [
-    -1,
-    600000,
-    undefined
-  ];
-  for (var i in maxCacheAges) {
-    //var i = 0;
-    describe('cache data age: ' + maxCacheAges[i], function() {
-      var dm;
-      before(function(done) {
-        dm = new DataManager({
-          url: baseUrl + '58b9a1f5'
-        });
-        dm.enableCache([
-          'to-do-item',
-          'to-do-list'
-        ], maxCacheAges[i])
-        .then(function() {
-          fs.unlink(path.resolve(__dirname, '..', '58b9a1f5.db.json'), done);
-        })
-        .catch(done);
+
+  describe('cache data age: -1', function() {
+    var dm;
+    before(function(done) {
+      dm = new DataManager({
+        url: baseUrl + '58b9a1f5'
       });
-      it('entries, no cacheType', function() {
-        return dm.model('to-do-list').entries()
-        .then(function(entries) {
-          expect(entries.length).to.be.equal(2);
-        });
+      dm.enableCache([
+        'to-do-item',
+        'to-do-list'
+      ], -1)
+      .then(function() {
+        fs.unlink(path.resolve(__dirname, '..', '58b9a1f5.db.json'), done);
+      })
+      .catch(done);
+    });
+    after(function(done) {
+      dm = null;
+      fs.unlink(path.resolve(__dirname, '..', '58b9a1f5.db.json'), done);
+    });
+    it('entries, no cacheType', function() {
+      return dm.model('to-do-list').entries()
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
       });
-      it('entries, cacheType default', function() {
-        return dm.model('to-do-list').entries({ cacheType: 'default' })
-        .then(function(entries) {
-          expect(entries.length).to.be.equal(2);
-        });
+    });
+    it('entries, cacheType default', function() {
+      return dm.model('to-do-list').entries({ cacheType: 'default' })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
       });
-      it('entries, cacheType refresh', function() {
-        return dm.model('to-do-list').entries({ cacheType: 'refresh' })
-        .then(function(entries) {
-          expect(entries.length).to.be.equal(2);
-        });
+    });
+    it('entries, cacheType refresh', function() {
+      return dm.model('to-do-list').entries({ cacheType: 'refresh' })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
       });
-      it('entries, cacheType stale', function() {
-        return dm.model('to-do-list').entries({ cacheType: 'stale' })
-        .then(function(entries) {
-          expect(entries.length).to.be.equal(2);
-        });
-      });
-      it('entries, filter exact', function() {
-        return dm.model('to-do-list').entries({
-          filter: {
-            _id: {
-              exact: 'V1EXdcJHl'
-            }
-          }
-        })
-        .then(function(entries) {
-          expect(entries.length).to.be.equal(1);
-          expect(entries[0]).to.have.property('_id', 'V1EXdcJHl');
-        });
-      });
-      it('entries, filter search', function() {
-        return dm.model('to-do-list').entries({
-          filter: {
-            title: {
-              search: 'Single'
-            }
-          }
-        })
-        .then(function(entries) {
-          expect(entries.length).to.be.equal(1);
-          expect(entries[0]).to.have.property('title', 'Single Item List');
-        });
-      });
-      it('entries, filter from', function() {
-        return dm.model('to-do-list').entries({
-          filter: {
-            _created: {
-              from: '2015-12-08T09:55:15.000Z'
-            }
-          }
-        })
-        .then(function(entries) {
-          expect(entries.length).to.be.equal(1);
-          expect(entries[0]).to.have.property('_created', '2015-12-08T09:55:15.171Z');
-        });
-      });
-      it('entries, filter to', function() {
-        return dm.model('to-do-list').entries({
-          filter: {
-            _created: {
-              to: '2015-12-08T09:55:15.000Z'
-            }
-          }
-        })
-        .then(function(entries) {
-          expect(entries.length).to.be.equal(1);
-          expect(entries[0]).to.have.property('_created', '2015-11-23T16:03:38.304Z');
-        });
-      });
-      it('entries, sort -', function() {
-        return dm.model('to-do-list').entries({
-          sort: [
-            '-created'
-          ]
-        })
-        .then(function(entries) {
-          expect(entries.length).to.be.equal(2);
-          expect(entries[0]).to.have.property('_created', '2015-12-08T09:55:15.171Z');
-          expect(entries[1]).to.have.property('_created', '2015-11-23T16:03:38.304Z');
-        });
-      });
-      it('entries, sort implicit +', function() {
-        return dm.model('to-do-list').entries({
-          sort: [
-            'created'
-          ]
-        })
-        .then(function(entries) {
-          expect(entries.length).to.be.equal(2);
-          expect(entries[0]).to.have.property('_created', '2015-11-23T16:03:38.304Z');
-          expect(entries[1]).to.have.property('_created', '2015-12-08T09:55:15.171Z');
-        });
-      });
-      it('entries, sort +', function() {
-        return dm.model('to-do-list').entries({
-          sort: [
-            '+created'
-          ]
-        })
-        .then(function(entries) {
-          expect(entries.length).to.be.equal(2);
-          expect(entries[0]).to.have.property('_created', '2015-11-23T16:03:38.304Z');
-          expect(entries[1]).to.have.property('_created', '2015-12-08T09:55:15.171Z');
-        });
-      });
-      it.skip('entries, size & page', function() { // TODO
-        return dm.model('to-do-list').entries({
-          size: 1,
-          page: 2
-        })
-        .then(function(entries) {
-          expect(entries.length).to.be.equal(1);
+    });
+    it('entryList, cacheType stale', function() {
+      return dm.model('to-do-list').entryList({ cacheType: 'stale' })
+      .then(function(list) {
+        expect(list.entries.length).to.be.equal(2);
+        expect(list).to.have.property('refreshedData');
+        return list.refreshedData.then(function(list2) {
+          expect(list2.entries.length).to.be.equal(2);
         });
       });
     });
-  }
+    it('entries, cacheType stale', function() {
+      return dm.model('to-do-list').entries({ cacheType: 'stale' })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+      });
+    });
+    it('entries, filter exact', function() {
+      return dm.model('to-do-list').entries({
+        filter: {
+          _id: {
+            exact: 'V1EXdcJHl'
+          }
+        }
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(1);
+        expect(entries[0]).to.have.property('_id', 'V1EXdcJHl');
+      });
+    });
+    it('entries, filter search', function() {
+      return dm.model('to-do-list').entries({
+        filter: {
+          title: {
+            search: 'Single'
+          }
+        }
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(1);
+        expect(entries[0]).to.have.property('title', 'Single Item List');
+      });
+    });
+    it('entries, filter from', function() {
+      return dm.model('to-do-list').entries({
+        filter: {
+          _created: {
+            from: '2015-12-08T09:55:15.000Z'
+          }
+        }
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(1);
+        expect(entries[0]).to.have.property('_created', '2015-12-08T09:55:15.171Z');
+      });
+    });
+    it('entries, filter to', function() {
+      return dm.model('to-do-list').entries({
+        filter: {
+          _created: {
+            to: '2015-12-08T09:55:15.000Z'
+          }
+        }
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(1);
+        expect(entries[0]).to.have.property('_created', '2015-11-23T16:03:38.304Z');
+      });
+    });
+    it('entries, sort -', function() {
+      return dm.model('to-do-list').entries({
+        sort: [
+          '-created'
+        ]
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+        expect(entries[0]).to.have.property('_created', '2015-12-08T09:55:15.171Z');
+        expect(entries[1]).to.have.property('_created', '2015-11-23T16:03:38.304Z');
+      });
+    });
+    it('entries, sort implicit +', function() {
+      return dm.model('to-do-list').entries({
+        sort: [
+          'created'
+        ]
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+        expect(entries[0]).to.have.property('_created', '2015-11-23T16:03:38.304Z');
+        expect(entries[1]).to.have.property('_created', '2015-12-08T09:55:15.171Z');
+      });
+    });
+    it('entries, sort +', function() {
+      return dm.model('to-do-list').entries({
+        sort: [
+          '+created'
+        ]
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+        expect(entries[0]).to.have.property('_created', '2015-11-23T16:03:38.304Z');
+        expect(entries[1]).to.have.property('_created', '2015-12-08T09:55:15.171Z');
+      });
+    });
+    it('entries, size & page 1', function() { // TODO
+      return dm.model('to-do-item').entries({
+        size: 3,
+        page: 1
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(3);
+        expect(entries[0]._id).to.be.equal('4kt6UzOGBl');
+        expect(entries[1]._id).to.be.equal('41zp8Guzrx');
+        expect(entries[2]._id).to.be.equal('N1GJuenPEl');
+      });
+    });
+    it('entries, size & page 2', function() { // TODO
+      return dm.model('to-do-item').entries({
+        size: 3,
+        page: 2
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(3);
+        expect(entries[0]._id).to.be.equal('VkGhAPQ2Qe');
+        expect(entries[1]._id).to.be.equal('4JGrCvm27e');
+        expect(entries[2]._id).to.be.equal('V1G2TvQnXx');
+      });
+    });
+    it('entries, size & page 3', function() { // TODO
+      return dm.model('to-do-item').entries({
+        size: 3,
+        page: 3
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(1);
+        expect(entries[0]._id).to.be.equal('VkM8aPQnQe');
+      });
+    });
+    it('entries, page', function() { // TODO
+      return dm.model('to-do-item').entries({
+        page: 1
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(7);
+      });
+    });
+  });
+  describe('cache data age: 120000', function() {
+    var dm;
+    before(function(done) {
+      dm = new DataManager({
+        url: baseUrl + '58b9a1f5'
+      });
+      dm.enableCache([
+        'to-do-item',
+        'to-do-list'
+      ], 120000)
+      .then(function() {
+        fs.unlink(path.resolve(__dirname, '..', '58b9a1f5.db.json'), done);
+      })
+      .catch(done);
+    });
+    after(function(done) {
+      dm = null;
+      fs.unlink(path.resolve(__dirname, '..', '58b9a1f5.db.json'), done);
+    });
+    it('entries, no cacheType', function() {
+      return dm.model('to-do-list').entries()
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+      });
+    });
+    it('entries, cacheType default', function() {
+      return dm.model('to-do-list').entries({ cacheType: 'default' })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+      });
+    });
+    it('entries, cacheType refresh', function() {
+      return dm.model('to-do-list').entries({ cacheType: 'refresh' })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+      });
+    });
+    it('entryList, cacheType stale', function() {
+      return dm.model('to-do-list').entryList({ cacheType: 'stale' })
+      .then(function(list) {
+        expect(list.entries.length).to.be.equal(2);
+        expect(list).to.have.property('refreshedData');
+        return list.refreshedData.then(function(list2) {
+          expect(list2.entries.length).to.be.equal(2);
+        });
+      });
+    });
+    it('entries, cacheType stale', function() {
+      return dm.model('to-do-list').entries({ cacheType: 'stale' })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+      });
+    });
+    it('entries, filter exact', function() {
+      return dm.model('to-do-list').entries({
+        filter: {
+          _id: {
+            exact: 'V1EXdcJHl'
+          }
+        }
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(1);
+        expect(entries[0]).to.have.property('_id', 'V1EXdcJHl');
+      });
+    });
+    it('entries, filter search', function() {
+      return dm.model('to-do-list').entries({
+        filter: {
+          title: {
+            search: 'Single'
+          }
+        }
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(1);
+        expect(entries[0]).to.have.property('title', 'Single Item List');
+      });
+    });
+    it('entries, filter from', function() {
+      return dm.model('to-do-list').entries({
+        filter: {
+          _created: {
+            from: '2015-12-08T09:55:15.000Z'
+          }
+        }
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(1);
+        expect(entries[0]).to.have.property('_created', '2015-12-08T09:55:15.171Z');
+      });
+    });
+    it('entries, filter to', function() {
+      return dm.model('to-do-list').entries({
+        filter: {
+          _created: {
+            to: '2015-12-08T09:55:15.000Z'
+          }
+        }
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(1);
+        expect(entries[0]).to.have.property('_created', '2015-11-23T16:03:38.304Z');
+      });
+    });
+    it('entries, sort -', function() {
+      return dm.model('to-do-list').entries({
+        sort: [
+          '-created'
+        ]
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+        expect(entries[0]).to.have.property('_created', '2015-12-08T09:55:15.171Z');
+        expect(entries[1]).to.have.property('_created', '2015-11-23T16:03:38.304Z');
+      });
+    });
+    it('entries, sort implicit +', function() {
+      return dm.model('to-do-list').entries({
+        sort: [
+          'created'
+        ]
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+        expect(entries[0]).to.have.property('_created', '2015-11-23T16:03:38.304Z');
+        expect(entries[1]).to.have.property('_created', '2015-12-08T09:55:15.171Z');
+      });
+    });
+    it('entries, sort +', function() {
+      return dm.model('to-do-list').entries({
+        sort: [
+          '+created'
+        ]
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+        expect(entries[0]).to.have.property('_created', '2015-11-23T16:03:38.304Z');
+        expect(entries[1]).to.have.property('_created', '2015-12-08T09:55:15.171Z');
+      });
+    });
+    it('entries, size & page 1', function() { // TODO
+      return dm.model('to-do-item').entries({
+        size: 3,
+        page: 1
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(3);
+        expect(entries[0]._id).to.be.equal('4kt6UzOGBl');
+        expect(entries[1]._id).to.be.equal('41zp8Guzrx');
+        expect(entries[2]._id).to.be.equal('N1GJuenPEl');
+      });
+    });
+    it('entries, size & page 2', function() { // TODO
+      return dm.model('to-do-item').entries({
+        size: 3,
+        page: 2
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(3);
+        expect(entries[0]._id).to.be.equal('VkGhAPQ2Qe');
+        expect(entries[1]._id).to.be.equal('4JGrCvm27e');
+        expect(entries[2]._id).to.be.equal('V1G2TvQnXx');
+      });
+    });
+    it('entries, size & page 3', function() { // TODO
+      return dm.model('to-do-item').entries({
+        size: 3,
+        page: 3
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(1);
+        expect(entries[0]._id).to.be.equal('VkM8aPQnQe');
+      });
+    });
+    it('entries, page', function() { // TODO
+      return dm.model('to-do-item').entries({
+        page: 1
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(7);
+      });
+    });
+  });
+  describe('cache data age: undefined', function() {
+    var dm;
+    before(function(done) {
+      dm = new DataManager({
+        url: baseUrl + '58b9a1f5'
+      });
+      dm.enableCache([
+        'to-do-item',
+        'to-do-list'
+      ])
+      .then(function() {
+        fs.unlink(path.resolve(__dirname, '..', '58b9a1f5.db.json'), done);
+      })
+      .catch(done);
+    });
+    after(function(done) {
+      dm = null;
+      fs.unlink(path.resolve(__dirname, '..', '58b9a1f5.db.json'), done);
+    });
+    it('entries, no cacheType', function() {
+      return dm.model('to-do-list').entries()
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+      });
+    });
+    it('entries, cacheType default', function() {
+      return dm.model('to-do-list').entries({ cacheType: 'default' })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+      });
+    });
+    it('entries, cacheType refresh', function() {
+      return dm.model('to-do-list').entries({ cacheType: 'refresh' })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+      });
+    });
+    it('entryList, cacheType stale', function() {
+      return dm.model('to-do-list').entryList({ cacheType: 'stale' })
+      .then(function(list) {
+        expect(list.entries.length).to.be.equal(2);
+        expect(list).to.have.property('refreshedData');
+        return list.refreshedData.then(function(list2) {
+          expect(list2.entries.length).to.be.equal(2);
+        });
+      });
+    });
+    it('entries, cacheType stale', function() {
+      return dm.model('to-do-list').entries({ cacheType: 'stale' })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+      });
+    });
+    it('entries, filter exact', function() {
+      return dm.model('to-do-list').entries({
+        filter: {
+          _id: {
+            exact: 'V1EXdcJHl'
+          }
+        }
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(1);
+        expect(entries[0]).to.have.property('_id', 'V1EXdcJHl');
+      });
+    });
+    it('entries, filter search', function() {
+      return dm.model('to-do-list').entries({
+        filter: {
+          title: {
+            search: 'Single'
+          }
+        }
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(1);
+        expect(entries[0]).to.have.property('title', 'Single Item List');
+      });
+    });
+    it('entries, filter from', function() {
+      return dm.model('to-do-list').entries({
+        filter: {
+          _created: {
+            from: '2015-12-08T09:55:15.000Z'
+          }
+        }
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(1);
+        expect(entries[0]).to.have.property('_created', '2015-12-08T09:55:15.171Z');
+      });
+    });
+    it('entries, filter to', function() {
+      return dm.model('to-do-list').entries({
+        filter: {
+          _created: {
+            to: '2015-12-08T09:55:15.000Z'
+          }
+        }
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(1);
+        expect(entries[0]).to.have.property('_created', '2015-11-23T16:03:38.304Z');
+      });
+    });
+    it('entries, sort -', function() {
+      return dm.model('to-do-list').entries({
+        sort: [
+          '-created'
+        ]
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+        expect(entries[0]).to.have.property('_created', '2015-12-08T09:55:15.171Z');
+        expect(entries[1]).to.have.property('_created', '2015-11-23T16:03:38.304Z');
+      });
+    });
+    it('entries, sort implicit +', function() {
+      return dm.model('to-do-list').entries({
+        sort: [
+          'created'
+        ]
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+        expect(entries[0]).to.have.property('_created', '2015-11-23T16:03:38.304Z');
+        expect(entries[1]).to.have.property('_created', '2015-12-08T09:55:15.171Z');
+      });
+    });
+    it('entries, sort +', function() {
+      return dm.model('to-do-list').entries({
+        sort: [
+          '+created'
+        ]
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+        expect(entries[0]).to.have.property('_created', '2015-11-23T16:03:38.304Z');
+        expect(entries[1]).to.have.property('_created', '2015-12-08T09:55:15.171Z');
+      });
+    });
+    it('entries, size & page 1', function() { // TODO
+      return dm.model('to-do-item').entries({
+        size: 3,
+        page: 1
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(3);
+        expect(entries[0]._id).to.be.equal('4kt6UzOGBl');
+        expect(entries[1]._id).to.be.equal('41zp8Guzrx');
+        expect(entries[2]._id).to.be.equal('N1GJuenPEl');
+      });
+    });
+    it('entries, size & page 2', function() { // TODO
+      return dm.model('to-do-item').entries({
+        size: 3,
+        page: 2
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(3);
+        expect(entries[0]._id).to.be.equal('VkGhAPQ2Qe');
+        expect(entries[1]._id).to.be.equal('4JGrCvm27e');
+        expect(entries[2]._id).to.be.equal('V1G2TvQnXx');
+      });
+    });
+    it('entries, size & page 3', function() { // TODO
+      return dm.model('to-do-item').entries({
+        size: 3,
+        page: 3
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(1);
+        expect(entries[0]._id).to.be.equal('VkM8aPQnQe');
+      });
+    });
+    it('entries, page', function() { // TODO
+      return dm.model('to-do-item').entries({
+        page: 1
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(7);
+      });
+    });
+  });
 }
 
 describe('entry/entries', function() { // this is basically modelList
