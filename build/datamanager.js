@@ -5,10 +5,9 @@ var halfred = require('halfred');
 var locale = require('locale');
 var util = require('./util');
 
-var Asset = function(asset, dm, traversal) {
+var Asset = function(asset, dm) {
   this.value = asset;
   this._dm = dm;
-  this._traversal = traversal;
 };
 
 Asset.prototype.save = function() {
@@ -34,7 +33,6 @@ Asset.prototype.save = function() {
             return resolve(true);
           }
           asset.value = halfred.parse(JSON.parse(res.body));
-          asset._traversal = traversal;
           return resolve(asset);
         }).catch(reject);
       });
@@ -565,12 +563,12 @@ DataManager.prototype.asset = function(assetID) {
           if (body.hasOwnProperty('count') && body.hasOwnProperty('total')) {
             var asset = body.embeddedResource('ec:api/asset');
             if (asset) {
-              return resolve(new Asset(asset, dm, traversal));
+              return resolve(new Asset(asset, dm));
             } else {
               return reject(new Error('ec_sdk_no_match_due_to_filter'));
             }
           }
-          return resolve(new Asset(body, dm, traversal));
+          return resolve(new Asset(body, dm));
         }).catch(reject);
       });
     });
@@ -812,6 +810,36 @@ DataManager.prototype.logout = function() {
   this._rootTraversal = null;
 };
 
+DataManager.cloneEntry = function(entry) {
+  return new Entry(halfred.parse(JSON.parse(JSON.stringify(entry.value.original()))), entry._dm, entry._model);
+};
+
+DataManager.cloneEntries = function(entries) {
+  return entries.map(function(entry) {
+    return DataManager.cloneEntry(entry);
+  });
+};
+
+DataManager.cloneAsset = function(asset) {
+  return new Asset(halfred.parse(JSON.parse(JSON.stringify(asset.value.original()))), asset._dm);
+};
+
+DataManager.cloneAssets = function(assets) {
+  return assets.map(function(asset) {
+    return DataManager.cloneAsset(asset);
+  });
+};
+
+DataManager.cloneTag = function(tag) {
+  return new Tag(halfred.parse(JSON.parse(JSON.stringify(tag.value.original()))), tag._dm);
+};
+
+DataManager.cloneTags = function(tags) {
+  return tags.map(function(tag) {
+    return DataManager.cloneTag(tag);
+  })
+};
+
 DataManager.prototype._getTraversal = function() {
   var dm = this;
   return new Promise(function(resolve, reject) {
@@ -895,11 +923,10 @@ module.exports = DataManager;
 var halfred = require('halfred');
 var util = require('./util');
 
-var Entry = function(entry, dm, model, traversal) {
+var Entry = function(entry, dm, model) {
   this.value = entry;
   this._dm = dm;
   this._model = model;
-  this._traversal = traversal;
 };
 
 Entry.prototype.save = function() {
@@ -991,22 +1018,6 @@ var Asset = require('./Asset');
 var Entry = require('./Entry');
 var util = require('./util');
 
-/**
- * Promise wrapper for is-reachable. Checks if the given destinations are reachable over network.
- * @param {string|array} dests The destinations to check for reachability.
- * @returns {Promise}
- */
-function isReachable(dests) {
-  return new Promise(function(resolve, reject) {
-    isReachableLib(dests, function(onBrowerOKOnNodeNull, reachable) {
-      if (onBrowerOKOnNodeNull || reachable) {
-        return resolve();
-      }
-      return reject();
-    });
-  });
-};
-
 var Model = function(title, metadata, dm) {
   this.id = title;
   this.title = title;
@@ -1028,10 +1039,28 @@ Model.prototype.enableCache = function(maxCacheAge) {
   }.bind(this));
 };
 
+/**
+ * Promise wrapper for is-reachable. Checks if the given destinations are reachable over network.
+ * @param {string|array} dests The destinations to check for reachability.
+ * @returns {Promise}
+ */
+Model.prototype._isReachable = function(dests) {
+  return new Promise(function(resolve, reject) {
+    isReachableLib(dests, function(onBrowserOKOnNodeNull, reachable) {
+      /* istanbul ignore else */
+      if (onBrowserOKOnNodeNull || reachable) {
+        return resolve();
+      }
+      /* istanbul ignore next */ // is stubbed in tests
+      return reject();
+    });
+  });
+};
+
 Model.prototype._loadData = function(force) {
   return Promise.resolve()
   .then(function() {
-    return isReachable(this._dm.url)
+    return this._isReachable(this._dm.url)
     .catch(function() {
       if (this._items.data.length > 0) {
         console.warn('Network unreachable. Loading cached data for model ' + this.title + '.');
@@ -1299,7 +1328,7 @@ Model.prototype.createEntry = function(entry) {
           if (res.statusCode === 204) {
             return resolve(true);
           }
-          return resolve(new Entry(halfred.parse(JSON.parse(res.body)), model._dm, model, traversal));
+          return resolve(new Entry(halfred.parse(JSON.parse(res.body)), model._dm, model));
         }, reject);
       });
     });
@@ -1431,11 +1460,10 @@ module.exports = Tag;
 'use strict';
 
 // TODO document
-var User = function(isAnon, user, dm, traversal) {
+var User = function(isAnon, user, dm) {
   this.value = user;
   this._isAnon = isAnon;
   this._dm = dm;
-  this._traversal = traversal;
 };
 
 // TODO document
@@ -1446,6 +1474,7 @@ User.prototype.logout = function() {
     if (user._isAnon) {
       user._dm.accessToken = undefined;
       user._dm._user = undefined;
+      user._dm._rootTraversal = undefined;
       return resolve();
     }
     /* istanbul ignore next */
