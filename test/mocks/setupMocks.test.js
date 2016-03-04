@@ -12,7 +12,7 @@ if (isNode) {
     ;
   _.isEmpty = require('lodash.isempty');
 
-  before(function(done) { // global before hook: swap axios for axios mock
+  before(function(done) {
     var dmMock = nock('https://datamanager.entrecode.de');
     var baseDM = path.resolve(__dirname, 'datamanager');
     var walker = walk.walk(baseDM);
