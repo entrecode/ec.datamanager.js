@@ -12,9 +12,9 @@ if (isNode) { // require only in node, frontend knows things. ;)
     , sinon = require('sinon')
 
     , DataManager = require('../lib/DataManager.js')
-    , Model = require('../lib/Model.js');
+    , Model = require('../lib/Model.js')
 
-  ;
+    ;
 
   var baseUrl = 'https://datamanager.entrecode.de/api/';
 } else {
@@ -1126,11 +1126,20 @@ describe('entry/entries', function() { // this is basically modelList
       expect(entries.length).to.be.equal(1);
     });
   });
-  it('get entries, list multiple item', function() {
+  it('get entries, list multiple item, cloning', function() {
     return dm.model('to-do-item').entries().then(function(entries) {
       expect(entries).to.be.ok;
       expect(entries).to.be.instanceOf(Array);
       expect(entries.length).to.be.at.least(4);
+      expect(entries[0].value.title).to.be.equal('Beef');
+      var clonedEntries = DataManager.cloneEntries(entries);
+      expect(clonedEntries).to.be.ok;
+      expect(clonedEntries).to.be.instanceOf(Array);
+      expect(clonedEntries.length).to.be.at.least(4);
+      expect(clonedEntries[0].value.title).to.be.equal('Beef');
+      clonedEntries[0].value.title = 'Turkey';
+      expect(clonedEntries[0].value.title).to.be.equal('Turkey');
+      expect(entries[0].value.title).to.be.equal('Beef');
     });
   });
   it('get entries, then single (tests _getTraversal)', function() {
@@ -1501,11 +1510,20 @@ describe('asset/assets', function() {
   afterEach(function() {
     dm = null;
   });
-  it('get assets, list multiple items', function() {
+  it('get assets, list multiple items, cloning', function() {
     return dm.assets().then(function(assets) {
       expect(assets).to.be.ok;
       expect(assets).to.be.instanceOf(Array);
       expect(assets.length).to.be.equal(3);
+      expect(assets[0].value.title).to.be.equal('anotherhardday');
+      var clonedAssets = DataManager.cloneAssets(assets);
+      expect(clonedAssets).to.be.ok;
+      expect(clonedAssets).to.be.instanceOf(Array);
+      expect(clonedAssets.length).to.be.equal(3);
+      expect(clonedAssets[0].value.title).to.be.equal('anotherhardday');
+      clonedAssets[0].value.title = 'beinginvacationisawesome';
+      expect(clonedAssets[0].value.title).to.be.equal('beinginvacationisawesome');
+      expect(assets[0].value.title).to.be.equal('anotherhardday');
     });
   });
   it('get assets, list single item', function() {
@@ -1875,11 +1893,20 @@ describe('tag/tags', function() {
   afterEach(function() {
     dm = null;
   });
-  it('get tags, list multiple items', function() {
+  it('get tags, list multiple items, cloning', function() {
     return dm.tags().then(function(tags) {
       expect(tags).to.be.ok;
       expect(tags).to.be.instanceOf(Array);
       expect(tags.length).to.be.equal(2);
+      expect(tags[0].value.tag).to.be.equal('work-memes');
+      var clonedTags = DataManager.cloneTags(tags);
+      expect(clonedTags).to.be.ok;
+      expect(clonedTags).to.be.instanceOf(Array);
+      expect(clonedTags.length).to.be.equal(2);
+      expect(clonedTags[0].value.tag).to.be.equal('work-memes');
+      clonedTags[0].value.tag = 'fex-memes';
+      expect(clonedTags[0].value.tag).to.be.equal('fex-memes');
+      expect(tags[0].value.tag).to.be.equal('work-memes');
     });
   });
   it('get tags, list single item', function() {
