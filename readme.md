@@ -239,6 +239,7 @@ dataManager.model('myModel').entryList({ cacheType: 'stale' })
 dataManager.model('myModel').entries({size: 0, sort: ['property' , '-date']})
 .then(function(entries) {
   console.log(entries); // success! array of Entries
+  var clonedEntries = DataManager.cloneEntries(entries); // clones entry objects.
 }, errorHandler);
 ```
 
@@ -255,6 +256,7 @@ dataManager.model('myModel').entry('my7fmeXh')
 dataManager.model('myModel').entry('my7fmeXh', 2}) // since 0.6.0 no longer object
 .then(function(entry) {
   console.log(entry); // success! an Entry
+  var clonedEntry = DataManager.cloneEntry(entry); // clones entry object.
 }, errorHandler);
 ```
 
@@ -466,6 +468,7 @@ dataManager.assetList()
 dataManager.assets()
 .then(function(assets) {
   console.log(assets); // array with assets
+  var clonedAssets = DataManager.cloneAssets(assets); // clones assets objects.
 }, errorHandler);
 ```
 
@@ -475,6 +478,7 @@ dataManager.assets()
 dataManager.asset('46092f02-7441-4759-b6ff-8f3831d3da4b')
 .then(function(asset) {
   console.log(asset); // the Asset
+  var clonedAsset = DataManager.cloneAsset(asset); // clones asset objects.
 }, errorHandler);
 ```
 
@@ -591,6 +595,7 @@ dataManager.tagList()
 dataManager.tags()
 .then(function(tags){
   console.log(tags); // array of tags
+  var clonedTags = DataManager.cloneTags(tags); // clones tags objects.
 }, errorHanlder);
 ```
 
@@ -599,6 +604,7 @@ dataManager.tags()
 dataManager.tag('tag1')
 .then(function(tag){
   console.log(tag); // tag
+  var clonedTag = DataManager.cloneTag(tag); // clones tag objects.
 }).catch(function(error){
   console.log(error); // error getting tag
 });
@@ -691,6 +697,14 @@ Example: The source image has a largest edge of 3000 pixels. `getImageURL(id, 10
 returns an image thumbnail (square cropped). `size` is required and states the size in pixels the thumbnail square edge should have at least.
 
 Note that the image may still be smaller if the original image is smaller than `size`. Optionally, a specific `locale` can be requested. The promise is getting rejected if no file is found. The following sizes are being returned: 50, 100, 200, 400
+
+##### `cloneEntries(entries)`, `cloneAssets(assets)`, `cloneTags(tags)`
+
+returns a cloned copy of `entries`, `assets`, or `tags`.
+
+##### `cloneEntry(entry)`, `cloneAsset(asset)`, `cloneTag(tag)`
+
+returns a cloned copy of the `entrie`, `asset`, or `tag`.
 
 
 #### DataManager Instance Methods
@@ -1041,6 +1055,7 @@ grunt build
 - cache entries with [LokiJS](http://lokijs.org/)
 - cache functionality has to be enable per model basis with `enableCache(…)`
 - IMPORTANT: if cache is enabled ALL entries of the model will be loaded
+- adds clone functions for assets, tags, and entries
 
 ### 0.7.4
 - removes lodash dependency
