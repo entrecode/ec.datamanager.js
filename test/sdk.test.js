@@ -9,10 +9,12 @@ if (isNode) { // require only in node, frontend knows things. ;)
     , path = require('path')
     , traverson = require('traverson')
     , TraversonJsonHalAdapter = require('traverson-hal')
+    , sinon = require('sinon')
 
     , DataManager = require('../lib/DataManager.js')
+    , Model = require('../lib/Model.js');
 
-    ;
+  ;
 
   var baseUrl = 'https://datamanager.entrecode.de/api/';
 } else {
@@ -1055,6 +1057,47 @@ if (isNode) {
       })
       .then(function(entries) {
         expect(entries.length).to.be.equal(7);
+      });
+    });
+  });
+
+  describe('offline detection', function() {
+    var dm;
+    var stub;
+    before(function(done) {
+      dm = new DataManager({
+        url: baseUrl + '58b9a1f5'
+      });
+      dm.enableCache([
+        'to-do-list'
+      ])
+      .then(function() {
+        stub = sinon.stub(Model.prototype, '_isReachable', function(dests) {
+          return Promise.reject();
+        });
+        done();
+      })
+      .catch(done);
+    });
+    after(function(done) {
+      dm = null;
+      stub.restore();
+      fs.unlink(path.resolve(__dirname, '..', '58b9a1f5.db.json'), done);
+    });
+    it('entries loaded from cache', function() {
+      return dm.model('to-do-list').entries({ cacheType: 'refresh' })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+      });
+    });
+    it('set model offline when not reachable', function() {
+      return dm.model('to-do-item').enableCache()
+      .then(function() {
+        throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+      })
+      .catch(function(err) {
+        expect(err).to.be.ok;
+        expect(err.message).to.be.equal('Network unreachable. No cached data available for model to-do-item.');
       });
     });
   });
