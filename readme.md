@@ -1057,6 +1057,9 @@ grunt build
 - IMPORTANT: if cache is enabled ALL entries of the model will be loaded
 - adds clone functions for assets, tags, and entries
 
+### 0.7.5
+- fix for asset file helper and gif (speak: gif) files (CMS-2022)
+
 ### 0.7.4
 - removes lodash dependency
 - shiro-trie version without lodash dependency

@@ -1,0 +1,45 @@
+{
+  "qs": {
+    "assetID": "321de232-0cc6-46e8-82f7-2a7573c5134c"
+  },
+  "req": {},
+  "res": {
+    "assetID": "321de232-0cc6-46e8-82f7-2a7573c5134c",
+    "created": "2016-03-14T11:59:11.551Z",
+    "files": [
+      {
+        "url": "https://cdn2.entrecode.de/files/58b9a1f5/qaRs3a9dFiiu_Mq7P0R7gG2e.gif",
+        "mimetype": "image/gif",
+        "size": 465604,
+        "resolution": {
+          "width": 320,
+          "height": 240
+        },
+        "locale": null,
+        "created": "2016-03-14T11:59:11.455+00:00",
+        "modified": "2016-03-14T11:59:11.455+00:00",
+        "assetID": "321de232-0cc6-46e8-82f7-2a7573c5134c"
+      }
+    ],
+    "tags": [],
+    "title": "slack-imgs",
+    "type": "image",
+    "_links": {
+      "collection": {
+        "href": "https://datamanager.entrecode.de/asset/58b9a1f5"
+      },
+      "ec:asset/best-file": {
+        "href": "https://datamanager.entrecode.de/files/321de232-0cc6-46e8-82f7-2a7573c5134c{?size,thumb}",
+        "templated": true
+      },
+      "self": {
+        "href": "https://datamanager.entrecode.de/asset/58b9a1f5?assetID=321de232-0cc6-46e8-82f7-2a7573c5134c",
+        "title": "slack-imgs"
+      },
+      "curies": {
+        "href": "https://doc.entrecode.de/data_manager/#relation-{rel}",
+        "templated": true
+      }
+    }
+  }
+}
