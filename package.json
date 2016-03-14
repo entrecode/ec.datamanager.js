@@ -58,7 +58,7 @@
     "mocha": "2.4.5",
     "mocha-bamboo-reporter": "1.1.0",
     "nock": "7.2.2",
-    "phantomjs-prebuilt": "2.1.4",
+    "phantomjs-prebuilt": "2.1.5",
     "sinon": "1.17.3",
     "walk": "2.3.9"
   },
