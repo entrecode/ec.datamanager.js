@@ -10466,8 +10466,6 @@ module.exports = isObject;
  */
 var isObject = require('./is-object');
 
-var FormData = require('form-data'); // browserify compatible
-
 /**
  * Clear previous timeout.
  *
@@ -10626,7 +10624,10 @@ exports.unset = function(field){
  * @api public
  */
 exports.field = function(name, val) {
-  if (!this._formData) this._formData = new FormData();
+  if (!this._formData) {
+    var FormData = require('form-data'); // browserify compatible. May throw if FormData is not supported natively.
+    this._formData = new FormData();
+  }
   this._formData.append(name, val);
   return this;
 };
