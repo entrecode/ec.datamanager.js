@@ -210,7 +210,7 @@ var DataManager = function(options) {
   if (!options || (!options.hasOwnProperty('url') && !options.hasOwnProperty('id'))) {
     throw new Error('ec_sdk_no_url_or_id_set');
   }
-  if (options.hasOwnProperty('url')) {
+  if (options.hasOwnProperty('url') && options.url !== null) {
     this.url = options.url;
   } else {
     this.id = options.id;

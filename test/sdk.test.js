@@ -140,6 +140,15 @@ describe('datamanager constructor', function() {
     expect(dm).to.have.property('clientID', 'test');
     return done();
   });
+  it('from id with url null', function(done) {
+    var dm = new DataManager({
+      url: null,
+      id: '58b9a1f5'
+    });
+    expect(dm).to.be.instanceOf(DataManager);
+    expect(dm).to.have.property('url', 'https://datamanager.entrecode.de/api/58b9a1f5');
+    return done();
+  });
   it('fails if illegal url is given', function(done) {
     expect(function() {
       new DataManager({
