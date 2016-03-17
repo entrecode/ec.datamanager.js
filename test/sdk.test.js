@@ -62,7 +62,7 @@ describe('tests for working mocks', function() {
     return traverson.from(baseUrl + '58b9a1f5')
     .jsonHal()
     .follow('58b9a1f5:to-do-list')
-    .withTemplateParameters({_id: '4JMjeO737e'})
+    .withTemplateParameters({ _id: '4JMjeO737e' })
     .getResource(function(err, res, traversal) {
       expect(err).to.be.not.ok;
       expect(res).to.be.ok;
@@ -134,6 +134,15 @@ describe('datamanager constructor', function() {
     expect(dm).to.have.property('url', 'https://datamanager.entrecode.de/api/58b9a1f5');
     expect(dm).to.have.property('id', '58b9a1f5');
     expect(dm).to.have.property('clientID', 'test');
+    return done();
+  });
+  it('from id with url null', function(done) {
+    var dm = new DataManager({
+      url: null,
+      id: '58b9a1f5'
+    });
+    expect(dm).to.be.instanceOf(DataManager);
+    expect(dm).to.have.property('url', 'https://datamanager.entrecode.de/api/58b9a1f5');
     return done();
   });
   it('fails if illegal url is given', function(done) {
@@ -1328,7 +1337,7 @@ describe('tag/tags', function() {
   it('no tag name', function() {
     return dm.tag().then(function(result) {
       throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
-    }, function(err){
+    }, function(err) {
       expect(err).to.be.ok;
       expect(err).to.have.property('message', 'ec_sdk_no_tag_name_provided');
     });
