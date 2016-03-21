@@ -318,7 +318,7 @@ dataManager.model('myModel').entry('f328af3')
 ```
 
 #### Get Title of Entry
-Returns the title of any nested entry in the entry. Only works when the entry was received using levels.
+Returns the title of any nested entry in the entry.
 
 Example:
 
@@ -326,6 +326,8 @@ Example:
 dataManager.model('myModel).entry('f328af3', 2')
 .then(function(entry) {
   console.log(entry.getTitle('child')); // prints the title of the child 'child'
+  // is String for entry
+  // is Array of String for entries
 }, errorHandler);
 ```
 
