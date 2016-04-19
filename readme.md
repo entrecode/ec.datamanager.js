@@ -331,6 +331,18 @@ dataManager.model('myModel).entry('f328af3', 2')
 }, errorHandler);
 ```
 
+#### Get Model Name of Entry
+Returns the model title of any nested entry in the entry.
+
+Example:
+
+```js
+dataManager.model('myModel).entry('f328af3', 2')
+.then(function(entry) {
+  console.log(entry.getModelTitle('child')); // prints the model title of the child 'child'
+}, errorHandler);
+```
+
 ### Users in the SDK
 #### Register Anonymous User.
 
@@ -904,6 +916,31 @@ dataManager.model('myModel').entry('f328af3')
   console.log('deleted');
 });
 ```
+##### getTitle(String)
+gets the title of any child entry identified by `String`. Will return `String` for single types and `Array<String>` for multiple types.
+
+Example:
+
+```js
+dataManager.model('myModel).entry('f328af3', 2')
+.then(function(entry) {
+  console.log(entry.getTitle('child')); // prints the title of the child 'child'
+  // is String for entry
+  // is Array of String for entries
+}, errorHandler);
+```
+
+##### getModelTitle(String)
+gets the model title of any child entry identified by `String`.
+
+Example:
+
+```js
+dataManager.model('myModel).entry('f328af3', 2')
+.then(function(entry) {
+  console.log(entry.getModelTitle('child')); // prints the model title of the child 'child'
+}, errorHandler);
+```
 
 ### Asset object
 #### Connecting an Asset
@@ -1058,6 +1095,7 @@ grunt build
 - cache functionality has to be enable per model basis with `enableCache(…)`
 - IMPORTANT: if cache is enabled ALL entries of the model will be loaded
 - adds clone functions for assets, tags, and entries
+- adds getModelTitle(…) to Entry CMS-2069
 
 ### 0.7.6
 - fix for creating a sdk with `{url: null, id: 'beefbeef'}` (CMS-2029)
