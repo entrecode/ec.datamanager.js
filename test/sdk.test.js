@@ -1387,6 +1387,18 @@ describe('entry/entries', function() { // this is basically modelList
       expect(title).to.be.equal('NewItem');
     });
   });
+  it('get model title', function() {
+    return dm.model('to-do-list').entry('4JMjeO737e').then(function(entry) {
+      var title = entry.getModelTitle('list-items');
+      expect(title).to.be.equal('to-do-item');
+    });
+  });
+  it('get model title single link', function() {
+    return dm.model('to-do-list').entry('V1EXdcJHl').then(function(entry) {
+      var title = entry.getModelTitle('list-items');
+      expect(title).to.be.equal('to-do-item');
+    });
+  });
   it('500 error', function() {
     return dm.model('to-do-item').entries({
       filter: {
