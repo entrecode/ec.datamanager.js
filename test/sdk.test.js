@@ -526,7 +526,7 @@ if (isNode) {
       dm.enableCache([
         'to-do-item',
         'to-do-list'
-      ], -1)
+      ], DataManager.DB_NODEJS, -1)
       .then(function() {
         done();
       })
@@ -710,7 +710,7 @@ if (isNode) {
       dm.enableCache([
         'to-do-item',
         'to-do-list'
-      ], 120000)
+      ], DataManager.DB_NODEJS, 120000)
       .then(function() {
         done();
       })

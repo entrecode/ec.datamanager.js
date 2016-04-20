@@ -130,12 +130,12 @@ dataManager.can('myModel:delete')
 #### Enable Cache
 
 ```js
-dataManager.enableCache('myModel')…
+dataManager.enableCache('myModel', DataManager.DB_NODEJS)…
 // OR
 dataManager.enableCache([
   'myModel',
   'myOtherModel'
-])
+], DataManager.DB_BROWSER, 3600)
 .then(function(models){
   console.log(models); // Array of LokiJS collections
   models[0].find({ lokiJS: 'doesThis' });
@@ -169,7 +169,7 @@ dataManager.model('myModel').resolve()
 #### Model enable cache
 
 ```js
-dataManager.model('myModel').enableCache(3600)
+dataManager.model('myModel').enableCache(DataManager.DB_NODEJS, 3600)
 .then(function(lokiJSCollection){
   lokiJSCollection.find({ lokiJS: 'doesThis' });
 }, errorHandler);
@@ -722,7 +722,7 @@ returns a cloned copy of the `entrie`, `asset`, or `tag`.
 
 
 #### DataManager Instance Methods
-##### `enableCache(stringOrArray[, maxCacheAge])`
+##### `enableCache(stringOrArray[, lokiJsEnv[, maxCacheAge]])`
 enables caching for the given models. Either one model title (`String`) or multiple model titles (`Array`). returns a Promise which resolves to a array of LokiJS collections.
 
 ##### `asset(identifier)`
@@ -793,6 +793,9 @@ Checks if the currently connected Data Manager is able to perform `permission`. 
 * `url` The url of the connected Data Manager.
 * `clientID` ClientID which will be used to generate authLinks, or `null`/`undefined` if not set.
 * `errorHandler` The global errorHandler for all erorrs which can occur.
+* `DB_NODEJS` LokiJS env for node.
+* `DB_CORDOVA` LokiJS env for cordova.
+* `DB_BROWSER` LokiJS env for browsers.
 
 ### Model object
 #### Connecting a Model
@@ -802,7 +805,7 @@ var myModel = dataManager.model('myModel');
 returns Model Object which is a promise.
 
 #### Model Instance Methods
-##### `enableCache([maxCacheAge])`
+##### `enableCache([lokiJsEnv [, maxCacheAge])`
 enables caching for the connected model with `maxCacheAge` (in ms). Returns a Promise which resolves to a LokiJS collection.
 
 ##### `entries(options)`/`entryList(options)`
