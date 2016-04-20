@@ -55,6 +55,14 @@ module.exports = function(config) {
     //browsers: ['Safari'],  // install launcher
     browsers: ['PhantomJS'],
 
+    customLaunchers: {
+      'PhantomJS_custom': {
+        base: 'PhantomJS',
+        flags: ['--remote-debugger-port=9000'],
+        debug: true
+      }
+    },
+
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits
     singleRun: true

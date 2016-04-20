@@ -17,7 +17,9 @@ if (isNode) { // require only in node, frontend knows things. ;)
     ;
 
   var baseUrl = 'https://datamanager.entrecode.de/api/';
+  var lokiEnv = DataManager.DB_NODEJS;
 } else {
+  var lokiEnv = DataManager.DB_BROWSER;
   var baseUrl = 'http://localhost:54815/datamanager/api/';
 }
 traverson.registerMediaType(TraversonJsonHalAdapter.mediaType, TraversonJsonHalAdapter);
@@ -285,7 +287,7 @@ if (isNode) {
       });
     });
   });
-
+  
   describe('best file routes', function() {
     var dm;
     before(function() {
@@ -493,14 +495,14 @@ if (isNode) {
       dm = null;
     });
     it('make single model offline by dm', function() {
-      return dm.enableCache('to-do-list').then(function(models) {
+      return dm.enableCache('to-do-list', lokiEnv).then(function(models) {
         expect(dm._cacheMetaData).to.be.a('object');
         expect(models[0]).to.be.a('object');
         expect(models[0].name).to.be.equal('to-do-list');
       });
     });
     it('make single model offline by model', function() {
-      return dm.model('to-do-list').enableCache().then(function(model) {
+      return dm.model('to-do-list').enableCache(lokiEnv).then(function(model) {
         expect(dm._cacheMetaData).to.be.a('object');
         expect(model).to.be.a('object');
         expect(model.name).to.be.equal('to-do-list');
@@ -510,10 +512,10 @@ if (isNode) {
       return dm.enableCache([
         'to-do-list',
         'to-do-item'
-      ]).then(function(models) {
+      ], lokiEnv).then(function(models) {
         expect(models).to.be.a('array');
         expect(models.length).to.be.equal(2);
-      }).catch();
+      });
     });
   });
 
@@ -526,7 +528,7 @@ if (isNode) {
       dm.enableCache([
         'to-do-item',
         'to-do-list'
-      ], DataManager.DB_NODEJS, -1)
+      ], lokiEnv, -1)
       .then(function() {
         done();
       })
@@ -534,7 +536,11 @@ if (isNode) {
     });
     after(function(done) {
       dm = null;
-      fs.unlink(path.resolve(__dirname, '..', '58b9a1f5.db.json'), done);
+      if (isNode) {
+        fs.unlink(path.resolve(__dirname, '..', '58b9a1f5.db.json'), done);
+      } else {
+        done();
+      }
     });
     it('entries, no cacheType', function() {
       return dm.model('to-do-list').entries()
@@ -710,7 +716,7 @@ if (isNode) {
       dm.enableCache([
         'to-do-item',
         'to-do-list'
-      ], DataManager.DB_NODEJS, 120000)
+      ], lokiEnv, 120000)
       .then(function() {
         done();
       })
@@ -718,7 +724,11 @@ if (isNode) {
     });
     after(function(done) {
       dm = null;
-      fs.unlink(path.resolve(__dirname, '..', '58b9a1f5.db.json'), done);
+      if (isNode) {
+        fs.unlink(path.resolve(__dirname, '..', '58b9a1f5.db.json'), done);
+      } else {
+        done();
+      }
     });
     it('entries, no cacheType', function() {
       return dm.model('to-do-list').entries()
@@ -894,7 +904,7 @@ if (isNode) {
       dm.enableCache([
         'to-do-item',
         'to-do-list'
-      ])
+      ], lokiEnv)
       .then(function() {
         done();
       })
@@ -902,7 +912,11 @@ if (isNode) {
     });
     after(function(done) {
       dm = null;
-      fs.unlink(path.resolve(__dirname, '..', '58b9a1f5.db.json'), done);
+      if (isNode) {
+        fs.unlink(path.resolve(__dirname, '..', '58b9a1f5.db.json'), done);
+      } else {
+        done();
+      }
     });
     it('entries, no cacheType', function() {
       return dm.model('to-do-list').entries()
@@ -1079,7 +1093,7 @@ if (isNode) {
       });
       dm.enableCache([
         'to-do-list'
-      ])
+      ], lokiEnv)
       .then(function() {
         stub = sinon.stub(Model.prototype, '_isReachable', function(dests) {
           return Promise.reject();
@@ -1100,7 +1114,7 @@ if (isNode) {
       });
     });
     it('set model offline when not reachable', function() {
-      return dm.model('to-do-item').enableCache()
+      return dm.model('to-do-item').enableCache(lokiEnv)
       .then(function() {
         throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
       })
@@ -1684,7 +1698,7 @@ describe('asset/assets', function() {
       expect(assets.assets.length).to.be.equal(0);
     });
   });
-
+  
   if (isNode) {
     it('create asset, node', function() {
       return dm.createAsset(__dirname + '/whynotboth.jpg').then(function(assets) {
@@ -1813,7 +1827,7 @@ describe('asset best file helper', function() {
       expect(asset.getImageThumbUrl(100, 'de-DE')).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/qaRs3a9dFiiu_Mq7P0R7gG2e.gif');
     });
   });
-
+  
   describe('image', function() {
     var dm;
     var asset;
