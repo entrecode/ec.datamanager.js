@@ -1690,7 +1690,6 @@ describe('asset/assets', function() {
       return dm.createAsset(__dirname + '/whynotboth.jpg').then(function(assets) {
         expect(assets).to.be.instanceOf(Array);
         expect(assets.length).to.be.equal(1);
-        expect(assets[0]).to.be.instanceOf(Promise);
         return assets[0].then(function(asset) {
           expect(asset).to.be.ok;
           expect(asset).to.be.instanceOf(Object);
@@ -1704,7 +1703,6 @@ describe('asset/assets', function() {
       return dm.createAsset([__dirname + '/whynotboth.jpg', __dirname + '/whynotboth.jpg']).then(function(assets) {
         expect(assets).to.be.instanceOf(Array);
         expect(assets.length).to.be.equal(1);
-        expect(assets[0]).to.be.instanceOf(Promise);
         return assets[0].then(function(asset) {
           expect(asset).to.be.ok;
           expect(asset).to.be.instanceOf(Object);
@@ -2222,7 +2220,7 @@ describe('user management', function() {
     });
     it('model resolve, then register', function() {
       return dm.model('to-do-list').resolve().then(function() {
-        dm.registerAnonymous().then(function(user) {
+        return dm.registerAnonymous().then(function(user) {
           expect(user).to.be.ok;
           expect(dm).to.have.property('_user');
           expect(dm).to.have.property('accessToken')
