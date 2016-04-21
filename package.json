@@ -42,7 +42,7 @@
     "grunt": "0.4.5",
     "grunt-browserify": "5.0.0",
     "grunt-contrib-uglify": "1.0.1",
-    "grunt-express-server": "0.5.2",
+    "grunt-express-server": "0.5.3",
     "grunt-karma": "0.12.2",
     "grunt-mocha-test": "0.12.7",
     "grunt-run": "0.5.2",
