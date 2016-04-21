@@ -717,6 +717,14 @@ if (isNode) {
         expect(entries.length).to.be.equal(7);
       });
     });
+    it('entries, size 0', function() { // TODO
+      return dm.model('to-do-item').entries({
+        size: 0
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(7);
+      });
+    });
   });
   describe('cache data age: 120000', function() {
     var dm;
