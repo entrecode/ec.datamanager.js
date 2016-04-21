@@ -2129,6 +2129,11 @@ describe('tag/tags', function() {
         expect(tag).to.be.ok;
         expect(tag).to.have.property('value');
         expect(tag.value).to.have.property('tag', 'workmemes');
+        return tag.save().then(function(tag) {
+          expect(tag).to.be.ok;
+          expect(tag).to.have.property('value');
+          expect(tag.value).to.have.property('tag', 'workmemes');
+        });
       });
     });
   });
