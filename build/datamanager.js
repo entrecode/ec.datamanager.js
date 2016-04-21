@@ -946,12 +946,6 @@ DataManager.prototype._makeDB = function(env) {
       autosaveInterval: 5000,
       autoload: true,
       autoloadCallback: function(err) {
-        if (err) {
-          this._db = new loki(this.id + '.db.json', {
-            env: env,
-            autosaveInterval: 5000
-          });
-        }
         return resolve(this._db);
       }.bind(this)
     });
@@ -1346,11 +1340,6 @@ Model.prototype._getTraversal = function() {
 Model.prototype._ensureNotStale = function() {
   var maxAge = new Date().getTime() - this._maxAge;
   var metadata = this._dm._cacheMetaData.find({ title: this.title })[0];
-  if (!metadata) {
-    metadata = {
-      created: Number.MAX_VALUE
-    }
-  }
   var created = new Date(metadata.created).getTime();
   if (created < maxAge) {
     return Promise.resolve(this._items);
@@ -1370,6 +1359,7 @@ Model.prototype._loadData = function(force) {
     return this._load();
   }.bind(this))
   .catch(function(error) {
+    /* istanbul ignore else */
     if (error.message === 'offline') {
       if (this._items.data.length > 0) {
         console.warn('Network unreachable. Loading cached data for model ' + this.title + '.');
@@ -1377,6 +1367,7 @@ Model.prototype._loadData = function(force) {
       }
       return Promise.reject(new Error('Network unreachable. No cached data available for model ' + this.title + '.'));
     }
+    /* istanbul ignore next */
     return Promise.reject(error);
   }.bind(this));
 };
