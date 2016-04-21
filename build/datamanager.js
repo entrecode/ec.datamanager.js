@@ -500,16 +500,26 @@ DataManager.prototype.modelList = function() {
 };
 
 DataManager.prototype.enableCache = function(models, env, maxCacheAge) {
-  if (typeof models === 'string') {
-    models = [models];
-  }
-  for (var i = 0; i < models.length; i++) {
-    models[i] = this.model(models[i]).enableCache(env, maxCacheAge);
-  }
-  
   return this._makeDB(env).then(function() {
-    return Promise.all(models);
-  });
+    var promises = [];
+    if (typeof models === 'string') {
+      models = [models];
+    }
+    if (Array.isArray(models)) {
+      models.map(function(model) {
+        promises.push(this.model(model).enableCache(env, maxCacheAge));
+      }.bind(this));
+    } else {
+      for (var key in models) {
+        /* istanbul ignore else */
+        if (models.hasOwnProperty(key)) {
+          promises.push(this.model(key).enableCache(env, models[models[key]]));
+        }
+      }
+    }
+
+    return Promise.all(promises);
+  }.bind(this));
 };
 
 DataManager.prototype.model = function(title, metadata) {
@@ -624,6 +634,7 @@ DataManager.prototype.createAsset = function(input) {
     
     return new Promise(function(resolve, reject) {
       req.end(function(err, res) {
+        /* istanbul ignore if */
         if (err) {
           return reject(err);
         }
@@ -922,31 +933,28 @@ DataManager.prototype._requestOptions = function(additionalHeaders) {
 };
 
 DataManager.prototype._makeDB = function(env) {
-  if (this._db) {
+  /* istanbul ignore next */
+  if (!env) {
+    env = DataManager.DB_NODEJS;
+  }
+  if (this._db && this._cacheMetaData) {
     return Promise.resolve(this._db);
   }
-  this._db = new loki(this.id + '.db.json', {
-    autosave: true,
-    autosaveInterval: 30000,
-    env: env || DataManager.DB_NODEJS
-  });
   return new Promise(function(resolve, reject) {
-    this._db.loadDatabase({}, function(err) {
-      if (err && err.message.indexOf('ENOENT') !== -1) {
-        return this._db.saveDatabase(function(err) {
-          /* istanbul ignore if */
-          if (err) {
-            return reject(err);
-          }
-          return resolve(this._db);
-        }.bind(this));
-      }
-      /* istanbul ignore if */
-      if (err) {
-        return reject(err);
-      }
-      return resolve(this._db);
-    }.bind(this));
+    this._db = new loki(this.id + '.db.json', {
+      env: env,
+      autosaveInterval: 5000,
+      autoload: true,
+      autoloadCallback: function(err) {
+        if (err) {
+          this._db = new loki(this.id + '.db.json', {
+            env: env,
+            autosaveInterval: 5000
+          });
+        }
+        return resolve(this._db);
+      }.bind(this)
+    });
   }.bind(this))
   .then(function(db) {
     this._cacheMetaData = db.getCollection('_metadata');
@@ -1089,7 +1097,8 @@ var Model = function(title, metadata, dm) {
 };
 
 Model.prototype.enableCache = function(env, maxCacheAge) {
-  return this._dm._makeDB(env).then(function(db) {
+  return this._dm._makeDB(env)
+  .then(function(db) {
     this._maxAge = maxCacheAge || 600000;
     this._items = db.getCollection(this.title) || db.addCollection(this.title, {
         indices: [
@@ -1097,117 +1106,9 @@ Model.prototype.enableCache = function(env, maxCacheAge) {
           '_entryTitle'
         ]
       });
+    this._dm._modelCache[this.title] = this;
     return this._loadData();
   }.bind(this));
-};
-
-/**
- * Promise wrapper for is-reachable. Checks if the given destinations are reachable over network.
- * @param {string|array} dests The destinations to check for reachability.
- * @returns {Promise}
- */
-Model.prototype._isReachable = function(dests) {
-  return new Promise(function(resolve, reject) {
-    isReachableLib(dests, function(onBrowserOKOnNodeNull, reachable) {
-      /* istanbul ignore else */
-      if (onBrowserOKOnNodeNull || reachable) {
-        return resolve();
-      }
-      /* istanbul ignore next */ // is stubbed in tests
-      return reject();
-    });
-  });
-};
-
-Model.prototype._loadData = function(force) {
-  return Promise.resolve()
-  .then(function() {
-    return this._isReachable('google.de')
-    .catch(function() {
-      if (this._items.data.length > 0) {
-        console.warn('Network unreachable. Loading cached data for model ' + this.title + '.');
-        return Promise.resolve(this._items);
-      }
-      return Promise.reject(new Error('Network unreachable. No cached data available for model ' + this.title + '.'));
-    }.bind(this))
-    .then(function() {
-      if (this._items.data.length > 0 && !force) {
-        return Promise.resolve(this._items);
-      }
-      return this._getTraversal()
-      .then(function(traversal) {
-        return new Promise(function(resolve, reject) {
-          traversal.continue().newRequest()
-          .follow(this._dm.id + ':' + this.title)
-          .withRequestOptions(this._dm._requestOptions())
-          .withTemplateParameters({ size: 0 })
-          .get(function(err, res) {
-            return util.checkResponse(err, res)
-            .then(function(res) {
-              var body = halfred.parse(JSON.parse(res.body));
-              var entries = body.embeddedResourceArray(this._dm.id + ':' + this.title);
-              this._items.removeDataOnly();
-              for (var i = 0; i < entries.length; i++) {
-                this._items.insert(entries[i].original());
-              }
-              this._dm._cacheMetaData.removeWhere({ title: this.title });
-              this._dm._cacheMetaData.insert({
-                title: this.title,
-                etag: res.headers.etag,
-                created: new Date().toISOString()
-              });
-              this._dm._db.save(function(err) {
-                /* istanbul ignore if */
-                if (err) {
-                  return reject(err);
-                }
-                return resolve(this._items);
-              }.bind(this));
-            }.bind(this))
-            .catch(reject);
-          }.bind(this));
-        }.bind(this));
-      }.bind(this));
-    }.bind(this));
-  }.bind(this));
-};
-
-Model.prototype._getTraversal = function() {
-  var model = this;
-  return new Promise(function(resolve, reject) {
-    if (model._traversal) {
-      return resolve(model._traversal);
-    }
-    if (model._dm._rootTraversal) {
-      model._dm._rootTraversal.continue().newRequest()
-      .withRequestOptions(model._dm._requestOptions())
-      .get(function(err, res, traversal) {
-        util.checkResponse(err, res).then(function() {
-          model._traversal = traversal;
-          return resolve(traversal);
-        }).catch(reject);
-      });
-    }
-
-    traverson.from(model._dm.url).jsonHal()
-    .withRequestOptions(model._dm._requestOptions())
-    .get(function(err, res, traversal) {
-      util.checkResponse(err, res).then(function(res) {
-        model._traversal = traversal;
-        return resolve(traversal);
-      }).catch(reject);
-    });
-  });
-};
-
-Model.prototype._ensureNotStale = function() {
-  var maxAge = new Date().getTime() - this._maxAge;
-  var metadata = this._dm._cacheMetaData.find({ title: this.title });
-  var created = new Date(metadata[0].created).getTime();
-  if (created < maxAge) {
-    return Promise.resolve(this._items);
-  }
-  return this._loadData(true);
 };
 
 Model.prototype.resolve = function() {
@@ -1410,6 +1311,126 @@ Model.prototype.deleteEntry = function(entryId) {
           return resolve(true);
         }).catch(reject);
       });
+    });
+  });
+};
+
+Model.prototype._getTraversal = function() {
+  var model = this;
+  return new Promise(function(resolve, reject) {
+    if (model._traversal) {
+      return resolve(model._traversal);
+    }
+    if (model._dm._rootTraversal) {
+      model._dm._rootTraversal.continue().newRequest()
+      .withRequestOptions(model._dm._requestOptions())
+      .get(function(err, res, traversal) {
+        util.checkResponse(err, res).then(function() {
+          model._traversal = traversal;
+          return resolve(traversal);
+        }).catch(reject);
+      });
+    }
+
+    traverson.from(model._dm.url).jsonHal()
+    .withRequestOptions(model._dm._requestOptions())
+    .get(function(err, res, traversal) {
+      util.checkResponse(err, res).then(function(res) {
+        model._traversal = traversal;
+        return resolve(traversal);
+      }).catch(reject);
+    });
+  });
+};
+
+Model.prototype._ensureNotStale = function() {
+  var maxAge = new Date().getTime() - this._maxAge;
+  var metadata = this._dm._cacheMetaData.find({ title: this.title })[0];
+  if (!metadata) {
+    metadata = {
+      created: Number.MAX_VALUE
+    }
+  }
+  var created = new Date(metadata.created).getTime();
+  if (created < maxAge) {
+    return Promise.resolve(this._items);
+  }
+  return this._loadData(true);
+};
+
+Model.prototype._loadData = function(force) {
+  return Promise.resolve()
+  .then(function() {
+    return this._isReachable('google.de');
+  }.bind(this))
+  .then(function() {
+    if (this._items.data.length > 0 && !force) {
+      return Promise.resolve(this._items);
+    }
+    return this._load();
+  }.bind(this))
+  .catch(function(error) {
+    if (error.message === 'offline') {
+      if (this._items.data.length > 0) {
+        console.warn('Network unreachable. Loading cached data for model ' + this.title + '.');
+        return Promise.resolve(this._items);
+      }
+      return Promise.reject(new Error('Network unreachable. No cached data available for model ' + this.title + '.'));
+    }
+    return Promise.reject(error);
+  }.bind(this));
+};
+
+Model.prototype._load = function() {
+  return Promise.resolve()
+  .then(function() {
+    return this._getTraversal()
+  }.bind(this))
+  .then(function(traversal) {
+    util.promisify(traversal);
+    return traversal.continue().newRequest()
+    .follow(this._dm.id + ':' + this.title)
+    .withRequestOptions(this._dm._requestOptions())
+    .withTemplateParameters({ size: 0 })
+    .getAsync();
+  }.bind(this))
+  .then(function(res) {
+    return util.checkResponse2(res[0]);
+  }.bind(this))
+  .then(function(res) {
+    var body = halfred.parse(JSON.parse(res.body));
+    var entries = body.embeddedResourceArray(this._dm.id + ':' + this.title);
+    this._items.removeDataOnly();
+    for (var i = 0; i < entries.length; i++) {
+      this._items.insert(entries[i].original());
+    }
+    this._dm._cacheMetaData.removeWhere({ title: this.title });
+    this._dm._cacheMetaData.insert({
+      title: this.title,
+      etag: res.headers.etag,
+      created: new Date().toISOString()
+    });
+    return new Promise(function(resolve, reject) {
+      this._dm._db.save(function(err) {
+        /* istanbul ignore if */
+        if (err) {
+          return reject(err);
+        }
+        return resolve(this._items);
+      }.bind(this));
+    }.bind(this));
+  }.bind(this))
+};
+
+Model.prototype._isReachable = function(dests) {
+  return new Promise(function(resolve, reject) {
+    isReachableLib(dests, function(onBrowserOKOnNodeNull, reachable) {
+      /* istanbul ignore else */
+      if (onBrowserOKOnNodeNull || reachable) {
+        return resolve();
+      }
+      /* istanbul ignore next */ // is stubbed in tests
+      return reject(new Error('offline'));
     });
   });
 };
@@ -1652,6 +1673,9 @@ util.filterCached = function(items, options) {
   var out = {};
   out.total = chain.copy().data().length;
   chain = chain.copy();
+  if (options && options.hasOwnProperty('size') && options.size === 0) {
+    options.size = Number.MAX_VALUE;
+  }
   if (options && options.hasOwnProperty('page')) {
     chain = chain.offset(options.page * (options.size || 10) - (options.size || 10));
   }
