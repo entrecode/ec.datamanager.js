@@ -517,6 +517,17 @@ if (isNode) {
         expect(models.length).to.be.equal(2);
       });
     });
+    it('make multiple models offline by object', function() {
+      return dm.enableCache({
+        'to-do-list': 3600,
+        'to-do-item': 600000
+      }, lokiEnv).then(function(models) {
+        expect(models).to.be.a('array');
+        expect(models.length).to.be.equal(2);
+        expect(models[0]._maxAge).to.be.equal(3600);
+        expect(models[1]._maxAge).to.be.equal(600000);
+      })
+    });
   });
 
   describe('cache data age: -1', function() {

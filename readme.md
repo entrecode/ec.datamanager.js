@@ -132,6 +132,11 @@ dataManager.can('myModel:delete')
 ```js
 dataManager.enableCache('myModel', DataManager.DB_NODEJS)…
 // OR
+dataManager.enableCache({
+  myModel: 3600,
+  'my-model-with-dash': 600000
+}, DataManager.DB_CORDOVA)
+// OR
 dataManager.enableCache([
   'myModel',
   'myOtherModel'
@@ -140,6 +145,7 @@ dataManager.enableCache([
   console.log(models); // Array of LokiJS collections
   models[0].find({ lokiJS: 'doesThis' });
 }, errorHandler);
+
 ```
 
 ### Model
@@ -722,8 +728,8 @@ returns a cloned copy of the `entrie`, `asset`, or `tag`.
 
 
 #### DataManager Instance Methods
-##### `enableCache(stringOrArray[, lokiJsEnv[, maxCacheAge]])`
-enables caching for the given models. Either one model title (`String`) or multiple model titles (`Array`). returns a Promise which resolves to a array of LokiJS collections.
+##### `enableCache(stringOrArrayofObject[, lokiJsEnv[, maxCacheAge]])`
+enables caching for the given models. Either one model title (`String`) or multiple model titles (`Array`) or multiple model titles(`key`) with custom maxCacheAge(`value`) (`Object`). returns a Promise which resolves to a array of LokiJS collections.
 
 ##### `asset(identifier)`
 returns an Asset object as Promise. `identifier` (String) is required.
