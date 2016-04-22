@@ -642,6 +642,19 @@ if (isNode || !isPhantomJS) {
         expect(entries[0].value).to.have.property('_created', '2015-11-23T16:03:38.304Z');
       });
     });
+    it('entries, filter from and to', function() {
+      return dm.model('to-do-list').entries({
+        filter: {
+          _created: {
+            to: '2015-12-08T09:55:15.000Z',
+            from: '2015-12-08T09:55:15.000Z'
+          }
+        }
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(0);
+      });
+    });
     it('entries, sort -', function() {
       return dm.model('to-do-list').entries({
         sort: [

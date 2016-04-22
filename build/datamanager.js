@@ -1614,36 +1614,36 @@ util.optionsToQueryParameter = function(options) {
 util.filterCached = function(items, options) {
   var chain = items.chain();
   if (options && options.hasOwnProperty('filter')) {
-    for (var key in options.filter) {
+    for (var field in options.filter) {
       /* istanbul ignore else */
-      if (options.filter.hasOwnProperty(key)) {
-        var value = options.filter[key];
-        var filter = {};
-        if (value.hasOwnProperty('exact')) {
-          filter[key] = value.exact;
+      if (options.filter.hasOwnProperty(field)) {
+        var fieldFilter = options.filter[field];
+        for (var filter in fieldFilter) {
+          if (fieldFilter.hasOwnProperty(filter)) {
+            var f = {};
+            if (filter === 'exact') {
+              f[field] = fieldFilter[filter];
+            }
+            if (filter === 'search') {
+              f[field] = { '$contains': fieldFilter[filter] };
+            }
+            if (filter === 'from') {
+              f[field] = { '$gte': fieldFilter[filter] };
+            }
+            if (filter === 'to') {
+              f[field] = { '$lte': fieldFilter[filter] };
+            }
+            /*
+             if (filter === 'any' && Array.isArray(fieldFilter[filter])) {
+             f[field] = fieldFilter[filter].join(',');
+             }
+             if (filter === 'all' && Array.isArray(fieldFilter[filter])) {
+             f[field] = fieldFilter[filter].join('+');
+             }
+             */
+            chain = chain.find(f);
+          }
         }
-        if (value.hasOwnProperty('search')) {
-          filter[key] = { '$contains': value.search };
-        }
-        if (value.hasOwnProperty('from')) {
-          filter[key] = { '$gte': value.from };
-        }
-        if (value.hasOwnProperty('to')) {
-          filter[key] = { '$lte': value.to };
-        }
-        /* istanbul ignore next */
-        /*
-         if (value.hasOwnProperty('any') && Array.isArray(value.any)) {
-         query[key] = value.any.join(',');
-         }
-         */
-        /* istanbul ignore next */
-        /*
-         if (value.hasOwnProperty('all') && Array.isArray(value.all)) {
-         query[key] = value.all.join('+');
-         }
-         */
-        chain = chain.find(filter);
       }
     }
   }
