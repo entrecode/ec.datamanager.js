@@ -1001,14 +1001,19 @@ var Entry = function(entry, dm, model) {
 
 Entry.prototype.save = function() {
   var entry = this;
-  return new Promise(function(resolve, reject) {
-    entry._model._getTraversal().then(function(traversal) {
-      delete entry.value._curies;
-      delete entry.value._curiesMap;
-      delete entry.value._resolvedCuriesMap;
-      delete entry.value._validation;
-      delete entry.value._original;
-      delete entry.value._embedded;
+  var traversal;
+  return Promise.resolve()
+  .then(function() {
+    return entry._dm._getTraversal();
+  })
+  .then(function(traversal) {
+    delete entry.value._curies;
+    delete entry.value._curiesMap;
+    delete entry.value._resolvedCuriesMap;
+    delete entry.value._validation;
+    delete entry.value._original;
+    delete entry.value._embedded;
+    return util.putP(
       traversal.continue().newRequest()
       .follow(entry._dm.id + ':' + entry._model.title)
       .withTemplateParameters({
@@ -1016,38 +1021,48 @@ Entry.prototype.save = function() {
       })
       .withRequestOptions(entry._dm._requestOptions({
         'Content-Type': 'application/json'
-      }))
-      .put(entry.value, function(err, res, traversal) {
-        util.checkResponse(err, res).then(function(res) {
-          if (res.statusCode === 204) {
-            return resolve(true);
-          }
-          entry.value = halfred.parse(JSON.parse(res.body));
-          entry._traversal = traversal;
-          return resolve(entry);
-        }).catch(reject);
-      });
-    }).catch(reject);
-  });
+      })),
+      entry.value
+    );
+  })
+  .then(function(res) {
+    traversal = res[1];
+    return util.checkResponse2(res[0]);
+  })
+  .then(function(res) {
+    if (res.statusCode === 204) {
+      return Promise.resolve(true);
+    }
+    entry.value = halfred.parse(JSON.parse(res.body));
+    entry._traversal = traversal;
+    return Promise.resolve(entry);
+  })
+  .catch(util.errorHandler);
 };
 
 Entry.prototype.delete = function() {
   var entry = this;
-  return new Promise(function(resolve, reject) {
-    entry._model._getTraversal().then(function(traversal) {
+  return Promise.resolve()
+  .then(function() {
+    return entry._dm._getTraversal();
+  })
+  .then(function(traversal) {
+    return util.deleteP(
       traversal.continue().newRequest()
       .follow(entry._dm.id + ':' + entry._model.title)
       .withTemplateParameters({
         _id: entry.value._id
       })
       .withRequestOptions(entry._dm._requestOptions())
-      .delete(function(err, res) {
-        util.checkResponse(err, res).then(function() {
-          return resolve(true);
-        }).catch(reject);
-      });
-    }).catch(reject);
-  });
+    )
+  })
+  .then(function(res) {
+    return util.checkResponse2(res[0]);
+  })
+  .then(function(res) {
+    return Promise.resolve(true);
+  })
+  .catch(util.errorHandler);
 };
 
 /**
@@ -1074,6 +1089,11 @@ Entry.prototype.getTitle = function(property) {
   return out;
 };
 
+/**
+ * Returns the model title of a given property of this entry. Only works for linked types.
+ * @param {String} property The name of the property of interest.
+ * @returns {String}
+ */
 Entry.prototype.getModelTitle = function(property) {
   var links = this.value.linkArray(this._dm.id + ':' + this._model.title + '/' + property);
   /* istanbul ignore if */
@@ -1107,7 +1127,10 @@ var Model = function(title, metadata, dm) {
 };
 
 Model.prototype.enableCache = function(env, maxCacheAge) {
-  return this._dm._makeDB(env)
+  return Promise.resolve()
+  .then(function() {
+    return this._dm._makeDB(env)
+  }.bind(this))
   .then(function(db) {
     this._maxAge = maxCacheAge || 600000;
     this._items = db.getCollection(this.title) || db.addCollection(this.title, {
@@ -1118,49 +1141,62 @@ Model.prototype.enableCache = function(env, maxCacheAge) {
       });
     this._dm._modelCache[this.title] = this;
     return this._loadData();
-  }.bind(this));
+  }.bind(this))
+  .catch(util.errorHandler);
 };
 
 Model.prototype.resolve = function() {
   var model = this;
-  return new Promise(function(resolve, reject) {
-    traverson.from(model._dm.url).jsonHal()
-    .withRequestOptions(model._dm._requestOptions())
-    .get(function(err, res, traversal) {
-      util.checkResponse(err, res).then(function(res) {
-        var body = JSON.parse(res.body);
-        for (var i = 0; i < body.models.length; i++) {
-          if (body.models[i].title === model.title) {
-            model.metadata = body.models[i];
-            model._dm._rootTraversal = traversal;
-            return resolve(model);
-          }
-        }
-        return reject(new Error('ec_sdk_model_not_found'));
-      }).catch(reject);
-    });
-  });
+  var traversal;
+  return Promise.resolve()
+  .then(function() {
+    return util.getP(
+      traverson.from(model._dm.url).jsonHal()
+      .withRequestOptions(model._dm._requestOptions())
+    );
+  })
+  .then(function(res) {
+    traversal = res[1];
+    return util.checkResponse2(res[0]);
+  })
+  .then(function(res) {
+    var body = JSON.parse(res.body);
+    for (var i = 0; i < body.models.length; i++) {
+      if (body.models[i].title === model.title) {
+        model.metadata = body.models[i];
+        model._dm._rootTraversal = traversal;
+        return Promise.resolve(model);
+      }
+    }
+    return Promise.reject(new Error('ec_sdk_model_not_found'));
+  })
+  .catch(util.errorHandler);
 };
 
 Model.prototype.getSchema = function(method) {
   var model = this;
-  return new Promise(function(resolve, reject) {
+  return Promise.resolve()
+  .then(function() {
     if (!method) {
       method = 'get';
     }
     method.toLowerCase();
     if (['get', 'put', 'post'].indexOf(method) === -1) {
-      return reject(new Error('ec_sdk_invalid_method_for_schema'));
+      return Promise.reject(new Error('ec_sdk_invalid_method_for_schema'));
     }
-    request
-    .get(model._dm.url.replace('/api/', '/api/schema/') + '/' + model.title)
-    .query({ template: method })
-    .end(function(err, res) {
-      util.checkResponse(err, res).then(function(res) {
-        return resolve(res.body);
-      }).catch(reject);
-    });
-  });
+    return util.superagentEndP(
+      request
+      .get(model._dm.url.replace('/api/', '/api/schema/') + '/' + model.title)
+      .query({ template: method })
+    );
+  })
+  .then(function(res) {
+    return util.checkResponse2(res);
+  })
+  .then(function(res) {
+    return Promise.resolve(res.body);
+  })
+  .catch(util.errorHandler);
 };
 
 Model.prototype.entryList = function(options) {
@@ -1191,39 +1227,46 @@ Model.prototype.entryList = function(options) {
         filtered.refreshedData = this.entryList(options);
       }
       return Promise.resolve(filtered);
-    }.bind(this));
+    }.bind(this))
+    .catch(util.errorHandler);
   }
 
-  return this._getTraversal().then(function(traversal) {
-    return new Promise(function(resolve, reject) {
-      var t = traversal.continue().newRequest()
-      .follow(model._dm.id + ':' + model.title);
-      if (options) {
-        t.withTemplateParameters(util.optionsToQueryParameter(options));
+  var model = this;
+  return Promise.resolve()
+  .then(function() {
+    return model._dm._getTraversal();
+  })
+  .then(function(traversal) {
+    var t = traversal.continue().newRequest()
+    .follow(model._dm.id + ':' + model.title);
+    if (options) {
+      t.withTemplateParameters(util.optionsToQueryParameter(options));
+    }
+    t.withRequestOptions(model._dm._requestOptions())
+    return util.getP(t);
+  })
+  .then(function(res) {
+    return util.checkResponse2(res[0]);
+  })
+  .then(function(res) {
+    var body = halfred.parse(JSON.parse(res.body));
+    // empty list due to filter
+    if (body.hasOwnProperty('count') && body.count === 0 && body.hasOwnProperty('total')) {
+      return Promise.resolve({ entries: [], count: body.count, total: body.total });
+    }
+    var entries = body.embeddedArray(model._dm.id + ':' + model.title);
+    // single result due to filter
+    var out = [];
+    if (!entries) {
+      out.push(new Entry(body, model._dm, model));
+    } else {
+      for (var i = 0; i < entries.length; i++) {
+        out.push(new Entry(entries[i], model._dm, model));
       }
-      t.withRequestOptions(model._dm._requestOptions())
-      .get(function(err, res, traversal) {
-        util.checkResponse(err, res).then(function(res) {
-          var body = halfred.parse(JSON.parse(res.body));
-          // empty list due to filter
-          if (body.hasOwnProperty('count') && body.count === 0 && body.hasOwnProperty('total')) {
-            return resolve({ entries: [], count: body.count, total: body.total });
-          }
-          var entries = body.embeddedArray(model._dm.id + ':' + model.title);
-          // single result due to filter
-          var out = [];
-          if (!entries) {
-            out.push(new Entry(body, model._dm, model));
-          } else {
-            for (var i = 0; i < entries.length; i++) {
-              out.push(new Entry(entries[i], model._dm, model));
-            }
-          }
-          return resolve({ entries: out, count: body.count, total: body.total });
-        }).catch(reject);
-      });
-    });
-  });
+    }
+    return Promise.resolve({ entries: out, count: body.count, total: body.total });
+  })
+  .catch(util.errorHandler);
 };
 
 Model.prototype.entries = function(options) {
@@ -1289,68 +1332,53 @@ Model.prototype.nestedEntry = function(id, levels) {
 
 Model.prototype.createEntry = function(entry) {
   var model = this;
-  return this._getTraversal().then(function(traversal) {
-    return new Promise(function(resolve, reject) {
+  return Promise.resolve()
+  .then(function() {
+    return model._dm._getTraversal();
+  })
+  .then(function(traversal) {
+    return util.postP(
       traversal.continue().newRequest()
       .follow(model._dm.id + ':' + model.title)
       .withRequestOptions(model._dm._requestOptions({
         'Content-Type': 'application/json'
-      }))
-      .post(entry, function(err, res, traversal) {
-        util.checkResponse(err, res).then(function(res) {
-          if (res.statusCode === 204) {
-            return resolve(true);
-          }
-          return resolve(new Entry(halfred.parse(JSON.parse(res.body)), model._dm, model));
-        }, reject);
-      });
-    });
-  });
+      })),
+      entry
+    );
+  })
+  .then(function(res) {
+    return util.checkResponse2(res[0]);
+  })
+  .then(function(res) {
+    if (res.statusCode === 204) {
+      return Promise.resolve(true);
+    }
+    return Promise.resolve(new Entry(halfred.parse(JSON.parse(res.body)), model._dm, model));
+  })
+  .catch(util.errorHandler);
 };
 
 Model.prototype.deleteEntry = function(entryId) {
   var model = this;
-  return this._getTraversal().then(function(traversal) {
-    return new Promise(function(resolve, reject) {
+  return Promise.resolve()
+  .then(function() {
+    return model._dm._getTraversal();
+  })
+  .then(function(traversal) {
+    return util.deleteP(
       traversal.continue().newRequest()
       .follow(model._dm.id + ':' + model.title)
       .withTemplateParameters({ _id: entryId })
       .withRequestOptions(model._dm._requestOptions())
-      .delete(function(err, res) {
-        util.checkResponse(err, res).then(function() {
-          return resolve(true);
-        }).catch(reject);
-      });
-    });
-  });
-};
-
-Model.prototype._getTraversal = function() {
-  var model = this;
-  return new Promise(function(resolve, reject) {
-    if (model._traversal) {
-      return resolve(model._traversal);
-    }
-    if (model._dm._rootTraversal) {
-      model._dm._rootTraversal.continue().newRequest()
-      .withRequestOptions(model._dm._requestOptions())
-      .get(function(err, res, traversal) {
-        util.checkResponse(err, res).then(function() {
-          model._traversal = traversal;
-          return resolve(traversal);
-        }).catch(reject);
-      });
-    }
-
-    traverson.from(model._dm.url).jsonHal()
-    .withRequestOptions(model._dm._requestOptions())
-    .get(function(err, res, traversal) {
-      util.checkResponse(err, res).then(function(res) {
-        model._traversal = traversal;
-        return resolve(traversal);
-      }).catch(reject);
-    });
-  });
+    );
+  })
+  .then(function(res) {
+    return util.checkResponse2(res[0]);
+  })
+  .then(function() {
+    return Promise.resolve(true);
+  })
+  .catch(util.errorHandler);
 };
 
 Model.prototype._ensureNotStale = function() {
@@ -1391,7 +1419,7 @@ Model.prototype._loadData = function(force) {
 Model.prototype._load = function() {
   return Promise.resolve()
   .then(function() {
-    return this._getTraversal()
+    return this._dm._getTraversal()
   }.bind(this))
   .then(function(traversal) {
     return util.getP(
@@ -1484,63 +1512,84 @@ var Tag = function(tag, dm, traversal) {
 
 Tag.prototype.save = function() {
   var tag = this;
-  return new Promise(function(resolve, reject) {
-    tag._getTraversal().then(function(traversal) {
-      delete tag.value._curies;
-      delete tag.value._curiesMap;
-      delete tag.value._resolvedCuriesMap;
-      delete tag.value._validation;
-      delete tag.value._original;
-      delete tag.value._embedded;
+  var traversal;
+  return Promise.resolve()
+  .then(function() {
+    return tag._getTraversal();
+  })
+  .then(function(traversal) {
+    delete tag.value._curies;
+    delete tag.value._curiesMap;
+    delete tag.value._resolvedCuriesMap;
+    delete tag.value._validation;
+    delete tag.value._original;
+    delete tag.value._embedded;
+    return util.putP(
       traversal.continue().newRequest()
       .follow('self')
       .withRequestOptions(tag._dm._requestOptions({
         'Content-Type': 'application/json'
-      }))
-      .put(tag.value, function(err, res, traversal) {
-        util.checkResponse(err, res).then(function(res) {
-          if (res.statusCode === 204) {
-            return resolve(true);
-          }
-          tag.value = halfred.parse(JSON.parse(res.body));
-          tag._traversal = traversal;
-          return resolve(tag);
-        }).catch(reject);
-      });
-    }).catch(reject);
-  });
+      })),
+      tag.value
+    );
+  })
+  .then(function(res) {
+    traversal = res[1];
+    return util.checkResponse2(res[0]);
+  })
+  .then(function(res) {
+    if (res.statusCode === 204) {
+      return Promise.resolve(true);
+    }
+    tag.value = halfred.parse(JSON.parse(res.body));
+    tag._traversal = traversal;
+    return Promise.resolve(tag);
+  })
+  .catch(util.errorHandler);
 };
 
 Tag.prototype.delete = function() {
   var tag = this;
-  return new Promise(function(resolve, reject) {
-    tag._getTraversal().then(function(traversal) {
+  return Promise.resolve()
+  .then(function() {
+    return tag._getTraversal();
+  })
+  .then(function(traversal) {
+    return util.deleteP(
       traversal.continue().newRequest()
       .follow('self')
       .withRequestOptions(tag._dm._requestOptions())
-      .delete(function(err, res) {
-        util.checkResponse(err, res).then(function() {
-          return resolve(true);
-        }).catch(reject);
-      });
-    });
-  });
+    );
+  })
+  .then(function(res) {
+    return util.checkResponse2(res[0]);
+  })
+  .then(function() {
+    return Promise.resolve(true);
+  })
+  .catch(util.errorHandler);
 };
 
 Tag.prototype._getTraversal = function() {
   var tag = this;
-  return new Promise(function(resolve, reject) {
-    if (tag._traversal) {
-      return resolve(tag._traversal);
-    }
-    traverson.from(tag.value.link('self').href).jsonHal()
-    .withRequestOptions(tag._dm._requestOptions())
-    .get(function(err, res, traversal) {
-      util.checkResponse(err, res).then(function() {
-        tag._traversal = traversal;
-        return resolve(traversal);
-      }).catch(reject);
-    });
+  if (tag._traversal) {
+    return Promise.resolve(tag._traversal)
+  }
+  var traversal;
+  return Promise.resolve()
+  .then(function() {
+    return util.getP(
+      traverson.from(tag.value.link('self').href).jsonHal()
+      .withRequestOptions(tag._dm._requestOptions())
+    );
+  })
+  .then(function(res) {
+    traversal = res[1];
+    return util.checkResponse2(res[0]);
+  })
+  .then(function() {
+    tag._traversal = traversal;
+    return Promise.resolve(tag._traversal);
   });
 };
 
@@ -1548,6 +1597,8 @@ module.exports = Tag;
 
 },{"./util":7,"halfred":9,"traverson":72}],6:[function(require,module,exports){
 'use strict';
+
+var util = require('./util');
 
 // TODO document
 var User = function(isAnon, user, dm) {
@@ -1559,22 +1610,23 @@ var User = function(isAnon, user, dm) {
 // TODO document
 User.prototype.logout = function() {
   var user = this;
-  return new Promise(function(resolve, reject) {
+  return Promise.resolve()
+  .then(function() {
     /* istanbul ignore else */
     if (user._isAnon) {
       user._dm.accessToken = undefined;
       user._dm._user = undefined;
       user._dm._rootTraversal = undefined;
-      return resolve();
+      return Promise.resolve();
     }
     /* istanbul ignore next */
-    return reject(new Error('ec_sdk_user_not_logged_out'));
-  });
+    return Promise.reject(new Error('ec_sdk_user_not_logged_out'));
+  }).catch(util.errorHandler);
 };
 
 module.exports = User;
 
-},{}],7:[function(require,module,exports){
+},{"./util":7}],7:[function(require,module,exports){
 'use strict';
 
 var util = {};
@@ -1762,6 +1814,17 @@ util.deleteP = function(t) {
         return reject(err);
       }
       return resolve([res, traversal]);
+    });
+  });
+};
+
+util.superagentEndP = function(r) {
+  return new Promise(function(resolve, reject) {
+    r.end(function(err, res) {
+      if (err) {
+        return reject(err)
+      }
+      return resolve(res);
     });
   });
 };
