@@ -35,7 +35,7 @@ Asset.prototype.save = function() {
     );
   })
   .then(function(res) {
-    return util.checkResponse2(res[0]);
+    return util.checkResponse(res[0]);
   })
   .then(function(res) {
     if (res.statusCode === 204) {
@@ -64,7 +64,7 @@ Asset.prototype.delete = function() {
     );
   })
   .then(function(res) {
-    return util.checkResponse2(res[0]);
+    return util.checkResponse(res[0]);
   })
   .then(function() {
     return Promise.resolve(true);
@@ -476,7 +476,7 @@ DataManager.prototype.resolve = function() {
   })
   .then(function(r) {
     dm._rootTraversal = r[1];
-    return util.checkResponse2(r[0])
+    return util.checkResponse(r[0])
   })
   .then(function(res) {
     var body = halfred.parse(JSON.parse(res.body));
@@ -497,7 +497,7 @@ DataManager.prototype.modelList = function() {
   })
   .then(function(r) {
     dm._rootTraversal = r[1];
-    return util.checkResponse2(r[0])
+    return util.checkResponse(r[0])
   })
   .then(function(res) {
     var body = JSON.parse(res.body);
@@ -558,7 +558,7 @@ DataManager.prototype.assetList = function(options) {
     return util.getP(t);
   })
   .then(function(res) {
-    return util.checkResponse2(res[0]);
+    return util.checkResponse(res[0]);
   })
   .then(function(res) {
     var body = halfred.parse(JSON.parse(res.body));
@@ -656,7 +656,7 @@ DataManager.prototype.createAsset = function(input) {
     });
   })
   .then(function(res) {
-    return util.checkResponse2(res);
+    return util.checkResponse(res);
   })
   .then(function(res) {
     var regex = /^.*\?assetID=([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-4[0-9A-Fa-f]{3}-[89ABab][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12})$/;
@@ -686,7 +686,7 @@ DataManager.prototype.tagList = function(options) {
     );
   })
   .then(function(res) {
-    return util.checkResponse2(res[0]);
+    return util.checkResponse(res[0]);
   })
   .then(function(res) {
     var body = halfred.parse(JSON.parse(res.body));
@@ -758,7 +758,7 @@ DataManager.prototype.registerAnonymous = function(validUntil) {
   })
   .then(function(res) {
     userTraversal = res[1];
-    return util.checkResponse2(res[0]);
+    return util.checkResponse(res[0]);
   })
   .then(function(res) {
     var body = JSON.parse(res.body);
@@ -784,7 +784,7 @@ DataManager.prototype.account = function() {
   })
   .then(function(res) {
     rootTraversal = res[1];
-    return util.checkResponse2(res[0]);
+    return util.checkResponse(res[0]);
   })
   .then(function(res) {
     var body = halfred.parse(JSON.parse(res.body));
@@ -837,7 +837,7 @@ DataManager.prototype.emailAvailable = function(email) {
     );
   })
   .then(function(res) {
-    return util.checkResponse2(res[0]);
+    return util.checkResponse(res[0]);
   })
   .then(function(res) {
     return Promise.resolve(JSON.parse(res.body).available);
@@ -860,7 +860,7 @@ DataManager.prototype.can = function(permission) {
     );
   })
   .then(function(res) {
-    return util.checkResponse2(res[0]);
+    return util.checkResponse(res[0]);
   })
   .then(function(res) {
     var body = halfred.parse(JSON.parse(res.body));
@@ -924,7 +924,7 @@ DataManager.prototype._getTraversal = function() {
   })
   .then(function(res) {
     rootTraversal = res[1];
-    return util.checkResponse2(res[0])
+    return util.checkResponse(res[0])
   }).then(function() {
     dm._rootTraversal = rootTraversal;
     return Promise.resolve(dm._rootTraversal);
@@ -1027,7 +1027,7 @@ Entry.prototype.save = function() {
   })
   .then(function(res) {
     traversal = res[1];
-    return util.checkResponse2(res[0]);
+    return util.checkResponse(res[0]);
   })
   .then(function(res) {
     if (res.statusCode === 204) {
@@ -1057,7 +1057,7 @@ Entry.prototype.delete = function() {
     )
   })
   .then(function(res) {
-    return util.checkResponse2(res[0]);
+    return util.checkResponse(res[0]);
   })
   .then(function(res) {
     return Promise.resolve(true);
@@ -1157,7 +1157,7 @@ Model.prototype.resolve = function() {
   })
   .then(function(res) {
     traversal = res[1];
-    return util.checkResponse2(res[0]);
+    return util.checkResponse(res[0]);
   })
   .then(function(res) {
     var body = JSON.parse(res.body);
@@ -1191,7 +1191,7 @@ Model.prototype.getSchema = function(method) {
     );
   })
   .then(function(res) {
-    return util.checkResponse2(res);
+    return util.checkResponse(res);
   })
   .then(function(res) {
     return Promise.resolve(res.body);
@@ -1246,7 +1246,7 @@ Model.prototype.entryList = function(options) {
     return util.getP(t);
   })
   .then(function(res) {
-    return util.checkResponse2(res[0]);
+    return util.checkResponse(res[0]);
   })
   .then(function(res) {
     var body = halfred.parse(JSON.parse(res.body));
@@ -1347,7 +1347,7 @@ Model.prototype.createEntry = function(entry) {
     );
   })
   .then(function(res) {
-    return util.checkResponse2(res[0]);
+    return util.checkResponse(res[0]);
   })
   .then(function(res) {
     if (res.statusCode === 204) {
@@ -1373,7 +1373,7 @@ Model.prototype.deleteEntry = function(entryId) {
     );
   })
   .then(function(res) {
-    return util.checkResponse2(res[0]);
+    return util.checkResponse(res[0]);
   })
   .then(function() {
     return Promise.resolve(true);
@@ -1430,7 +1430,7 @@ Model.prototype._load = function() {
     );
   }.bind(this))
   .then(function(res) {
-    return util.checkResponse2(res[0]);
+    return util.checkResponse(res[0]);
   }.bind(this))
   .then(function(res) {
     var body = halfred.parse(JSON.parse(res.body));
@@ -1535,7 +1535,7 @@ Tag.prototype.save = function() {
   })
   .then(function(res) {
     traversal = res[1];
-    return util.checkResponse2(res[0]);
+    return util.checkResponse(res[0]);
   })
   .then(function(res) {
     if (res.statusCode === 204) {
@@ -1562,7 +1562,7 @@ Tag.prototype.delete = function() {
     );
   })
   .then(function(res) {
-    return util.checkResponse2(res[0]);
+    return util.checkResponse(res[0]);
   })
   .then(function() {
     return Promise.resolve(true);
@@ -1585,7 +1585,7 @@ Tag.prototype._getTraversal = function() {
   })
   .then(function(res) {
     traversal = res[1];
-    return util.checkResponse2(res[0]);
+    return util.checkResponse(res[0]);
   })
   .then(function() {
     tag._traversal = traversal;
@@ -1685,6 +1685,7 @@ util.filterCached = function(items, options) {
       if (options.filter.hasOwnProperty(field)) {
         var fieldFilter = options.filter[field];
         for (var filter in fieldFilter) {
+          /* istanbul ignore else */
           if (fieldFilter.hasOwnProperty(filter)) {
             var f = {};
             if (filter === 'exact') {
@@ -1744,28 +1745,17 @@ util.filterCached = function(items, options) {
   return Promise.resolve(out);
 };
 
-util.checkResponse2 = function(res) {
-  return util.checkResponse(null, res);
-};
-
-util.checkResponse = function(err, res) {
-  return new Promise(function(resolve, reject) {
-    if (err) {
-      if (util._dm.hasOwnProperty('errorHandler') && util._dm.errorHandler) {
-        util._dm.errorHandler(err);
-      }
-      return reject(err);
-    }
-    if (res.statusCode >= 200 && res.statusCode <= 299) {
-      return resolve(res);
-    }
-    return reject(JSON.parse(res.body));
-  });
+util.checkResponse = function(res) {
+  if (res.statusCode >= 200 && res.statusCode <= 299) {
+    return Promise.resolve(res);
+  }
+  return Promise.reject(JSON.parse(res.body));
 };
 
 util.getP = function(t) {
   return new Promise(function(resolve, reject) {
     t.get(function(err, res, traversal) {
+      /* istanbul ignore if */
       if (err) {
         return reject(err);
       }
@@ -1788,6 +1778,7 @@ util.getUrlP = function(t) {
 util.postP = function(t, body) {
   return new Promise(function(resolve, reject) {
     t.post(body, function(err, res, traversal) {
+      /* istanbul ignore if */
       if (err) {
         return reject(err);
       }
@@ -1799,6 +1790,7 @@ util.postP = function(t, body) {
 util.putP = function(t, body) {
   return new Promise(function(resolve, reject) {
     t.put(body, function(err, res, traversal) {
+      /* istanbul ignore if */
       if (err) {
         return reject(err);
       }
@@ -1810,6 +1802,7 @@ util.putP = function(t, body) {
 util.deleteP = function(t) {
   return new Promise(function(resolve, reject) {
     t.delete(function(err, res, traversal) {
+      /* istanbul ignore if */
       if (err) {
         return reject(err);
       }
@@ -1821,6 +1814,7 @@ util.deleteP = function(t) {
 util.superagentEndP = function(r) {
   return new Promise(function(resolve, reject) {
     r.end(function(err, res) {
+      /* istanbul ignore if */
       if (err) {
         return reject(err)
       }
