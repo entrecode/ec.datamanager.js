@@ -1200,7 +1200,6 @@ Model.prototype.getSchema = function(method) {
 };
 
 Model.prototype.entryList = function(options) {
-  var model = this;
   if (this._maxAge) {
     return Promise.resolve()
     .then(function() {
@@ -1230,7 +1229,7 @@ Model.prototype.entryList = function(options) {
     }.bind(this))
     .catch(util.errorHandler);
   }
-
+  
   var model = this;
   return Promise.resolve()
   .then(function() {
@@ -1242,7 +1241,7 @@ Model.prototype.entryList = function(options) {
     if (options) {
       t.withTemplateParameters(util.optionsToQueryParameter(options));
     }
-    t.withRequestOptions(model._dm._requestOptions())
+    t.withRequestOptions(model._dm._requestOptions());
     return util.getP(t);
   })
   .then(function(res) {
@@ -1275,7 +1274,7 @@ Model.prototype.entries = function(options) {
   if (options && options.hasOwnProperty('cacheType') && options.cacheType === 'stale') {
     options.cacheType = 'default';
   }
-
+  
   return model.entryList(options)
   .then(function(list) {
     return Promise.resolve(list.entries);
@@ -1312,7 +1311,7 @@ Model.prototype.entry = function(id, levels) {
   if (levels) {
     options.levels = levels;
   }
-
+  
   return this.entries(options)
   .then(function(res) {
     if (!res.length) {
@@ -1385,7 +1384,7 @@ Model.prototype._ensureNotStale = function() {
   var maxAge = new Date().getTime() - this._maxAge;
   var metadata = this._dm._cacheMetaData.find({ title: this.title })[0];
   var created = new Date(metadata.created).getTime();
-  if (created < maxAge) {
+  if (created > maxAge) {
     return Promise.resolve(this._items);
   }
   return this._loadData(true);
@@ -8683,14 +8682,14 @@ module.exports = function (fn, errMsg) {
 },{"./loki-indexed-adapter.js":19,"fs":73}],21:[function(require,module,exports){
 'use strict';
 
-Array.prototype.uniq = function() {
+function uniq(arr) {
   var u = {}, a = [];
-  for (var i = 0, l = this.length; i < l; ++i) {
-    if (Object.prototype.hasOwnProperty.call(u, this[i])) {
+  for (var i = 0, l = arr.length; i < l; ++i) {
+    if (Object.prototype.hasOwnProperty.call(u, arr[i])) {
       continue;
     }
-    a.push(this[i]);
-    u[this[i]] = 1;
+    a.push(arr[i]);
+    u[arr[i]] = 1;
   }
   return a;
 };
@@ -8792,14 +8791,14 @@ function _permissions(trie, array) {
       results = results.concat(_permissions(trie[node], [].concat(array)));
     });
     // remove duplicates
-    var uniq = results.uniq();
+    var u = uniq(results);
     // … and * from results
-    for (var i = uniq.length - 1; i >= 0; i--) {
-      if (uniq[i] === '*') {
-        uniq.splice(i, 1);
+    for (var i = u.length - 1; i >= 0; i--) {
+      if (u[i] === '*') {
+        u.splice(i, 1);
       }
     }
-    return uniq;
+    return u;
   }
   if (trie.hasOwnProperty(current)) {
     // we have to go deeper!
@@ -8822,7 +8821,7 @@ function _expand(permission) {
           return perm + ':' + alternative;
         }, this);
       }, this);
-      results = [].concat.apply([], alternatives.uniq());
+      results = [].concat.apply([], uniq(alternatives));
     }
   }
   return results;
