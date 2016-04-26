@@ -145,7 +145,23 @@ dataManager.enableCache([
   console.log(models); // Array of LokiJS collections
   models[0].find({ lokiJS: 'doesThis' });
 }, errorHandler);
+```
 
+#### Clear Cache
+ 
+```js
+dataManager.clearCache('myModel')… // only myModel gets cleared
+// OR
+dataManager.clearCache([           // all in the array
+  'myModel',
+  'myOtherModel'
+]…
+// OR
+dataManager.clearCache()			// all models
+.then(function(){
+  // cache is cleared and disabled
+})
+.catch(errorHandler)
 ```
 
 ### Model
@@ -178,6 +194,15 @@ dataManager.model('myModel').resolve()
 dataManager.model('myModel').enableCache(DataManager.DB_NODEJS, 3600)
 .then(function(lokiJSCollection){
   lokiJSCollection.find({ lokiJS: 'doesThis' });
+}, errorHandler);
+```
+
+#### Model clear cache
+
+```js
+dataManager.model('myModel').clearCache()
+.then(function() {
+  // cache cleared and disabled
 }, errorHandler);
 ```
 
@@ -731,6 +756,10 @@ returns a cloned copy of the `entrie`, `asset`, or `tag`.
 ##### `enableCache(stringOrArrayofObject[, lokiJsEnv[, maxCacheAge]])`
 enables caching for the given models. Either one model title (`String`) or multiple model titles (`Array`) or multiple model titles(`key`) with custom maxCacheAge(`value`) (`Object`). returns a Promise which resolves to a array of LokiJS collections.
 
+##### `clearCache(stringOrArray)`
+disables and cleares the cache for the given models. Either one model title (`String`) or multiple model titles (`Array`).
+return a Promise which resovles after successfully clearing cache.
+
 ##### `asset(identifier)`
 returns an Asset object as Promise. `identifier` (String) is required.
 
@@ -813,6 +842,10 @@ returns Model Object which is a promise.
 #### Model Instance Methods
 ##### `enableCache([lokiJsEnv [, maxCacheAge])`
 enables caching for the connected model with `maxCacheAge` (in ms). Returns a Promise which resolves to a LokiJS collection.
+
+##### `clearCache()`
+disables and cleares the cache for the model.
+return a Promise which resovles after successfully clearing cache.
 
 ##### `entries(options)`/`entryList(options)`
 returns JSON Array of Entries (async).
