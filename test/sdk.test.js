@@ -1162,6 +1162,78 @@ if (isNode || !isPhantomJS) {
       });
     });
   });
+  describe('disable cache', function() {
+    var dm;
+    beforeEach(function(done) {
+      dm = new DataManager({
+        url: baseUrl + '58b9a1f5'
+      });
+      dm.enableCache([
+        'to-do-item',
+        'to-do-list'
+      ], lokiEnv)
+      .then(function() {
+        done();
+      })
+      .catch(done);
+    });
+    afterEach(function(done) {
+      dm = null;
+      if (isNode) {
+        fs.unlink(path.resolve(__dirname, '..', '58b9a1f5.db.json'), done);
+      } else {
+        localStorage.clear();
+        done();
+      }
+    });
+    it('disable via model', function() {
+      var collection = dm._db.getCollection('to-do-item');
+      expect(collection.data.length).to.be.equal(7);
+      return dm.model('to-do-item').clearCache()
+      .then(function() {
+        collection = dm._db.getCollection('to-do-item');
+        expect(collection.data.length).to.be.equal(0);
+      });
+    });
+    it('disable all', function() {
+      var collection = dm._db.getCollection('to-do-item');
+      expect(collection.data.length).to.be.equal(7);
+      collection = dm._db.getCollection('to-do-list');
+      expect(collection.data.length).to.be.equal(2);
+      return dm.clearCache()
+      .then(function() {
+        collection = dm._db.getCollection('to-do-item');
+        expect(collection.data.length).to.be.equal(0);
+        collection = dm._db.getCollection('to-do-list');
+        expect(collection.data.length).to.be.equal(0);
+      });
+    });
+    it('disable via datamanager single', function() {
+      var collection = dm._db.getCollection('to-do-item');
+      expect(collection.data.length).to.be.equal(7);
+      return dm.clearCache('to-do-item')
+      .then(function() {
+        collection = dm._db.getCollection('to-do-item');
+        expect(collection.data.length).to.be.equal(0);
+      });
+    });
+    it('disable via datamanager multiple', function() {
+      var collection = dm._db.getCollection('to-do-item');
+      expect(collection.data.length).to.be.equal(7);
+      collection = dm._db.getCollection('to-do-list');
+      expect(collection.data.length).to.be.equal(2);
+      return dm.clearCache([
+        'to-do-item',
+        'to-do-list'
+      ])
+      .then(function() {
+        collection = dm._db.getCollection('to-do-item');
+        expect(collection.data.length).to.be.equal(0);
+        collection = dm._db.getCollection('to-do-list');
+        expect(collection.data.length).to.be.equal(0);
+      });
+    });
+  });
 }
 
 if (isNode) { // only on node since we stub stuff

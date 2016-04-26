@@ -534,6 +534,23 @@ DataManager.prototype.enableCache = function(models, env, maxCacheAge) {
   }.bind(this));
 };
 
+DataManager.prototype.clearCache = function(models) {
+  if (!models) {
+    models = this._db.listCollections().map(function(collection) {
+      return collection.name;
+    })
+  }
+  if (typeof models === 'string') {
+    models = [models];
+  }
+
+  return Promise.all(
+    models.map(function(model) {
+      this.model(model).clearCache();
+    }.bind(this))
+  )
+};
+
 DataManager.prototype.model = function(title, metadata) {
   var dm = this;
   if (dm._modelCache[title]) {
@@ -1143,6 +1160,28 @@ Model.prototype.enableCache = function(env, maxCacheAge) {
     return this._loadData();
   }.bind(this))
   .catch(util.errorHandler);
+};
+
+Model.prototype.clearCache = function() {
+  if (!this._maxAge) {
+    return Promise.resolve(new Error('Cache not activated.'));
+  }
+  return Promise.resolve()
+  .then(function() {
+    delete this._maxAge;
+    this._dm._cacheMetaData.removeWhere({ title: this.title });
+    this._items.removeDataOnly();
+    delete this._items;
+    return new Promise(function(resolve, reject) {
+      this._dm._db.save(function(err) {
+        /* istanbul ignore if */
+        if (err) {
+          return reject(err);
+        }
+        return resolve();
+      }.bind(this));
+    }.bind(this));
+  }.bind(this));
 };
 
 Model.prototype.resolve = function() {
