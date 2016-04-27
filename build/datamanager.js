@@ -174,7 +174,7 @@ function remove(arr, func) {
 
 module.exports = Asset;
 
-},{"./util":7,"halfred":10,"locale":15}],2:[function(require,module,exports){
+},{"./util":7,"halfred":10,"locale":14}],2:[function(require,module,exports){
 'use strict';
 
 var halfred = require('halfred');
@@ -839,11 +839,13 @@ DataManager.prototype._requestOptions = function(additionalHeaders) {
 
 module.exports = DataManager;
 
-},{"./Asset":1,"./Entry":3,"./Model":4,"./Tag":5,"./User":6,"./util":7,"es6-promise":9,"halfred":10,"shiro-trie":18,"superagent":19,"traverson":61,"traverson-hal":20}],3:[function(require,module,exports){
+},{"./Asset":1,"./Entry":3,"./Model":4,"./Tag":5,"./User":6,"./util":7,"es6-promise":9,"halfred":10,"shiro-trie":16,"superagent":17,"traverson":62,"traverson-hal":18}],3:[function(require,module,exports){
 'use strict';
 
 var halfred = require('halfred');
 var util = require('./util');
+
+var Asset = require('./Asset');
 
 var Entry = function(entry, dm, model, traversal) {
   this.value = entry;
@@ -856,12 +858,7 @@ Entry.prototype.save = function() {
   var entry = this;
   return new Promise(function(resolve, reject) {
     entry._model._getTraversal().then(function(traversal) {
-      delete entry.value._curies;
-      delete entry.value._curiesMap;
-      delete entry.value._resolvedCuriesMap;
-      delete entry.value._validation;
-      delete entry.value._original;
-      delete entry.value._embedded;
+      cleanEntry(entry);
       traversal.continue().newRequest()
       .follow(entry._dm.id + ':' + entry._model.title)
       .withTemplateParameters({
@@ -876,6 +873,9 @@ Entry.prototype.save = function() {
             return resolve(true);
           }
           entry.value = halfred.parse(JSON.parse(res.body));
+          if (entry._isNested) {
+            makeNestedToResource(entry, entry._dm, entry._model);
+          }
           entry._traversal = traversal;
           return resolve(entry);
         }).catch(reject);
@@ -927,9 +927,73 @@ Entry.prototype.getTitle = function(property) {
   return out;
 };
 
+function cleanEntry(entry) {
+  removeNestedResources(entry);
+  delete entry.value._curies;
+  delete entry.value._curiesMap;
+  delete entry.value._resolvedCuriesMap;
+  delete entry.value._validation;
+  delete entry.value._original;
+  delete entry.value._embedded;
+}
+
+function removeNestedResources(entry) {
+  for (var link in entry.value._links) {
+    var l = /^[a-f0-9]{8}:.+\/(.+)$/.exec(link);
+    if (l) {
+      if (Array.isArray(entry.value[l[1]])) {
+        entry.value[l[1]] = entry.value[l[1]].map(function(e) {
+          /* istanbul ignore else */
+          if (e.hasOwnProperty('value')) {
+            if (e.value.hasOwnProperty('assetID')) {
+              return e.value.assetID;
+            }
+            return e.value._id;
+          }
+        });
+      } else {
+        /* istanbul ignore else */
+        if (entry.value[l[1]].hasOwnProperty('value')) {
+          if (entry.value[l[1]].value.hasOwnProperty('assetID')) {
+            entry.value[l[1]] = entry.value[l[1]].value.assetID;
+          } else {
+            entry.value[l[1]] = entry.value[l[1]].value._id;
+          }
+        }
+      }
+    }
+  }
+}
+
+function makeNestedToResource(entry, dm, model) {
+  entry._isNested = true;
+  for (var link in entry.value._links) {
+    var l = /^[a-f0-9]{8}:.+\/(.+)$/.exec(link);
+    if (l) {
+      if (Array.isArray(entry.value[l[1]])) {
+        entry.value[l[1]] = entry.value[l[1]].map(function(e) {
+          if (e.hasOwnProperty('assetID')) {
+            return new Asset(halfred.parse(e), dm);
+          }
+          var entry = new Entry(halfred.parse(e), dm, model);
+          makeNestedToResource(entry, dm, model);
+          return entry;
+        });
+      } else {
+        if (entry.value[l[1]].hasOwnProperty('assetID')) {
+          entry.value[l[1]] = new Asset(halfred.parse(entry.value[l[1]]), dm);
+        } else {
+          entry.value[l[1]] = new Entry(halfred.parse(entry.value[l[1]]), dm, model);
+          makeNestedToResource(entry.value[l[1]], dm, model);
+        }
+      }
+    }
+  }
+}
+
 module.exports = Entry;
 
-},{"./util":7,"halfred":10}],4:[function(require,module,exports){
+},{"./Asset":1,"./util":7,"halfred":10}],4:[function(require,module,exports){
 'use strict';
 
 var halfred = require('halfred');
@@ -1165,6 +1229,7 @@ Model.prototype.deleteEntry = function(entryId) {
 };
 
 function makeNestedToResource(entry, dm, model) {
+  entry._isNested = true;
   for (var link in entry.value._links) {
     var l = /^[a-f0-9]{8}:.+\/(.+)$/.exec(link);
     if (l) {
@@ -1180,9 +1245,10 @@ function makeNestedToResource(entry, dm, model) {
       } else {
         if (entry.value[l[1]].hasOwnProperty('assetID')) {
           entry.value[l[1]] = new Asset(halfred.parse(entry.value[l[1]]), dm);
+        } else {
+          entry.value[l[1]] = new Entry(halfred.parse(entry.value[l[1]]), dm, model);
+          makeNestedToResource(entry.value[l[1]], dm, model);
         }
-        entry.value[l[1]] = new Entry(halfred.parse(entry.value[l[1]]), dm, model);
-        makeNestedToResource(entry.value[l[1]], dm, model);
       }
     }
   }
@@ -1190,7 +1256,7 @@ function makeNestedToResource(entry, dm, model) {
 
 module.exports = Model;
 
-},{"./Asset":1,"./Entry":3,"./util":7,"halfred":10,"superagent":19,"traverson":61}],5:[function(require,module,exports){
+},{"./Asset":1,"./Entry":3,"./util":7,"halfred":10,"superagent":17,"traverson":62}],5:[function(require,module,exports){
 'use strict';
 
 var halfred = require('halfred');
@@ -1268,7 +1334,7 @@ Tag.prototype._getTraversal = function() {
 
 module.exports = Tag;
 
-},{"./util":7,"halfred":10,"traverson":61}],6:[function(require,module,exports){
+},{"./util":7,"halfred":10,"traverson":62}],6:[function(require,module,exports){
 'use strict';
 
 // TODO document
@@ -1371,7 +1437,9 @@ module.exports = util;
  * Expose `Emitter`.
  */
 
-module.exports = Emitter;
+if (typeof module !== 'undefined') {
+  module.exports = Emitter;
+}
 
 /**
  * Initialize a new `Emitter`.
@@ -2894,462 +2962,6 @@ Resource.prototype.validation = Resource.prototype.validationIssues;
 module.exports = Resource;
 
 },{}],14:[function(require,module,exports){
-/*global exports, require*/
-/* eslint-disable no-eval */
-/* JSONPath 0.8.0 - XPath for JSON
- *
- * Copyright (c) 2007 Stefan Goessner (goessner.net)
- * Licensed under the MIT (MIT-LICENSE.txt) licence.
- */
-
-var module;
-(function (require) {'use strict';
-
-// Make sure to know if we are in real node or not (the `require` variable
-// could actually be require.js, for example.
-var isNode = module && !!module.exports;
-
-var allowedResultTypes = ['value', 'path', 'pointer', 'parent', 'parentProperty', 'all'];
-
-var vm = isNode
-    ? require('vm') : {
-        runInNewContext: function (expr, context) {
-            return eval(Object.keys(context).reduce(function (s, vr) {
-                return 'var ' + vr + '=' + JSON.stringify(context[vr]).replace(/\u2028|\u2029/g, function (m) {
-                    // http://www.thespanner.co.uk/2011/07/25/the-json-specification-is-now-wrong/
-                    return '\\u202' + (m === '\u2028' ? '8' : '9');
-                }) + ';' + s;
-            }, expr));
-        }
-    };
-
-function push (arr, elem) {arr = arr.slice(); arr.push(elem); return arr;}
-function unshift (elem, arr) {arr = arr.slice(); arr.unshift(elem); return arr;}
-function NewError (value) {
-  this.avoidNew = true;
-  this.value = value;
-  this.message = 'JSONPath should not be called with "new" (it prevents return of (unwrapped) scalar values)';
-}
-
-function JSONPath (opts, expr, obj, callback, otherTypeCallback) {
-    if (!(this instanceof JSONPath)) {
-        try {
-            return new JSONPath(opts, expr, obj, callback, otherTypeCallback);
-        }
-        catch (e) {
-            if (!e.avoidNew) {
-                throw e;
-            }
-            return e.value;
-        }
-    }
-
-    if (typeof opts === 'string') {
-        otherTypeCallback = callback;
-        callback = obj;
-        obj = expr;
-        expr = opts;
-        opts = {};
-    }
-    opts = opts || {};
-    var objArgs = opts.hasOwnProperty('json') && opts.hasOwnProperty('path');
-    this.json = opts.json || obj;
-    this.path = opts.path || expr;
-    this.resultType = (opts.resultType && opts.resultType.toLowerCase()) || 'value';
-    this.flatten = opts.flatten || false;
-    this.wrap = opts.hasOwnProperty('wrap') ? opts.wrap : true;
-    this.sandbox = opts.sandbox || {};
-    this.preventEval = opts.preventEval || false;
-    this.parent = opts.parent || null;
-    this.parentProperty = opts.parentProperty || null;
-    this.callback = opts.callback || callback || null;
-    this.otherTypeCallback = opts.otherTypeCallback || otherTypeCallback || function () {
-        throw new Error('You must supply an otherTypeCallback callback option with the @other() operator.');
-    };
-
-    if (opts.autostart !== false) {
-        var ret = this.evaluate({
-            path: (objArgs ? opts.path : expr),
-            json: (objArgs ? opts.json : obj)
-        });
-        if (!ret || typeof ret !== 'object') {
-            throw new NewError(ret);
-        }
-        return ret;
-    }
-}
-
-// PUBLIC METHODS
-
-JSONPath.prototype.evaluate = function (expr, json, callback, otherTypeCallback) {
-    var self = this,
-        flatten = this.flatten,
-        wrap = this.wrap,
-        currParent = this.parent,
-        currParentProperty = this.parentProperty;
-
-    this.currResultType = this.resultType;
-    this.currPreventEval = this.preventEval;
-    this.currSandbox = this.sandbox;
-    callback = callback || this.callback;
-    this.currOtherTypeCallback = otherTypeCallback || this.otherTypeCallback;
-
-    json = json || this.json;
-    expr = expr || this.path;
-    if (expr && typeof expr === 'object') {
-        if (!expr.path) {
-            throw new Error('You must supply a "path" property when providing an object argument to JSONPath.evaluate().');
-        }
-        json = expr.hasOwnProperty('json') ? expr.json : json;
-        flatten = expr.hasOwnProperty('flatten') ? expr.flatten : flatten;
-        this.currResultType = expr.hasOwnProperty('resultType') ? expr.resultType : this.currResultType;
-        this.currSandbox = expr.hasOwnProperty('sandbox') ? expr.sandbox : this.currSandbox;
-        wrap = expr.hasOwnProperty('wrap') ? expr.wrap : wrap;
-        this.currPreventEval = expr.hasOwnProperty('preventEval') ? expr.preventEval : this.currPreventEval;
-        callback = expr.hasOwnProperty('callback') ? expr.callback : callback;
-        this.currOtherTypeCallback = expr.hasOwnProperty('otherTypeCallback') ? expr.otherTypeCallback : this.currOtherTypeCallback;
-        currParent = expr.hasOwnProperty('parent') ? expr.parent : currParent;
-        currParentProperty = expr.hasOwnProperty('parentProperty') ? expr.parentProperty : currParentProperty;
-        expr = expr.path;
-    }
-    currParent = currParent || null;
-    currParentProperty = currParentProperty || null;
-
-    if (Array.isArray(expr)) {
-        expr = JSONPath.toPathString(expr);
-    }
-    if (!expr || !json || allowedResultTypes.indexOf(this.currResultType) === -1) {
-        return;
-    }
-    this._obj = json;
-
-    var exprList = JSONPath.toPathArray(expr);
-    if (exprList[0] === '$' && exprList.length > 1) {exprList.shift();}
-    var result = this._trace(exprList, json, ['$'], currParent, currParentProperty, callback);
-    result = result.filter(function (ea) {return ea && !ea.isParentSelector;});
-
-    if (!result.length) {return wrap ? [] : undefined;}
-    if (result.length === 1 && !wrap && !Array.isArray(result[0].value)) {
-        return this._getPreferredOutput(result[0]);
-    }
-    return result.reduce(function (result, ea) {
-        var valOrPath = self._getPreferredOutput(ea);
-        if (flatten && Array.isArray(valOrPath)) {
-            result = result.concat(valOrPath);
-        }
-        else {
-            result.push(valOrPath);
-        }
-        return result;
-    }, []);
-};
-
-// PRIVATE METHODS
-
-JSONPath.prototype._getPreferredOutput = function (ea) {
-    var resultType = this.currResultType;
-    switch (resultType) {
-    case 'all':
-        ea.path = typeof ea.path === 'string' ? ea.path : JSONPath.toPathString(ea.path);
-        return ea;
-    case 'value': case 'parent': case 'parentProperty':
-        return ea[resultType];
-    case 'path':
-        return JSONPath.toPathString(ea[resultType]);
-    case 'pointer':
-        return JSONPath.toPointer(ea.path);
-    }
-};
-
-JSONPath.prototype._handleCallback = function (fullRetObj, callback, type) {
-    if (callback) {
-        var preferredOutput = this._getPreferredOutput(fullRetObj);
-        fullRetObj.path = typeof fullRetObj.path === 'string' ? fullRetObj.path : JSONPath.toPathString(fullRetObj.path);
-        callback(preferredOutput, type, fullRetObj);
-    }
-};
-
-JSONPath.prototype._trace = function (expr, val, path, parent, parentPropName, callback) {
-    // No expr to follow? return path and value as the result of this trace branch
-    var retObj, self = this;
-    if (!expr.length) {
-        retObj = {path: path, value: val, parent: parent, parentProperty: parentPropName};
-        this._handleCallback(retObj, callback, 'value');
-        return retObj;
-    }
-
-    var loc = expr[0], x = expr.slice(1);
-
-    // We need to gather the return value of recursive trace calls in order to
-    // do the parent sel computation.
-    var ret = [];
-    function addRet (elems) {ret = ret.concat(elems);}
-
-    if (val && Object.prototype.hasOwnProperty.call(val, loc)) { // simple case--directly follow property
-        addRet(this._trace(x, val[loc], push(path, loc), val, loc, callback));
-    }
-    else if (loc === '*') { // all child properties
-        this._walk(loc, x, val, path, parent, parentPropName, callback, function (m, l, x, v, p, par, pr, cb) {
-            addRet(self._trace(unshift(m, x), v, p, par, pr, cb));
-        });
-    }
-    else if (loc === '..') { // all descendent parent properties
-        addRet(this._trace(x, val, path, parent, parentPropName, callback)); // Check remaining expression with val's immediate children
-        this._walk(loc, x, val, path, parent, parentPropName, callback, function (m, l, x, v, p, par, pr, cb) {
-            // We don't join m and x here because we only want parents, not scalar values
-            if (typeof v[m] === 'object') { // Keep going with recursive descent on val's object children
-                addRet(self._trace(unshift(l, x), v[m], push(p, m), v, m, cb));
-            }
-        });
-    }
-    else if (loc[0] === '(') { // [(expr)] (dynamic property/index)
-        if (this.currPreventEval) {
-            throw new Error('Eval [(expr)] prevented in JSONPath expression.');
-        }
-        // As this will resolve to a property name (but we don't know it yet), property and parent information is relative to the parent of the property to which this expression will resolve
-        addRet(this._trace(unshift(this._eval(loc, val, path[path.length - 1], path.slice(0, -1), parent, parentPropName), x), val, path, parent, parentPropName, callback));
-    }
-    // The parent sel computation is handled in the frame above using the
-    // ancestor object of val
-    else if (loc === '^') {
-        // This is not a final endpoint, so we do not invoke the callback here
-        return path.length ? {
-            path: path.slice(0, -1),
-            expr: x,
-            isParentSelector: true
-        } : [];
-    }
-    else if (loc === '~') { // property name
-        retObj = {path: push(path, loc), value: parentPropName, parent: parent, parentProperty: null};
-        this._handleCallback(retObj, callback, 'property');
-        return retObj;
-    }
-    else if (loc === '$') { // root only
-        addRet(this._trace(x, val, path, null, null, callback));
-    }
-    else if (loc.indexOf('?(') === 0) { // [?(expr)] (filtering)
-        if (this.currPreventEval) {
-            throw new Error('Eval [?(expr)] prevented in JSONPath expression.');
-        }
-        this._walk(loc, x, val, path, parent, parentPropName, callback, function (m, l, x, v, p, par, pr, cb) {
-            if (self._eval(l.replace(/^\?\((.*?)\)$/, '$1'), v[m], m, p, par, pr)) {
-                addRet(self._trace(unshift(m, x), v, p, par, pr, cb));
-            }
-        });
-    }
-    else if (loc.indexOf(',') > -1) { // [name1,name2,...]
-        var parts, i;
-        for (parts = loc.split(','), i = 0; i < parts.length; i++) {
-            addRet(this._trace(unshift(parts[i], x), val, path, parent, parentPropName, callback));
-        }
-    }
-    else if (loc[0] === '@') { // value type: @boolean(), etc.
-        var addType = false;
-        var valueType = loc.slice(1, -2);
-        switch (valueType) {
-        case 'boolean': case 'string': case 'undefined': case 'function':
-            if (typeof val === valueType) {
-                addType = true;
-            }
-            break;
-        case 'number':
-            if (typeof val === valueType && isFinite(val)) {
-                addType = true;
-            }
-            break;
-        case 'nonFinite':
-            if (typeof val === 'number' && !isFinite(val)) {
-                addType = true;
-            }
-            break;
-        case 'object':
-            if (val && typeof val === valueType) {
-                addType = true;
-            }
-            break;
-        case 'array':
-            if (Array.isArray(val)) {
-                addType = true;
-            }
-            break;
-        case 'other':
-            addType = this.currOtherTypeCallback(val, path, parent, parentPropName);
-            break;
-        case 'integer':
-            if (val === +val && isFinite(val) && !(val % 1)) {
-                addType = true;
-            }
-            break;
-        case 'null':
-            if (val === null) {
-                addType = true;
-            }
-            break;
-        }
-        if (addType) {
-            retObj = {path: path, value: val, parent: parent, parentProperty: parentPropName};
-            this._handleCallback(retObj, callback, 'value');
-            return retObj;
-        }
-    }
-    else if (/^(-?[0-9]*):(-?[0-9]*):?([0-9]*)$/.test(loc)) { // [start:end:step]  Python slice syntax
-        addRet(this._slice(loc, x, val, path, parent, parentPropName, callback));
-    }
-
-    // We check the resulting values for parent selections. For parent
-    // selections we discard the value object and continue the trace with the
-    // current val object
-    return ret.reduce(function (all, ea) {
-        return all.concat(ea.isParentSelector ? self._trace(ea.expr, val, ea.path, parent, parentPropName, callback) : ea);
-    }, []);
-};
-
-JSONPath.prototype._walk = function (loc, expr, val, path, parent, parentPropName, callback, f) {
-    var i, n, m;
-    if (Array.isArray(val)) {
-        for (i = 0, n = val.length; i < n; i++) {
-            f(i, loc, expr, val, path, parent, parentPropName, callback);
-        }
-    }
-    else if (typeof val === 'object') {
-        for (m in val) {
-            if (Object.prototype.hasOwnProperty.call(val, m)) {
-                f(m, loc, expr, val, path, parent, parentPropName, callback);
-            }
-        }
-    }
-};
-
-JSONPath.prototype._slice = function (loc, expr, val, path, parent, parentPropName, callback) {
-    if (!Array.isArray(val)) {return;}
-    var i,
-        len = val.length, parts = loc.split(':'),
-        start = (parts[0] && parseInt(parts[0], 10)) || 0,
-        end = (parts[1] && parseInt(parts[1], 10)) || len,
-        step = (parts[2] && parseInt(parts[2], 10)) || 1;
-    start = (start < 0) ? Math.max(0, start + len) : Math.min(len, start);
-    end = (end < 0) ? Math.max(0, end + len) : Math.min(len, end);
-    var ret = [];
-    for (i = start; i < end; i += step) {
-        ret = ret.concat(this._trace(unshift(i, expr), val, path, parent, parentPropName, callback));
-    }
-    return ret;
-};
-
-JSONPath.prototype._eval = function (code, _v, _vname, path, parent, parentPropName) {
-    if (!this._obj || !_v) {return false;}
-    if (code.indexOf('@parentProperty') > -1) {
-        this.currSandbox._$_parentProperty = parentPropName;
-        code = code.replace(/@parentProperty/g, '_$_parentProperty');
-    }
-    if (code.indexOf('@parent') > -1) {
-        this.currSandbox._$_parent = parent;
-        code = code.replace(/@parent/g, '_$_parent');
-    }
-    if (code.indexOf('@property') > -1) {
-        this.currSandbox._$_property = _vname;
-        code = code.replace(/@property/g, '_$_property');
-    }
-    if (code.indexOf('@path') > -1) {
-        this.currSandbox._$_path = JSONPath.toPathString(path.concat([_vname]));
-        code = code.replace(/@path/g, '_$_path');
-    }
-    if (code.match(/@([\.\s\)\[])/)) {
-        this.currSandbox._$_v = _v;
-        code = code.replace(/@([\.\s\)\[])/g, '_$_v$1');
-    }
-    try {
-        return vm.runInNewContext(code, this.currSandbox);
-    }
-    catch (e) {
-        console.log(e);
-        throw new Error('jsonPath: ' + e.message + ': ' + code);
-    }
-};
-
-// PUBLIC CLASS PROPERTIES AND METHODS
-
-// Could store the cache object itself
-JSONPath.cache = {};
-
-JSONPath.toPathString = function (pathArr) {
-    var i, n, x = pathArr, p = '$';
-    for (i = 1, n = x.length; i < n; i++) {
-        if (!(/^(~|\^|@.*?\(\))$/).test(x[i])) {
-            p += (/^[0-9*]+$/).test(x[i]) ? ('[' + x[i] + ']') : ("['" + x[i] + "']");
-        }
-    }
-    return p;
-};
-
-JSONPath.toPointer = function (pointer) {
-    var i, n, x = pointer, p = '';
-    for (i = 1, n = x.length; i < n; i++) {
-        if (!(/^(~|\^|@.*?\(\))$/).test(x[i])) {
-            p += '/' + x[i].toString()
-                  .replace(/\~/g, '~0')
-                  .replace(/\//g, '~1');
-        }
-    }
-    return p;
-};
-
-JSONPath.toPathArray = function (expr) {
-    var cache = JSONPath.cache;
-    if (cache[expr]) {return cache[expr];}
-    var subx = [];
-    var normalized = expr
-                    // Properties
-                    .replace(/@(?:null|boolean|number|string|array|object|integer|undefined|nonFinite|function|other)\(\)/g, ';$&;')
-                    // Parenthetical evaluations (filtering and otherwise), directly within brackets or single quotes
-                    .replace(/[\['](\??\(.*?\))[\]']/g, function ($0, $1) {return '[#' + (subx.push($1) - 1) + ']';})
-                    // Escape periods and tildes within properties
-                    .replace(/\['([^'\]]*)'\]/g, function ($0, prop) {
-                        return "['" + prop.replace(/\./g, '%@%').replace(/~/g, '%%@@%%') + "']";
-                    })
-                    // Properties operator
-                    .replace(/~/g, ';~;')
-                    // Split by property boundaries
-                    .replace(/'?\.'?(?![^\[]*\])|\['?/g, ';')
-                    // Reinsert periods within properties
-                    .replace(/%@%/g, '.')
-                    // Reinsert tildes within properties
-                    .replace(/%%@@%%/g, '~')
-                    // Parent
-                    .replace(/(?:;)?(\^+)(?:;)?/g, function ($0, ups) {return ';' + ups.split('').join(';') + ';';})
-                    // Descendents
-                    .replace(/;;;|;;/g, ';..;')
-                    // Remove trailing
-                    .replace(/;$|'?\]|'$/g, '');
-
-    var exprList = normalized.split(';').map(function (expr) {
-        var match = expr.match(/#([0-9]+)/);
-        return !match || !match[1] ? expr : subx[match[1]];
-    });
-    cache[expr] = exprList;
-    return cache[expr];
-};
-
-// For backward compatibility (deprecated)
-JSONPath.eval = function (obj, expr, opts) {
-    return JSONPath(opts, expr, obj);
-};
-
-if (typeof define === 'function' && define.amd) {
-    define(function () {return JSONPath;});
-}
-else if (isNode) {
-    module.exports = JSONPath;
-}
-else {
-    self.jsonPath = { // Deprecated
-        eval: JSONPath.eval
-    };
-    self.JSONPath = JSONPath;
-}
-}(typeof require === 'undefined' ? null : require));
-
-},{"vm":65}],15:[function(require,module,exports){
 (function (process){
 // Generated by CoffeeScript 1.6.3
 (function() {
@@ -3508,7 +3120,7 @@ else {
 }).call(this);
 
 }).call(this,require('_process'))
-},{"_process":64}],16:[function(require,module,exports){
+},{"_process":64}],15:[function(require,module,exports){
 
 /**
  * Reduce `arr` with `fn`.
@@ -3533,56 +3145,7 @@ module.exports = function(arr, fn, initial){
   
   return curr;
 };
-},{}],17:[function(require,module,exports){
-// Copyright 2014 Simon Lydell
-// X11 (“MIT”) Licensed. (See LICENSE.)
-
-void (function(root, factory) {
-  if (typeof define === "function" && define.amd) {
-    define(factory)
-  } else if (typeof exports === "object") {
-    module.exports = factory()
-  } else {
-    root.resolveUrl = factory()
-  }
-}(this, function() {
-
-  function resolveUrl(/* ...urls */) {
-    var numUrls = arguments.length
-
-    if (numUrls === 0) {
-      throw new Error("resolveUrl requires at least one argument; got none.")
-    }
-
-    var base = document.createElement("base")
-    base.href = arguments[0]
-
-    if (numUrls === 1) {
-      return base.href
-    }
-
-    var head = document.getElementsByTagName("head")[0]
-    head.insertBefore(base, head.firstChild)
-
-    var a = document.createElement("a")
-    var resolved
-
-    for (var index = 1; index < numUrls; index++) {
-      a.href = arguments[index]
-      resolved = a.href
-      base.href = resolved
-    }
-
-    head.removeChild(base)
-
-    return resolved
-  }
-
-  return resolveUrl
-
-}));
-
-},{}],18:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 'use strict';
 
 function uniq(arr) {
@@ -3810,7 +3373,7 @@ module.exports = {
   _expand: _expand,
 };
 
-},{}],19:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -5003,7 +4566,7 @@ request.put = function(url, data, fn){
 
 module.exports = request;
 
-},{"emitter":8,"reduce":16}],20:[function(require,module,exports){
+},{"emitter":8,"reduce":15}],18:[function(require,module,exports){
 'use strict';
 
 var halfred = require('halfred');
@@ -5327,7 +4890,7 @@ JsonHalAdapter.prototype._handleHeader = function(httpResponse, link) {
 
 module.exports = JsonHalAdapter;
 
-},{"halfred":21}],21:[function(require,module,exports){
+},{"halfred":19}],19:[function(require,module,exports){
 var Parser = require('./lib/parser')
   , validationFlag = false;
 
@@ -5346,13 +4909,13 @@ module.exports = {
   }
 };
 
-},{"./lib/parser":23}],22:[function(require,module,exports){
+},{"./lib/parser":21}],20:[function(require,module,exports){
 arguments[4][11][0].apply(exports,arguments)
-},{"dup":11}],23:[function(require,module,exports){
+},{"dup":11}],21:[function(require,module,exports){
 arguments[4][12][0].apply(exports,arguments)
-},{"./immutable_stack":22,"./resource":24,"dup":12}],24:[function(require,module,exports){
+},{"./immutable_stack":20,"./resource":22,"dup":12}],22:[function(require,module,exports){
 arguments[4][13][0].apply(exports,arguments)
-},{"dup":13}],25:[function(require,module,exports){
+},{"dup":13}],23:[function(require,module,exports){
 'use strict';
 
 // TODO Replace by a proper lightweight logging module, suited for the browser
@@ -5403,7 +4966,7 @@ minilog.enable = function() {
 
 module.exports = minilog;
 
-},{}],26:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -5415,7 +4978,7 @@ module.exports = {
   }
 };
 
-},{}],27:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 'use strict';
 
 var superagent = require('superagent');
@@ -5541,7 +5104,7 @@ function handleResponse(callback) {
 
 module.exports = new Request();
 
-},{"superagent":19}],28:[function(require,module,exports){
+},{"superagent":17}],26:[function(require,module,exports){
 'use strict';
 
 /*
@@ -5585,7 +5148,7 @@ var _s = {
 
 module.exports = _s;
 
-},{}],29:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 'use strict';
 
 var resolveUrl = require('resolve-url');
@@ -5594,7 +5157,7 @@ exports.resolve = function(from, to) {
   return resolveUrl(from, to);
 };
 
-},{"resolve-url":17}],30:[function(require,module,exports){
+},{"resolve-url":60}],28:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -5632,7 +5195,7 @@ exports.abortError = function abortError() {
   return error;
 };
 
-},{"minilog":25}],31:[function(require,module,exports){
+},{"minilog":23}],29:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -5768,7 +5331,7 @@ function createTraversalHandle(t) {
   };
 }
 
-},{"./abort_traversal":30,"./http_requests":33,"./is_continuation":34,"./transforms/apply_transforms":40,"./transforms/check_http_status":41,"./transforms/continuation_to_doc":42,"./transforms/continuation_to_response":43,"./transforms/convert_embedded_doc_to_response":44,"./transforms/execute_http_request":46,"./transforms/execute_last_http_request":47,"./transforms/extract_doc":48,"./transforms/extract_response":49,"./transforms/extract_url":50,"./transforms/fetch_last_resource":51,"./transforms/parse":54,"./walker":60,"minilog":25}],32:[function(require,module,exports){
+},{"./abort_traversal":28,"./http_requests":31,"./is_continuation":32,"./transforms/apply_transforms":38,"./transforms/check_http_status":39,"./transforms/continuation_to_doc":40,"./transforms/continuation_to_response":41,"./transforms/convert_embedded_doc_to_response":42,"./transforms/execute_http_request":44,"./transforms/execute_last_http_request":45,"./transforms/extract_doc":46,"./transforms/extract_response":47,"./transforms/extract_url":48,"./transforms/fetch_last_resource":49,"./transforms/parse":52,"./walker":58,"minilog":23}],30:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6412,7 +5975,7 @@ function shallowCloneArray(array) {
 
 module.exports = Builder;
 
-},{"./abort_traversal":30,"./actions":31,"./media_type_registry":36,"./media_types":37,"./merge_recursive":38,"minilog":25,"request":27,"util":26}],33:[function(require,module,exports){
+},{"./abort_traversal":28,"./actions":29,"./media_type_registry":34,"./media_types":35,"./merge_recursive":36,"minilog":23,"request":25,"util":24}],31:[function(require,module,exports){
 (function (process){
 'use strict';
 var minilog = require('minilog')
@@ -6518,14 +6081,14 @@ exports.executeHttpRequest = function(t, request, method, callback) {
 };
 
 }).call(this,require('_process'))
-},{"./abort_traversal":30,"./transforms/detect_content_type":45,"./transforms/get_options_for_step":53,"_process":64,"minilog":25}],34:[function(require,module,exports){
+},{"./abort_traversal":28,"./transforms/detect_content_type":43,"./transforms/get_options_for_step":51,"_process":64,"minilog":23}],32:[function(require,module,exports){
 'use strict';
 
 module.exports = function isContinuation(t) {
   return t.continuation && t.step && t.step.response;
 };
 
-},{}],35:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 'use strict';
 
 var jsonpath = require('jsonpath-plus')
@@ -6630,7 +6193,7 @@ JsonAdapter.prototype._handleHeader = function(httpResponse, link) {
 
 module.exports = JsonAdapter;
 
-},{"jsonpath-plus":14,"minilog":25,"underscore.string":28}],36:[function(require,module,exports){
+},{"jsonpath-plus":59,"minilog":23,"underscore.string":26}],34:[function(require,module,exports){
 'use strict';
 
 var mediaTypes = require('./media_types');
@@ -6649,7 +6212,7 @@ exports.register(mediaTypes.CONTENT_NEGOTIATION,
     require('./negotiation_adapter'));
 exports.register(mediaTypes.JSON, require('./json_adapter'));
 
-},{"./json_adapter":35,"./media_types":37,"./negotiation_adapter":39}],37:[function(require,module,exports){
+},{"./json_adapter":33,"./media_types":35,"./negotiation_adapter":37}],35:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -6658,7 +6221,7 @@ module.exports = {
   JSON_HAL: 'application/hal+json',
 };
 
-},{}],38:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 'use strict';
 
 // TODO Maybe replace with https://github.com/Raynos/xtend
@@ -6695,7 +6258,7 @@ function merge(obj1, obj2, key) {
 
 module.exports = mergeRecursive;
 
-},{}],39:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 'use strict';
 
 function NegotiationAdapter(log) {}
@@ -6706,7 +6269,7 @@ NegotiationAdapter.prototype.findNextStep = function(doc, link) {
 
 module.exports = NegotiationAdapter;
 
-},{}],40:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 (function (process){
 /* jshint loopfunc: true */
 'use strict';
@@ -6748,7 +6311,7 @@ function applyTransforms(transforms, t, callback) {
 module.exports = applyTransforms;
 
 }).call(this,require('_process'))
-},{"_process":64,"minilog":25}],41:[function(require,module,exports){
+},{"_process":64,"minilog":23}],39:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6802,7 +6365,7 @@ function httpError(url, httpStatus, body) {
   return error;
 }
 
-},{"../is_continuation":34,"minilog":25}],42:[function(require,module,exports){
+},{"../is_continuation":32,"minilog":23}],40:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6824,7 +6387,7 @@ module.exports = function continuationToDoc(t) {
   return true;
 };
 
-},{"../is_continuation":34,"minilog":25}],43:[function(require,module,exports){
+},{"../is_continuation":32,"minilog":23}],41:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6849,7 +6412,7 @@ module.exports = function continuationToResponse(t) {
   return true;
 };
 
-},{"../is_continuation":34,"./convert_embedded_doc_to_response":44,"minilog":25}],44:[function(require,module,exports){
+},{"../is_continuation":32,"./convert_embedded_doc_to_response":42,"minilog":23}],42:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6869,7 +6432,7 @@ module.exports = function convertEmbeddedDocToResponse(t) {
   return true;
 };
 
-},{"minilog":25}],45:[function(require,module,exports){
+},{"minilog":23}],43:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6895,7 +6458,7 @@ module.exports = function detectContentType(t, callback) {
   return true;
 };
 
-},{"../media_type_registry":36,"minilog":25}],46:[function(require,module,exports){
+},{"../media_type_registry":34,"minilog":23}],44:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6937,7 +6500,7 @@ executeLastHttpRequest.isAsync = true;
 
 module.exports = executeLastHttpRequest;
 
-},{"../abort_traversal":30,"../http_requests":33,"minilog":25}],47:[function(require,module,exports){
+},{"../abort_traversal":28,"../http_requests":31,"minilog":23}],45:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6966,7 +6529,7 @@ executeLastHttpRequest.isAsync = true;
 
 module.exports = executeLastHttpRequest;
 
-},{"../abort_traversal":30,"../http_requests":33,"minilog":25}],48:[function(require,module,exports){
+},{"../abort_traversal":28,"../http_requests":31,"minilog":23}],46:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6995,7 +6558,7 @@ module.exports = function extractDoc(t) {
   return false;
 };
 
-},{"minilog":25}],49:[function(require,module,exports){
+},{"minilog":23}],47:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -7025,7 +6588,7 @@ module.exports = function extractDoc(t) {
   return false;
 };
 
-},{"minilog":25}],50:[function(require,module,exports){
+},{"minilog":23}],48:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -7055,7 +6618,7 @@ module.exports = function extractDoc(t) {
   }
 };
 
-},{"minilog":25,"url":29}],51:[function(require,module,exports){
+},{"minilog":23,"url":27}],49:[function(require,module,exports){
 'use strict';
 
 // TODO Only difference to lib/transform/fetch_resource is the continuation
@@ -7093,7 +6656,7 @@ fetchLastResource.isAsync = true;
 
 module.exports = fetchLastResource;
 
-},{"../abort_traversal":30,"../http_requests":33,"minilog":25}],52:[function(require,module,exports){
+},{"../abort_traversal":28,"../http_requests":31,"minilog":23}],50:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -7151,7 +6714,7 @@ function fetchViaHttp(t, callback) {
 module.exports = fetchResource;
 
 }).call(this,require('_process'))
-},{"../abort_traversal":30,"../http_requests":33,"../is_continuation":34,"_process":64,"minilog":25}],53:[function(require,module,exports){
+},{"../abort_traversal":28,"../http_requests":31,"../is_continuation":32,"_process":64,"minilog":23}],51:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -7167,7 +6730,7 @@ module.exports = function getOptionsForStep(t) {
   return options;
 };
 
-},{"minilog":25,"util":26}],54:[function(require,module,exports){
+},{"minilog":23,"util":24}],52:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -7218,7 +6781,7 @@ function jsonError(url, body) {
   return error;
 }
 
-},{"../is_continuation":34,"minilog":25}],55:[function(require,module,exports){
+},{"../is_continuation":32,"minilog":23}],53:[function(require,module,exports){
 'use strict';
 
 var isContinuation = require('../is_continuation');
@@ -7233,7 +6796,7 @@ module.exports = function resetLastStep(t) {
   return true;
 };
 
-},{"../is_continuation":34}],56:[function(require,module,exports){
+},{"../is_continuation":32}],54:[function(require,module,exports){
 'use strict';
 
 var isContinuation = require('../is_continuation');
@@ -7248,7 +6811,7 @@ module.exports = function resetLastStep(t) {
   return true;
 };
 
-},{"../is_continuation":34}],57:[function(require,module,exports){
+},{"../is_continuation":32}],55:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -7281,7 +6844,7 @@ module.exports = function resolveNextUrl(t) {
   return true;
 };
 
-},{"minilog":25,"underscore.string":28,"url":29}],58:[function(require,module,exports){
+},{"minilog":23,"underscore.string":26,"url":27}],56:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -7314,7 +6877,7 @@ module.exports = function resolveUriTemplate(t) {
 
 
 
-},{"minilog":25,"underscore.string":28,"url-template":62,"util":26}],59:[function(require,module,exports){
+},{"minilog":23,"underscore.string":26,"url-template":61,"util":24}],57:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -7353,7 +6916,7 @@ function findNextStep(t, link) {
   }
 }
 
-},{"minilog":25}],60:[function(require,module,exports){
+},{"minilog":23}],58:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -7430,81 +6993,512 @@ function isAborted(t) {
   return t.aborted;
 }
 
-},{"./abort_traversal":30,"./is_continuation":34,"./transforms/apply_transforms":40,"./transforms/check_http_status":41,"./transforms/fetch_resource":52,"./transforms/parse":54,"./transforms/reset_continuation":55,"./transforms/reset_last_step":56,"./transforms/resolve_next_url":57,"./transforms/resolve_uri_template":58,"./transforms/switch_to_next_step":59,"minilog":25}],61:[function(require,module,exports){
-(function (process){
-'use strict';
+},{"./abort_traversal":28,"./is_continuation":32,"./transforms/apply_transforms":38,"./transforms/check_http_status":39,"./transforms/fetch_resource":50,"./transforms/parse":52,"./transforms/reset_continuation":53,"./transforms/reset_last_step":54,"./transforms/resolve_next_url":55,"./transforms/resolve_uri_template":56,"./transforms/switch_to_next_step":57,"minilog":23}],59:[function(require,module,exports){
+/*global exports, require*/
+/* eslint-disable no-eval */
+/* JSONPath 0.8.0 - XPath for JSON
+ *
+ * Copyright (c) 2007 Stefan Goessner (goessner.net)
+ * Licensed under the MIT (MIT-LICENSE.txt) licence.
+ */
 
-var minilog = require('minilog')
-  , mediaTypes = require('./lib/media_types')
-  , Builder = require('./lib/builder')
-  , mediaTypes = require('./lib/media_types')
-  , mediaTypeRegistry = require('./lib/media_type_registry');
+var module;
+(function (require) {'use strict';
 
-// activate this line to enable logging
-if (process.env.TRAVERSON_LOGGING) {
-  require('minilog').enable();
+// Make sure to know if we are in real node or not (the `require` variable
+// could actually be require.js, for example.
+var isNode = module && !!module.exports;
+
+var allowedResultTypes = ['value', 'path', 'pointer', 'parent', 'parentProperty', 'all'];
+
+var vm = isNode
+    ? require('vm') : {
+        runInNewContext: function (expr, context) {
+            return eval(Object.keys(context).reduce(function (s, vr) {
+                return 'var ' + vr + '=' + JSON.stringify(context[vr]).replace(/\u2028|\u2029/g, function (m) {
+                    // http://www.thespanner.co.uk/2011/07/25/the-json-specification-is-now-wrong/
+                    return '\\u202' + (m === '\u2028' ? '8' : '9');
+                }) + ';' + s;
+            }, expr));
+        }
+    };
+
+function push (arr, elem) {arr = arr.slice(); arr.push(elem); return arr;}
+function unshift (elem, arr) {arr = arr.slice(); arr.unshift(elem); return arr;}
+function NewError (value) {
+  this.avoidNew = true;
+  this.value = value;
+  this.message = 'JSONPath should not be called with "new" (it prevents return of (unwrapped) scalar values)';
 }
 
-// export builder for traverson-angular
-exports._Builder = Builder;
-
-/**
- * Creates a new request builder instance.
- */
-exports.newRequest = function newRequest() {
-  return new Builder();
-};
-
-/**
- * Creates a new request builder instance with the given root URL.
- */
-exports.from = function from(url) {
-  var builder = new Builder();
-  builder.from(url);
-  return builder;
-};
-
-// Provided for backward compatibility with pre-1.0.0 versions.
-// The preferred way is to use newRequest() or from() to create a request
-// builder and either set the media type explicitly by calling json() on the
-// request builder instance - or use content negotiation.
-exports.json = {
-  from: function(url) {
-    var builder = new Builder();
-    builder.from(url);
-    builder.setMediaType(mediaTypes.JSON);
-    return builder;
-  }
-},
-
-// Provided for backward compatibility with pre-1.0.0 versions.
-// The preferred way is to use newRequest() or from() to create a request
-// builder and then either set the media type explicitly by calling jsonHal() on
-// the request builder instance - or use content negotiation.
-exports.jsonHal = {
-  from: function(url) {
-    if (!mediaTypeRegistry.get(mediaTypes.JSON_HAL)) {
-      throw new Error('JSON HAL adapter is not registered. From version ' +
-        '1.0.0 on, Traverson has no longer built-in support for ' +
-        'application/hal+json. HAL support was moved to a separate, optional ' +
-        'plug-in. See https://github.com/basti1302/traverson-hal');
+function JSONPath (opts, expr, obj, callback, otherTypeCallback) {
+    if (!(this instanceof JSONPath)) {
+        try {
+            return new JSONPath(opts, expr, obj, callback, otherTypeCallback);
+        }
+        catch (e) {
+            if (!e.avoidNew) {
+                throw e;
+            }
+            return e.value;
+        }
     }
-    var builder = new Builder();
-    builder.from(url);
-    builder.setMediaType(mediaTypes.JSON_HAL);
-    return builder;
-  }
+
+    if (typeof opts === 'string') {
+        otherTypeCallback = callback;
+        callback = obj;
+        obj = expr;
+        expr = opts;
+        opts = {};
+    }
+    opts = opts || {};
+    var objArgs = opts.hasOwnProperty('json') && opts.hasOwnProperty('path');
+    this.json = opts.json || obj;
+    this.path = opts.path || expr;
+    this.resultType = (opts.resultType && opts.resultType.toLowerCase()) || 'value';
+    this.flatten = opts.flatten || false;
+    this.wrap = opts.hasOwnProperty('wrap') ? opts.wrap : true;
+    this.sandbox = opts.sandbox || {};
+    this.preventEval = opts.preventEval || false;
+    this.parent = opts.parent || null;
+    this.parentProperty = opts.parentProperty || null;
+    this.callback = opts.callback || callback || null;
+    this.otherTypeCallback = opts.otherTypeCallback || otherTypeCallback || function () {
+        throw new Error('You must supply an otherTypeCallback callback option with the @other() operator.');
+    };
+
+    if (opts.autostart !== false) {
+        var ret = this.evaluate({
+            path: (objArgs ? opts.path : expr),
+            json: (objArgs ? opts.json : obj)
+        });
+        if (!ret || typeof ret !== 'object') {
+            throw new NewError(ret);
+        }
+        return ret;
+    }
+}
+
+// PUBLIC METHODS
+
+JSONPath.prototype.evaluate = function (expr, json, callback, otherTypeCallback) {
+    var self = this,
+        flatten = this.flatten,
+        wrap = this.wrap,
+        currParent = this.parent,
+        currParentProperty = this.parentProperty;
+
+    this.currResultType = this.resultType;
+    this.currPreventEval = this.preventEval;
+    this.currSandbox = this.sandbox;
+    callback = callback || this.callback;
+    this.currOtherTypeCallback = otherTypeCallback || this.otherTypeCallback;
+
+    json = json || this.json;
+    expr = expr || this.path;
+    if (expr && typeof expr === 'object') {
+        if (!expr.path) {
+            throw new Error('You must supply a "path" property when providing an object argument to JSONPath.evaluate().');
+        }
+        json = expr.hasOwnProperty('json') ? expr.json : json;
+        flatten = expr.hasOwnProperty('flatten') ? expr.flatten : flatten;
+        this.currResultType = expr.hasOwnProperty('resultType') ? expr.resultType : this.currResultType;
+        this.currSandbox = expr.hasOwnProperty('sandbox') ? expr.sandbox : this.currSandbox;
+        wrap = expr.hasOwnProperty('wrap') ? expr.wrap : wrap;
+        this.currPreventEval = expr.hasOwnProperty('preventEval') ? expr.preventEval : this.currPreventEval;
+        callback = expr.hasOwnProperty('callback') ? expr.callback : callback;
+        this.currOtherTypeCallback = expr.hasOwnProperty('otherTypeCallback') ? expr.otherTypeCallback : this.currOtherTypeCallback;
+        currParent = expr.hasOwnProperty('parent') ? expr.parent : currParent;
+        currParentProperty = expr.hasOwnProperty('parentProperty') ? expr.parentProperty : currParentProperty;
+        expr = expr.path;
+    }
+    currParent = currParent || null;
+    currParentProperty = currParentProperty || null;
+
+    if (Array.isArray(expr)) {
+        expr = JSONPath.toPathString(expr);
+    }
+    if (!expr || !json || allowedResultTypes.indexOf(this.currResultType) === -1) {
+        return;
+    }
+    this._obj = json;
+
+    var exprList = JSONPath.toPathArray(expr);
+    if (exprList[0] === '$' && exprList.length > 1) {exprList.shift();}
+    var result = this._trace(exprList, json, ['$'], currParent, currParentProperty, callback);
+    result = result.filter(function (ea) {return ea && !ea.isParentSelector;});
+
+    if (!result.length) {return wrap ? [] : undefined;}
+    if (result.length === 1 && !wrap && !Array.isArray(result[0].value)) {
+        return this._getPreferredOutput(result[0]);
+    }
+    return result.reduce(function (result, ea) {
+        var valOrPath = self._getPreferredOutput(ea);
+        if (flatten && Array.isArray(valOrPath)) {
+            result = result.concat(valOrPath);
+        }
+        else {
+            result.push(valOrPath);
+        }
+        return result;
+    }, []);
 };
 
-// expose media type registry so that media type plug-ins can register
-// themselves
-exports.registerMediaType = mediaTypeRegistry.register;
+// PRIVATE METHODS
 
-// export media type constants
-exports.mediaTypes = mediaTypes;
+JSONPath.prototype._getPreferredOutput = function (ea) {
+    var resultType = this.currResultType;
+    switch (resultType) {
+    case 'all':
+        ea.path = typeof ea.path === 'string' ? ea.path : JSONPath.toPathString(ea.path);
+        return ea;
+    case 'value': case 'parent': case 'parentProperty':
+        return ea[resultType];
+    case 'path':
+        return JSONPath.toPathString(ea[resultType]);
+    case 'pointer':
+        return JSONPath.toPointer(ea.path);
+    }
+};
 
-}).call(this,require('_process'))
-},{"./lib/builder":32,"./lib/media_type_registry":36,"./lib/media_types":37,"_process":64,"minilog":25}],62:[function(require,module,exports){
+JSONPath.prototype._handleCallback = function (fullRetObj, callback, type) {
+    if (callback) {
+        var preferredOutput = this._getPreferredOutput(fullRetObj);
+        fullRetObj.path = typeof fullRetObj.path === 'string' ? fullRetObj.path : JSONPath.toPathString(fullRetObj.path);
+        callback(preferredOutput, type, fullRetObj);
+    }
+};
+
+JSONPath.prototype._trace = function (expr, val, path, parent, parentPropName, callback) {
+    // No expr to follow? return path and value as the result of this trace branch
+    var retObj, self = this;
+    if (!expr.length) {
+        retObj = {path: path, value: val, parent: parent, parentProperty: parentPropName};
+        this._handleCallback(retObj, callback, 'value');
+        return retObj;
+    }
+
+    var loc = expr[0], x = expr.slice(1);
+
+    // We need to gather the return value of recursive trace calls in order to
+    // do the parent sel computation.
+    var ret = [];
+    function addRet (elems) {ret = ret.concat(elems);}
+
+    if (val && Object.prototype.hasOwnProperty.call(val, loc)) { // simple case--directly follow property
+        addRet(this._trace(x, val[loc], push(path, loc), val, loc, callback));
+    }
+    else if (loc === '*') { // all child properties
+        this._walk(loc, x, val, path, parent, parentPropName, callback, function (m, l, x, v, p, par, pr, cb) {
+            addRet(self._trace(unshift(m, x), v, p, par, pr, cb));
+        });
+    }
+    else if (loc === '..') { // all descendent parent properties
+        addRet(this._trace(x, val, path, parent, parentPropName, callback)); // Check remaining expression with val's immediate children
+        this._walk(loc, x, val, path, parent, parentPropName, callback, function (m, l, x, v, p, par, pr, cb) {
+            // We don't join m and x here because we only want parents, not scalar values
+            if (typeof v[m] === 'object') { // Keep going with recursive descent on val's object children
+                addRet(self._trace(unshift(l, x), v[m], push(p, m), v, m, cb));
+            }
+        });
+    }
+    else if (loc[0] === '(') { // [(expr)] (dynamic property/index)
+        if (this.currPreventEval) {
+            throw new Error('Eval [(expr)] prevented in JSONPath expression.');
+        }
+        // As this will resolve to a property name (but we don't know it yet), property and parent information is relative to the parent of the property to which this expression will resolve
+        addRet(this._trace(unshift(this._eval(loc, val, path[path.length - 1], path.slice(0, -1), parent, parentPropName), x), val, path, parent, parentPropName, callback));
+    }
+    // The parent sel computation is handled in the frame above using the
+    // ancestor object of val
+    else if (loc === '^') {
+        // This is not a final endpoint, so we do not invoke the callback here
+        return path.length ? {
+            path: path.slice(0, -1),
+            expr: x,
+            isParentSelector: true
+        } : [];
+    }
+    else if (loc === '~') { // property name
+        retObj = {path: push(path, loc), value: parentPropName, parent: parent, parentProperty: null};
+        this._handleCallback(retObj, callback, 'property');
+        return retObj;
+    }
+    else if (loc === '$') { // root only
+        addRet(this._trace(x, val, path, null, null, callback));
+    }
+    else if (loc.indexOf('?(') === 0) { // [?(expr)] (filtering)
+        if (this.currPreventEval) {
+            throw new Error('Eval [?(expr)] prevented in JSONPath expression.');
+        }
+        this._walk(loc, x, val, path, parent, parentPropName, callback, function (m, l, x, v, p, par, pr, cb) {
+            if (self._eval(l.replace(/^\?\((.*?)\)$/, '$1'), v[m], m, p, par, pr)) {
+                addRet(self._trace(unshift(m, x), v, p, par, pr, cb));
+            }
+        });
+    }
+    else if (loc.indexOf(',') > -1) { // [name1,name2,...]
+        var parts, i;
+        for (parts = loc.split(','), i = 0; i < parts.length; i++) {
+            addRet(this._trace(unshift(parts[i], x), val, path, parent, parentPropName, callback));
+        }
+    }
+    else if (loc[0] === '@') { // value type: @boolean(), etc.
+        var addType = false;
+        var valueType = loc.slice(1, -2);
+        switch (valueType) {
+        case 'boolean': case 'string': case 'undefined': case 'function':
+            if (typeof val === valueType) {
+                addType = true;
+            }
+            break;
+        case 'number':
+            if (typeof val === valueType && isFinite(val)) {
+                addType = true;
+            }
+            break;
+        case 'nonFinite':
+            if (typeof val === 'number' && !isFinite(val)) {
+                addType = true;
+            }
+            break;
+        case 'object':
+            if (val && typeof val === valueType) {
+                addType = true;
+            }
+            break;
+        case 'array':
+            if (Array.isArray(val)) {
+                addType = true;
+            }
+            break;
+        case 'other':
+            addType = this.currOtherTypeCallback(val, path, parent, parentPropName);
+            break;
+        case 'integer':
+            if (val === +val && isFinite(val) && !(val % 1)) {
+                addType = true;
+            }
+            break;
+        case 'null':
+            if (val === null) {
+                addType = true;
+            }
+            break;
+        }
+        if (addType) {
+            retObj = {path: path, value: val, parent: parent, parentProperty: parentPropName};
+            this._handleCallback(retObj, callback, 'value');
+            return retObj;
+        }
+    }
+    else if (/^(-?[0-9]*):(-?[0-9]*):?([0-9]*)$/.test(loc)) { // [start:end:step]  Python slice syntax
+        addRet(this._slice(loc, x, val, path, parent, parentPropName, callback));
+    }
+
+    // We check the resulting values for parent selections. For parent
+    // selections we discard the value object and continue the trace with the
+    // current val object
+    return ret.reduce(function (all, ea) {
+        return all.concat(ea.isParentSelector ? self._trace(ea.expr, val, ea.path, parent, parentPropName, callback) : ea);
+    }, []);
+};
+
+JSONPath.prototype._walk = function (loc, expr, val, path, parent, parentPropName, callback, f) {
+    var i, n, m;
+    if (Array.isArray(val)) {
+        for (i = 0, n = val.length; i < n; i++) {
+            f(i, loc, expr, val, path, parent, parentPropName, callback);
+        }
+    }
+    else if (typeof val === 'object') {
+        for (m in val) {
+            if (Object.prototype.hasOwnProperty.call(val, m)) {
+                f(m, loc, expr, val, path, parent, parentPropName, callback);
+            }
+        }
+    }
+};
+
+JSONPath.prototype._slice = function (loc, expr, val, path, parent, parentPropName, callback) {
+    if (!Array.isArray(val)) {return;}
+    var i,
+        len = val.length, parts = loc.split(':'),
+        start = (parts[0] && parseInt(parts[0], 10)) || 0,
+        end = (parts[1] && parseInt(parts[1], 10)) || len,
+        step = (parts[2] && parseInt(parts[2], 10)) || 1;
+    start = (start < 0) ? Math.max(0, start + len) : Math.min(len, start);
+    end = (end < 0) ? Math.max(0, end + len) : Math.min(len, end);
+    var ret = [];
+    for (i = start; i < end; i += step) {
+        ret = ret.concat(this._trace(unshift(i, expr), val, path, parent, parentPropName, callback));
+    }
+    return ret;
+};
+
+JSONPath.prototype._eval = function (code, _v, _vname, path, parent, parentPropName) {
+    if (!this._obj || !_v) {return false;}
+    if (code.indexOf('@parentProperty') > -1) {
+        this.currSandbox._$_parentProperty = parentPropName;
+        code = code.replace(/@parentProperty/g, '_$_parentProperty');
+    }
+    if (code.indexOf('@parent') > -1) {
+        this.currSandbox._$_parent = parent;
+        code = code.replace(/@parent/g, '_$_parent');
+    }
+    if (code.indexOf('@property') > -1) {
+        this.currSandbox._$_property = _vname;
+        code = code.replace(/@property/g, '_$_property');
+    }
+    if (code.indexOf('@path') > -1) {
+        this.currSandbox._$_path = JSONPath.toPathString(path.concat([_vname]));
+        code = code.replace(/@path/g, '_$_path');
+    }
+    if (code.match(/@([\.\s\)\[])/)) {
+        this.currSandbox._$_v = _v;
+        code = code.replace(/@([\.\s\)\[])/g, '_$_v$1');
+    }
+    try {
+        return vm.runInNewContext(code, this.currSandbox);
+    }
+    catch (e) {
+        console.log(e);
+        throw new Error('jsonPath: ' + e.message + ': ' + code);
+    }
+};
+
+// PUBLIC CLASS PROPERTIES AND METHODS
+
+// Could store the cache object itself
+JSONPath.cache = {};
+
+JSONPath.toPathString = function (pathArr) {
+    var i, n, x = pathArr, p = '$';
+    for (i = 1, n = x.length; i < n; i++) {
+        if (!(/^(~|\^|@.*?\(\))$/).test(x[i])) {
+            p += (/^[0-9*]+$/).test(x[i]) ? ('[' + x[i] + ']') : ("['" + x[i] + "']");
+        }
+    }
+    return p;
+};
+
+JSONPath.toPointer = function (pointer) {
+    var i, n, x = pointer, p = '';
+    for (i = 1, n = x.length; i < n; i++) {
+        if (!(/^(~|\^|@.*?\(\))$/).test(x[i])) {
+            p += '/' + x[i].toString()
+                  .replace(/\~/g, '~0')
+                  .replace(/\//g, '~1');
+        }
+    }
+    return p;
+};
+
+JSONPath.toPathArray = function (expr) {
+    var cache = JSONPath.cache;
+    if (cache[expr]) {return cache[expr];}
+    var subx = [];
+    var normalized = expr
+                    // Properties
+                    .replace(/@(?:null|boolean|number|string|array|object|integer|undefined|nonFinite|function|other)\(\)/g, ';$&;')
+                    // Parenthetical evaluations (filtering and otherwise), directly within brackets or single quotes
+                    .replace(/[\['](\??\(.*?\))[\]']/g, function ($0, $1) {return '[#' + (subx.push($1) - 1) + ']';})
+                    // Escape periods and tildes within properties
+                    .replace(/\['([^'\]]*)'\]/g, function ($0, prop) {
+                        return "['" + prop.replace(/\./g, '%@%').replace(/~/g, '%%@@%%') + "']";
+                    })
+                    // Properties operator
+                    .replace(/~/g, ';~;')
+                    // Split by property boundaries
+                    .replace(/'?\.'?(?![^\[]*\])|\['?/g, ';')
+                    // Reinsert periods within properties
+                    .replace(/%@%/g, '.')
+                    // Reinsert tildes within properties
+                    .replace(/%%@@%%/g, '~')
+                    // Parent
+                    .replace(/(?:;)?(\^+)(?:;)?/g, function ($0, ups) {return ';' + ups.split('').join(';') + ';';})
+                    // Descendents
+                    .replace(/;;;|;;/g, ';..;')
+                    // Remove trailing
+                    .replace(/;$|'?\]|'$/g, '');
+
+    var exprList = normalized.split(';').map(function (expr) {
+        var match = expr.match(/#([0-9]+)/);
+        return !match || !match[1] ? expr : subx[match[1]];
+    });
+    cache[expr] = exprList;
+    return cache[expr];
+};
+
+// For backward compatibility (deprecated)
+JSONPath.eval = function (obj, expr, opts) {
+    return JSONPath(opts, expr, obj);
+};
+
+if (typeof define === 'function' && define.amd) {
+    define(function () {return JSONPath;});
+}
+else if (isNode) {
+    module.exports = JSONPath;
+}
+else {
+    self.jsonPath = { // Deprecated
+        eval: JSONPath.eval
+    };
+    self.JSONPath = JSONPath;
+}
+}(typeof require === 'undefined' ? null : require));
+
+},{"vm":65}],60:[function(require,module,exports){
+// Copyright 2014 Simon Lydell
+// X11 (“MIT”) Licensed. (See LICENSE.)
+
+void (function(root, factory) {
+  if (typeof define === "function" && define.amd) {
+    define(factory)
+  } else if (typeof exports === "object") {
+    module.exports = factory()
+  } else {
+    root.resolveUrl = factory()
+  }
+}(this, function() {
+
+  function resolveUrl(/* ...urls */) {
+    var numUrls = arguments.length
+
+    if (numUrls === 0) {
+      throw new Error("resolveUrl requires at least one argument; got none.")
+    }
+
+    var base = document.createElement("base")
+    base.href = arguments[0]
+
+    if (numUrls === 1) {
+      return base.href
+    }
+
+    var head = document.getElementsByTagName("head")[0]
+    head.insertBefore(base, head.firstChild)
+
+    var a = document.createElement("a")
+    var resolved
+
+    for (var index = 1; index < numUrls; index++) {
+      a.href = arguments[index]
+      resolved = a.href
+      base.href = resolved
+    }
+
+    head.removeChild(base)
+
+    return resolved
+  }
+
+  return resolveUrl
+
+}));
+
+},{}],61:[function(require,module,exports){
 (function (root, factory) {
     if (typeof exports === 'object') {
         module.exports = factory();
@@ -7685,7 +7679,81 @@ exports.mediaTypes = mediaTypes;
   return new UrlTemplate();
 }));
 
-},{}],63:[function(require,module,exports){
+},{}],62:[function(require,module,exports){
+(function (process){
+'use strict';
+
+var minilog = require('minilog')
+  , mediaTypes = require('./lib/media_types')
+  , Builder = require('./lib/builder')
+  , mediaTypes = require('./lib/media_types')
+  , mediaTypeRegistry = require('./lib/media_type_registry');
+
+// activate this line to enable logging
+if (process.env.TRAVERSON_LOGGING) {
+  require('minilog').enable();
+}
+
+// export builder for traverson-angular
+exports._Builder = Builder;
+
+/**
+ * Creates a new request builder instance.
+ */
+exports.newRequest = function newRequest() {
+  return new Builder();
+};
+
+/**
+ * Creates a new request builder instance with the given root URL.
+ */
+exports.from = function from(url) {
+  var builder = new Builder();
+  builder.from(url);
+  return builder;
+};
+
+// Provided for backward compatibility with pre-1.0.0 versions.
+// The preferred way is to use newRequest() or from() to create a request
+// builder and either set the media type explicitly by calling json() on the
+// request builder instance - or use content negotiation.
+exports.json = {
+  from: function(url) {
+    var builder = new Builder();
+    builder.from(url);
+    builder.setMediaType(mediaTypes.JSON);
+    return builder;
+  }
+},
+
+// Provided for backward compatibility with pre-1.0.0 versions.
+// The preferred way is to use newRequest() or from() to create a request
+// builder and then either set the media type explicitly by calling jsonHal() on
+// the request builder instance - or use content negotiation.
+exports.jsonHal = {
+  from: function(url) {
+    if (!mediaTypeRegistry.get(mediaTypes.JSON_HAL)) {
+      throw new Error('JSON HAL adapter is not registered. From version ' +
+        '1.0.0 on, Traverson has no longer built-in support for ' +
+        'application/hal+json. HAL support was moved to a separate, optional ' +
+        'plug-in. See https://github.com/basti1302/traverson-hal');
+    }
+    var builder = new Builder();
+    builder.from(url);
+    builder.setMediaType(mediaTypes.JSON_HAL);
+    return builder;
+  }
+};
+
+// expose media type registry so that media type plug-ins can register
+// themselves
+exports.registerMediaType = mediaTypeRegistry.register;
+
+// export media type constants
+exports.mediaTypes = mediaTypes;
+
+}).call(this,require('_process'))
+},{"./lib/builder":30,"./lib/media_type_registry":34,"./lib/media_types":35,"_process":64,"minilog":23}],63:[function(require,module,exports){
 
 var indexOf = [].indexOf;
 
