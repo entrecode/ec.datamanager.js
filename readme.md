@@ -972,6 +972,9 @@ grunt build
 
 
 ## Changelog
+### 0.7.7
+- fixed bug when saving nested entries (CMS-2127)
+
 ### 0.7.6
 - fix for creating a sdk with `{url: null, id: 'beefbeef'}` (CMS-2029)
 
