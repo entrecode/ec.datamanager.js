@@ -1004,11 +1004,13 @@ DataManager.DB_BROWSER = 'BROWSER';
 
 module.exports = DataManager;
 
-},{"./Asset":1,"./Entry":3,"./Model":4,"./Tag":5,"./User":6,"./util":7,"es6-promise":8,"halfred":9,"lokijs":20,"shiro-trie":21,"superagent":22,"traverson":72,"traverson-hal":28}],3:[function(require,module,exports){
+},{"./Asset":1,"./Entry":3,"./Model":4,"./Tag":5,"./User":6,"./util":7,"es6-promise":8,"halfred":9,"lokijs":20,"shiro-trie":22,"superagent":23,"traverson":72,"traverson-hal":28}],3:[function(require,module,exports){
 'use strict';
 
 var halfred = require('halfred');
 var util = require('./util');
+
+var Asset = require('./Asset');
 
 var Entry = function(entry, dm, model) {
   this.value = entry;
@@ -1024,12 +1026,7 @@ Entry.prototype.save = function() {
     return entry._dm._getTraversal();
   })
   .then(function(traversal) {
-    delete entry.value._curies;
-    delete entry.value._curiesMap;
-    delete entry.value._resolvedCuriesMap;
-    delete entry.value._validation;
-    delete entry.value._original;
-    delete entry.value._embedded;
+    cleanEntry(entry);
     return util.putP(
       traversal.continue().newRequest()
       .follow(entry._dm.id + ':' + entry._model.title)
@@ -1051,6 +1048,10 @@ Entry.prototype.save = function() {
       return Promise.resolve(true);
     }
     entry.value = halfred.parse(JSON.parse(res.body));
+              if (entry._isNested) {
+            makeNestedToResource(entry, entry._dm, entry._model);
+          }
+
     entry._traversal = traversal;
     return Promise.resolve(entry);
   })
@@ -1121,9 +1122,73 @@ Entry.prototype.getModelTitle = function(property) {
   return regex.exec(links[0].href)[1];
 };
 
+function cleanEntry(entry) {
+  removeNestedResources(entry);
+  delete entry.value._curies;
+  delete entry.value._curiesMap;
+  delete entry.value._resolvedCuriesMap;
+  delete entry.value._validation;
+  delete entry.value._original;
+  delete entry.value._embedded;
+}
+
+function removeNestedResources(entry) {
+  for (var link in entry.value._links) {
+    var l = /^[a-f0-9]{8}:.+\/(.+)$/.exec(link);
+    if (l) {
+      if (Array.isArray(entry.value[l[1]])) {
+        entry.value[l[1]] = entry.value[l[1]].map(function(e) {
+          /* istanbul ignore else */
+          if (e.hasOwnProperty('value')) {
+            if (e.value.hasOwnProperty('assetID')) {
+              return e.value.assetID;
+            }
+            return e.value._id;
+          }
+        });
+      } else {
+        /* istanbul ignore else */
+        if (entry.value[l[1]].hasOwnProperty('value')) {
+          if (entry.value[l[1]].value.hasOwnProperty('assetID')) {
+            entry.value[l[1]] = entry.value[l[1]].value.assetID;
+          } else {
+            entry.value[l[1]] = entry.value[l[1]].value._id;
+          }
+        }
+      }
+    }
+  }
+}
+
+function makeNestedToResource(entry, dm, model) {
+  entry._isNested = true;
+  for (var link in entry.value._links) {
+    var l = /^[a-f0-9]{8}:.+\/(.+)$/.exec(link);
+    if (l) {
+      if (Array.isArray(entry.value[l[1]])) {
+        entry.value[l[1]] = entry.value[l[1]].map(function(e) {
+          if (e.hasOwnProperty('assetID')) {
+            return new Asset(halfred.parse(e), dm);
+          }
+          var entry = new Entry(halfred.parse(e), dm, model);
+          makeNestedToResource(entry, dm, model);
+          return entry;
+        });
+      } else {
+        if (entry.value[l[1]].hasOwnProperty('assetID')) {
+          entry.value[l[1]] = new Asset(halfred.parse(entry.value[l[1]]), dm);
+        } else {
+          entry.value[l[1]] = new Entry(halfred.parse(entry.value[l[1]]), dm, model);
+          makeNestedToResource(entry.value[l[1]], dm, model);
+        }
+      }
+    }
+  }
+}
+
 module.exports = Entry;
 
-},{"./util":7,"halfred":9}],4:[function(require,module,exports){
+},{"./Asset":1,"./util":7,"halfred":9}],4:[function(require,module,exports){
 'use strict';
 
 var halfred = require('halfred');
@@ -1509,6 +1574,7 @@ Model.prototype._isReachable = function(dests) {
 };
 
 function makeNestedToResource(entry, dm, model) {
+  entry._isNested = true;
   for (var link in entry.value._links) {
     var l = /^[a-f0-9]{8}:.+\/(.+)$/.exec(link);
     if (l) {
@@ -1524,9 +1590,10 @@ function makeNestedToResource(entry, dm, model) {
       } else {
         if (entry.value[l[1]].hasOwnProperty('assetID')) {
           entry.value[l[1]] = new Asset(halfred.parse(entry.value[l[1]]), dm);
+        } else {
+          entry.value[l[1]] = new Entry(halfred.parse(entry.value[l[1]]), dm, model);
+          makeNestedToResource(entry.value[l[1]], dm, model);
         }
-        entry.value[l[1]] = new Entry(halfred.parse(entry.value[l[1]]), dm, model);
-        makeNestedToResource(entry.value[l[1]], dm, model);
       }
     }
   }
@@ -1534,7 +1601,7 @@ function makeNestedToResource(entry, dm, model) {
 
 module.exports = Model;
 
-},{"./Asset":1,"./Entry":3,"./util":7,"halfred":9,"is-reachable":13,"superagent":22,"traverson":72}],5:[function(require,module,exports){
+},{"./Asset":1,"./Entry":3,"./util":7,"halfred":9,"is-reachable":13,"superagent":23,"traverson":72}],5:[function(require,module,exports){
 'use strict';
 
 var halfred = require('halfred');
@@ -8719,6 +8786,31 @@ module.exports = function (fn, errMsg) {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./loki-indexed-adapter.js":19,"fs":73}],21:[function(require,module,exports){
+
+/**
+ * Reduce `arr` with `fn`.
+ *
+ * @param {Array} arr
+ * @param {Function} fn
+ * @param {Mixed} initial
+ *
+ * TODO: combatible error handling?
+ */
+
+module.exports = function(arr, fn, initial){  
+  var idx = 0;
+  var len = arr.length;
+  var curr = arguments.length == 3
+    ? initial
+    : arr[idx++];
+
+  while (idx < len) {
+    curr = fn.call(null, curr, arr[idx], ++idx, arr);
+  }
+  
+  return curr;
+};
+},{}],22:[function(require,module,exports){
 'use strict';
 
 function uniq(arr) {
@@ -8946,7 +9038,7 @@ module.exports = {
   _expand: _expand,
 };
 
-},{}],22:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -10025,7 +10117,7 @@ request.put = function(url, data, fn){
   return req;
 };
 
-},{"./is-object":23,"./request":25,"./request-base":24,"emitter":26,"reduce":27}],23:[function(require,module,exports){
+},{"./is-object":24,"./request":26,"./request-base":25,"emitter":27,"reduce":21}],24:[function(require,module,exports){
 /**
  * Check if `obj` is an object.
  *
@@ -10040,7 +10132,7 @@ function isObject(obj) {
 
 module.exports = isObject;
 
-},{}],24:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 /**
  * Module of mixed-in functions shared between node and client code
  */
@@ -10208,7 +10300,7 @@ exports.field = function(name, val) {
   return this;
 };
 
-},{"./is-object":23}],25:[function(require,module,exports){
+},{"./is-object":24}],26:[function(require,module,exports){
 // The node and browser modules expose versions of this with the
 // appropriate constructor function bound as first argument
 /**
@@ -10242,7 +10334,7 @@ function request(RequestConstructor, method, url) {
 
 module.exports = request;
 
-},{}],26:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -10407,31 +10499,6 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],27:[function(require,module,exports){
-
-/**
- * Reduce `arr` with `fn`.
- *
- * @param {Array} arr
- * @param {Function} fn
- * @param {Mixed} initial
- *
- * TODO: combatible error handling?
- */
-
-module.exports = function(arr, fn, initial){  
-  var idx = 0;
-  var len = arr.length;
-  var curr = arguments.length == 3
-    ? initial
-    : arr[idx++];
-
-  while (idx < len) {
-    curr = fn.call(null, curr, arr[idx], ++idx, arr);
-  }
-  
-  return curr;
-};
 },{}],28:[function(require,module,exports){
 'use strict';
 
@@ -10970,7 +11037,7 @@ function handleResponse(callback) {
 
 module.exports = new Request();
 
-},{"superagent":22}],36:[function(require,module,exports){
+},{"superagent":23}],36:[function(require,module,exports){
 'use strict';
 
 /*

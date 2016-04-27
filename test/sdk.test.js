@@ -1649,6 +1649,30 @@ describe('nested Entry', function() { // this is basically modelList
       expect(entry.value['list-items'][0].value).to.have.property('_id', '4JGrCvm27e');
     });
   });
+  it('put nestedEntry', function() {
+    return dm.model('to-do-list').nestedEntry('4JMjeO737e', 2).then(function(entry) {
+      expect(entry).to.be.ok;
+      expect(entry).to.be.instanceOf(Object);
+      expect(entry).to.have.property('value');
+      expect(entry.value).to.have.property('_id', '4JMjeO737e');
+      expect(entry.value).to.have.property('title', 'Shopping List');
+      expect(entry.value).to.have.property('list-items')
+      .that.is.instanceOf(Array);
+      expect(entry.value['list-items'][0].value).to.have.property('_id', '4JGrCvm27e');
+      entry.value.title = 'Shopping List 2';
+      return entry.save()
+      .then(function(entry) {
+        expect(entry).to.be.ok;
+        expect(entry).to.be.instanceOf(Object);
+        expect(entry).to.have.property('value');
+        expect(entry.value).to.have.property('_id', '4JMjeO737e');
+        expect(entry.value).to.have.property('title', 'Shopping List 2');
+        expect(entry.value).to.have.property('list-items')
+        .that.is.instanceOf(Array);
+        expect(entry.value['list-items'][0].value).to.have.property('_id', '4JGrCvm27e');
+      });
+    });
+  });
   it('get single entry, with levels, with object', function() {
     return dm.model('to-do-list').nestedEntry({ id: '4JMjeO737e', levels: 2 }).then(function(entry) {
       expect(entry).to.be.ok;
