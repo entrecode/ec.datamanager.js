@@ -812,11 +812,15 @@ describe('nested Entry', function() { // this is basically modelList
     return dm.model('to-do-list').nestedEntry('4JMjeO737e', 2).then(function(entry) {
       expect(entry).to.be.ok;
       expect(entry).to.be.instanceOf(Object);
+      expect(entry).to.have.property('_model');
+      expect(entry._model).to.have.property('title', 'to-do-list');
       expect(entry).to.have.property('value');
       expect(entry.value).to.have.property('_id', '4JMjeO737e');
       expect(entry.value).to.have.property('list-items')
       .that.is.instanceOf(Array);
       expect(entry.value['list-items'][0].value).to.have.property('_id', '4JGrCvm27e');
+      expect(entry.value['list-items'][0]).to.have.property('_model');
+      expect(entry.value['list-items'][0]._model).to.have.property('title', 'to-do-item');
     });
   });
   it('put nestedEntry', function() {
