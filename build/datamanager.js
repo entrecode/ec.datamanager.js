@@ -1009,8 +1009,11 @@ module.exports = DataManager;
 
 var halfred = require('halfred');
 var util = require('./util');
+var traverson = require('traverson');
+var TraversonJsonHalAdapter = require('traverson-hal');
 
 var Asset = require('./Asset');
+traverson.registerMediaType(TraversonJsonHalAdapter.mediaType, TraversonJsonHalAdapter);
 
 var Entry = function(entry, dm, model) {
   this.value = entry;
@@ -1023,16 +1026,9 @@ Entry.prototype.save = function() {
   var traversal;
   return Promise.resolve()
   .then(function() {
-    return entry._dm._getTraversal();
-  })
-  .then(function(traversal) {
     cleanEntry(entry);
     return util.putP(
-      traversal.continue().newRequest()
-      .follow(entry._dm.id + ':' + entry._model.title)
-      .withTemplateParameters({
-        _id: entry.value._id
-      })
+      traverson.from(entry.value.link('self').href).jsonHal()
       .withRequestOptions(entry._dm._requestOptions({
         'Content-Type': 'application/json'
       })),
@@ -1048,9 +1044,9 @@ Entry.prototype.save = function() {
       return Promise.resolve(true);
     }
     entry.value = halfred.parse(JSON.parse(res.body));
-              if (entry._isNested) {
-            makeNestedToResource(entry, entry._dm, entry._model);
-          }
+    if (entry._isNested) {
+      Entry._makeNestedToResource(entry, entry._dm);
+    }
 
     entry._traversal = traversal;
     return Promise.resolve(entry);
@@ -1062,15 +1058,8 @@ Entry.prototype.delete = function() {
   var entry = this;
   return Promise.resolve()
   .then(function() {
-    return entry._dm._getTraversal();
-  })
-  .then(function(traversal) {
     return util.deleteP(
-      traversal.continue().newRequest()
-      .follow(entry._dm.id + ':' + entry._model.title)
-      .withTemplateParameters({
-        _id: entry.value._id
-      })
+      traverson.from(entry.value.link('self').href).jsonHal()
       .withRequestOptions(entry._dm._requestOptions())
     )
   })
@@ -1144,6 +1133,8 @@ function removeNestedResources(entry) {
               return e.value.assetID;
             }
             return e.value._id;
+          } else {
+            return e;
           }
         });
       } else {
@@ -1160,7 +1151,7 @@ function removeNestedResources(entry) {
   }
 }
 
-function makeNestedToResource(entry, dm, model) {
+Entry._makeNestedToResource = function(entry, dm) {
   entry._isNested = true;
   for (var link in entry.value._links) {
     var l = /^[a-f0-9]{8}:.+\/(.+)$/.exec(link);
@@ -1170,25 +1161,26 @@ function makeNestedToResource(entry, dm, model) {
           if (e.hasOwnProperty('assetID')) {
             return new Asset(halfred.parse(e), dm);
           }
-          var entry = new Entry(halfred.parse(e), dm, model);
-          makeNestedToResource(entry, dm, model);
-          return entry;
+          var out = new Entry(halfred.parse(e), dm);
+          out._model = dm.model(entry.value.link(link).name);
+          Entry._makeNestedToResource(out, dm);
+          return out;
         });
       } else {
         if (entry.value[l[1]].hasOwnProperty('assetID')) {
           entry.value[l[1]] = new Asset(halfred.parse(entry.value[l[1]]), dm);
         } else {
-          entry.value[l[1]] = new Entry(halfred.parse(entry.value[l[1]]), dm, model);
-          makeNestedToResource(entry.value[l[1]], dm, model);
+          entry.value[l[1]] = new Entry(halfred.parse(entry.value[l[1]]), dm, dm.model(entry.value.link(link).name));
+          Entry._makeNestedToResource(entry.value[l[1]], dm);
         }
       }
     }
   }
-}
+};
 
 module.exports = Entry;
 
-},{"./Asset":1,"./util":7,"halfred":9}],4:[function(require,module,exports){
+},{"./Asset":1,"./util":7,"halfred":9,"traverson":72,"traverson-hal":28}],4:[function(require,module,exports){
 'use strict';
 
 var halfred = require('halfred');
@@ -1428,7 +1420,7 @@ Model.prototype.entry = function(id, levels) {
 Model.prototype.nestedEntry = function(id, levels) {
   return this.entry(id, levels)
   .then(function(entry) {
-    makeNestedToResource(entry, this._dm, this);
+    Entry._makeNestedToResource(entry, this._dm);
     return Promise.resolve(entry);
   }.bind(this));
 };
@@ -1572,32 +1564,6 @@ Model.prototype._isReachable = function(dests) {
     });
   });
 };
-
-function makeNestedToResource(entry, dm, model) {
-  entry._isNested = true;
-  for (var link in entry.value._links) {
-    var l = /^[a-f0-9]{8}:.+\/(.+)$/.exec(link);
-    if (l) {
-      if (Array.isArray(entry.value[l[1]])) {
-        entry.value[l[1]] = entry.value[l[1]].map(function(e) {
-          if (e.hasOwnProperty('assetID')) {
-            return new Asset(halfred.parse(e), dm);
-          }
-          var entry = new Entry(halfred.parse(e), dm, model);
-          makeNestedToResource(entry, dm, model);
-          return entry;
-        });
-      } else {
-        if (entry.value[l[1]].hasOwnProperty('assetID')) {
-          entry.value[l[1]] = new Asset(halfred.parse(entry.value[l[1]]), dm);
-        } else {
-          entry.value[l[1]] = new Entry(halfred.parse(entry.value[l[1]]), dm, model);
-          makeNestedToResource(entry.value[l[1]], dm, model);
-        }
-      }
-    }
-  }
-}
 
 module.exports = Model;
 
