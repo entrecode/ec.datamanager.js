@@ -174,7 +174,7 @@ function remove(arr, func) {
 
 module.exports = Asset;
 
-},{"./util":7,"halfred":10,"locale":14}],2:[function(require,module,exports){
+},{"./util":7,"halfred":9,"locale":13}],2:[function(require,module,exports){
 'use strict';
 
 var halfred = require('halfred');
@@ -839,13 +839,16 @@ DataManager.prototype._requestOptions = function(additionalHeaders) {
 
 module.exports = DataManager;
 
-},{"./Asset":1,"./Entry":3,"./Model":4,"./Tag":5,"./User":6,"./util":7,"es6-promise":9,"halfred":10,"shiro-trie":16,"superagent":17,"traverson":62,"traverson-hal":18}],3:[function(require,module,exports){
+},{"./Asset":1,"./Entry":3,"./Model":4,"./Tag":5,"./User":6,"./util":7,"es6-promise":8,"halfred":9,"shiro-trie":15,"superagent":16,"traverson":65,"traverson-hal":21}],3:[function(require,module,exports){
 'use strict';
 
 var halfred = require('halfred');
 var util = require('./util');
+var traverson = require('traverson');
+var TraversonJsonHalAdapter = require('traverson-hal');
 
 var Asset = require('./Asset');
+traverson.registerMediaType(TraversonJsonHalAdapter.mediaType, TraversonJsonHalAdapter);
 
 var Entry = function(entry, dm, model, traversal) {
   this.value = entry;
@@ -857,49 +860,37 @@ var Entry = function(entry, dm, model, traversal) {
 Entry.prototype.save = function() {
   var entry = this;
   return new Promise(function(resolve, reject) {
-    entry._model._getTraversal().then(function(traversal) {
-      cleanEntry(entry);
-      traversal.continue().newRequest()
-      .follow(entry._dm.id + ':' + entry._model.title)
-      .withTemplateParameters({
-        _id: entry.value._id
-      })
-      .withRequestOptions(entry._dm._requestOptions({
-        'Content-Type': 'application/json'
-      }))
-      .put(entry.value, function(err, res, traversal) {
-        util.checkResponse(err, res).then(function(res) {
-          if (res.statusCode === 204) {
-            return resolve(true);
-          }
-          entry.value = halfred.parse(JSON.parse(res.body));
-          if (entry._isNested) {
-            makeNestedToResource(entry, entry._dm, entry._model);
-          }
-          entry._traversal = traversal;
-          return resolve(entry);
-        }).catch(reject);
-      });
-    }).catch(reject);
+    cleanEntry(entry);
+    traverson.from(entry.value.link('self').href).jsonHal()
+    .withRequestOptions(entry._dm._requestOptions({
+      'Content-Type': 'application/json'
+    }))
+    .put(entry.value, function(err, res, traversal) {
+      util.checkResponse(err, res).then(function(res) {
+        if (res.statusCode === 204) {
+          return resolve(true);
+        }
+        entry.value = halfred.parse(JSON.parse(res.body));
+        if (entry._isNested) {
+          Entry._makeNestedToResource(entry, entry._dm, entry._model);
+        }
+        entry._traversal = traversal;
+        return resolve(entry);
+      }).catch(reject);
+    });
   });
 };
 
 Entry.prototype.delete = function() {
   var entry = this;
   return new Promise(function(resolve, reject) {
-    entry._model._getTraversal().then(function(traversal) {
-      traversal.continue().newRequest()
-      .follow(entry._dm.id + ':' + entry._model.title)
-      .withTemplateParameters({
-        _id: entry.value._id
-      })
-      .withRequestOptions(entry._dm._requestOptions())
-      .delete(function(err, res) {
-        util.checkResponse(err, res).then(function() {
-          return resolve(true);
-        }).catch(reject);
-      });
-    }).catch(reject);
+    traverson.from(entry.value.link('self').href).jsonHal()
+    .withRequestOptions(entry._dm._requestOptions())
+    .delete(function(err, res) {
+      util.checkResponse(err, res).then(function() {
+        return resolve(true);
+      }).catch(reject);
+    });
   });
 };
 
@@ -949,6 +940,8 @@ function removeNestedResources(entry) {
               return e.value.assetID;
             }
             return e.value._id;
+          } else {
+            return e;
           }
         });
       } else {
@@ -965,7 +958,7 @@ function removeNestedResources(entry) {
   }
 }
 
-function makeNestedToResource(entry, dm, model) {
+Entry._makeNestedToResource = function(entry, dm) {
   entry._isNested = true;
   for (var link in entry.value._links) {
     var l = /^[a-f0-9]{8}:.+\/(.+)$/.exec(link);
@@ -975,25 +968,26 @@ function makeNestedToResource(entry, dm, model) {
           if (e.hasOwnProperty('assetID')) {
             return new Asset(halfred.parse(e), dm);
           }
-          var entry = new Entry(halfred.parse(e), dm, model);
-          makeNestedToResource(entry, dm, model);
-          return entry;
+          var out = new Entry(halfred.parse(e), dm);
+          out._model = dm.model(entry.value.link(link).name);
+          Entry._makeNestedToResource(out, dm);
+          return out;
         });
       } else {
         if (entry.value[l[1]].hasOwnProperty('assetID')) {
           entry.value[l[1]] = new Asset(halfred.parse(entry.value[l[1]]), dm);
         } else {
-          entry.value[l[1]] = new Entry(halfred.parse(entry.value[l[1]]), dm, model);
-          makeNestedToResource(entry.value[l[1]], dm, model);
+          entry.value[l[1]] = new Entry(halfred.parse(entry.value[l[1]]), dm, dm.model(entry.value.link(link).name));
+          Entry._makeNestedToResource(entry.value[l[1]], dm);
         }
       }
     }
   }
-}
+};
 
 module.exports = Entry;
 
-},{"./Asset":1,"./util":7,"halfred":10}],4:[function(require,module,exports){
+},{"./Asset":1,"./util":7,"halfred":9,"traverson":65,"traverson-hal":21}],4:[function(require,module,exports){
 'use strict';
 
 var halfred = require('halfred');
@@ -1184,7 +1178,7 @@ Model.prototype.nestedEntry = function(id, levels) {
   var model = this;
   return new Promise(function(resolve, reject) {
     model.entry(id, levels).then(function(entry) {
-      makeNestedToResource(entry, model._dm, model);
+      Entry._makeNestedToResource(entry, model._dm, model);
       resolve(entry);
     }).catch(reject);
   });
@@ -1228,35 +1222,9 @@ Model.prototype.deleteEntry = function(entryId) {
   });
 };
 
-function makeNestedToResource(entry, dm, model) {
-  entry._isNested = true;
-  for (var link in entry.value._links) {
-    var l = /^[a-f0-9]{8}:.+\/(.+)$/.exec(link);
-    if (l) {
-      if (Array.isArray(entry.value[l[1]])) {
-        entry.value[l[1]] = entry.value[l[1]].map(function(e) {
-          if (e.hasOwnProperty('assetID')) {
-            return new Asset(halfred.parse(e), dm);
-          }
-          var entry = new Entry(halfred.parse(e), dm, model);
-          makeNestedToResource(entry, dm, model);
-          return entry;
-        });
-      } else {
-        if (entry.value[l[1]].hasOwnProperty('assetID')) {
-          entry.value[l[1]] = new Asset(halfred.parse(entry.value[l[1]]), dm);
-        } else {
-          entry.value[l[1]] = new Entry(halfred.parse(entry.value[l[1]]), dm, model);
-          makeNestedToResource(entry.value[l[1]], dm, model);
-        }
-      }
-    }
-  }
-}
-
 module.exports = Model;
 
-},{"./Asset":1,"./Entry":3,"./util":7,"halfred":10,"superagent":17,"traverson":62}],5:[function(require,module,exports){
+},{"./Asset":1,"./Entry":3,"./util":7,"halfred":9,"superagent":16,"traverson":65}],5:[function(require,module,exports){
 'use strict';
 
 var halfred = require('halfred');
@@ -1334,7 +1302,7 @@ Tag.prototype._getTraversal = function() {
 
 module.exports = Tag;
 
-},{"./util":7,"halfred":10,"traverson":62}],6:[function(require,module,exports){
+},{"./util":7,"halfred":9,"traverson":65}],6:[function(require,module,exports){
 'use strict';
 
 // TODO document
@@ -1432,171 +1400,6 @@ util.checkResponse = function(err, res) {
 module.exports = util;
 
 },{}],8:[function(require,module,exports){
-
-/**
- * Expose `Emitter`.
- */
-
-if (typeof module !== 'undefined') {
-  module.exports = Emitter;
-}
-
-/**
- * Initialize a new `Emitter`.
- *
- * @api public
- */
-
-function Emitter(obj) {
-  if (obj) return mixin(obj);
-};
-
-/**
- * Mixin the emitter properties.
- *
- * @param {Object} obj
- * @return {Object}
- * @api private
- */
-
-function mixin(obj) {
-  for (var key in Emitter.prototype) {
-    obj[key] = Emitter.prototype[key];
-  }
-  return obj;
-}
-
-/**
- * Listen on the given `event` with `fn`.
- *
- * @param {String} event
- * @param {Function} fn
- * @return {Emitter}
- * @api public
- */
-
-Emitter.prototype.on =
-Emitter.prototype.addEventListener = function(event, fn){
-  this._callbacks = this._callbacks || {};
-  (this._callbacks['$' + event] = this._callbacks['$' + event] || [])
-    .push(fn);
-  return this;
-};
-
-/**
- * Adds an `event` listener that will be invoked a single
- * time then automatically removed.
- *
- * @param {String} event
- * @param {Function} fn
- * @return {Emitter}
- * @api public
- */
-
-Emitter.prototype.once = function(event, fn){
-  function on() {
-    this.off(event, on);
-    fn.apply(this, arguments);
-  }
-
-  on.fn = fn;
-  this.on(event, on);
-  return this;
-};
-
-/**
- * Remove the given callback for `event` or all
- * registered callbacks.
- *
- * @param {String} event
- * @param {Function} fn
- * @return {Emitter}
- * @api public
- */
-
-Emitter.prototype.off =
-Emitter.prototype.removeListener =
-Emitter.prototype.removeAllListeners =
-Emitter.prototype.removeEventListener = function(event, fn){
-  this._callbacks = this._callbacks || {};
-
-  // all
-  if (0 == arguments.length) {
-    this._callbacks = {};
-    return this;
-  }
-
-  // specific event
-  var callbacks = this._callbacks['$' + event];
-  if (!callbacks) return this;
-
-  // remove all handlers
-  if (1 == arguments.length) {
-    delete this._callbacks['$' + event];
-    return this;
-  }
-
-  // remove specific handler
-  var cb;
-  for (var i = 0; i < callbacks.length; i++) {
-    cb = callbacks[i];
-    if (cb === fn || cb.fn === fn) {
-      callbacks.splice(i, 1);
-      break;
-    }
-  }
-  return this;
-};
-
-/**
- * Emit `event` with the given args.
- *
- * @param {String} event
- * @param {Mixed} ...
- * @return {Emitter}
- */
-
-Emitter.prototype.emit = function(event){
-  this._callbacks = this._callbacks || {};
-  var args = [].slice.call(arguments, 1)
-    , callbacks = this._callbacks['$' + event];
-
-  if (callbacks) {
-    callbacks = callbacks.slice(0);
-    for (var i = 0, len = callbacks.length; i < len; ++i) {
-      callbacks[i].apply(this, args);
-    }
-  }
-
-  return this;
-};
-
-/**
- * Return array of callbacks for `event`.
- *
- * @param {String} event
- * @return {Array}
- * @api public
- */
-
-Emitter.prototype.listeners = function(event){
-  this._callbacks = this._callbacks || {};
-  return this._callbacks['$' + event] || [];
-};
-
-/**
- * Check if this emitter has `event` handlers.
- *
- * @param {String} event
- * @return {Boolean}
- * @api public
- */
-
-Emitter.prototype.hasListeners = function(event){
-  return !! this.listeners(event).length;
-};
-
-},{}],9:[function(require,module,exports){
 (function (process,global){
 /*!
  * @overview es6-promise - a tiny implementation of Promises/A+.
@@ -2554,7 +2357,7 @@ Emitter.prototype.hasListeners = function(event){
 
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":64}],10:[function(require,module,exports){
+},{"_process":67}],9:[function(require,module,exports){
 var Parser = require('./lib/parser')
   , Resource = require('./lib/resource')
   , validationFlag = false;
@@ -2577,7 +2380,7 @@ module.exports = {
 
 };
 
-},{"./lib/parser":12,"./lib/resource":13}],11:[function(require,module,exports){
+},{"./lib/parser":11,"./lib/resource":12}],10:[function(require,module,exports){
 'use strict';
 
 /*
@@ -2622,7 +2425,7 @@ ImmutableStack.prototype.peek = function() {
 
 module.exports = ImmutableStack;
 
-},{}],12:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 'use strict';
 
 var Resource = require('./resource')
@@ -2832,7 +2635,7 @@ function pathToString(path) {
 
 module.exports = Parser;
 
-},{"./immutable_stack":11,"./resource":13}],13:[function(require,module,exports){
+},{"./immutable_stack":10,"./resource":12}],12:[function(require,module,exports){
 'use strict';
 
 function Resource(links, curies, embedded, validationIssues) {
@@ -2961,7 +2764,7 @@ Resource.prototype.validation = Resource.prototype.validationIssues;
 
 module.exports = Resource;
 
-},{}],14:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 (function (process){
 // Generated by CoffeeScript 1.6.3
 (function() {
@@ -3120,7 +2923,7 @@ module.exports = Resource;
 }).call(this);
 
 }).call(this,require('_process'))
-},{"_process":64}],15:[function(require,module,exports){
+},{"_process":67}],14:[function(require,module,exports){
 
 /**
  * Reduce `arr` with `fn`.
@@ -3145,7 +2948,7 @@ module.exports = function(arr, fn, initial){
   
   return curr;
 };
-},{}],16:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 'use strict';
 
 function uniq(arr) {
@@ -3373,13 +3176,15 @@ module.exports = {
   _expand: _expand,
 };
 
-},{}],17:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 /**
  * Module dependencies.
  */
 
 var Emitter = require('emitter');
 var reduce = require('reduce');
+var requestBase = require('./request-base');
+var isObject = require('./is-object');
 
 /**
  * Root reference for iframes.
@@ -3425,6 +3230,12 @@ function isHost(obj) {
 }
 
 /**
+ * Expose `request`.
+ */
+
+var request = module.exports = require('./request').bind(null, Request);
+
+/**
  * Determine XHR.
  */
 
@@ -3453,18 +3264,6 @@ request.getXHR = function () {
 var trim = ''.trim
   ? function(s) { return s.trim(); }
   : function(s) { return s.replace(/(^\s*|\s*$)/g, ''); };
-
-/**
- * Check if `obj` is an object.
- *
- * @param {Object} obj
- * @return {Boolean}
- * @api private
- */
-
-function isObject(obj) {
-  return obj === Object(obj);
-}
 
 /**
  * Serialize the given `obj`.
@@ -3770,6 +3569,9 @@ Response.prototype.setHeaderProperties = function(header){
 
 Response.prototype.parseBody = function(str){
   var parse = request.parse[this.type];
+  if (!parse && isJSON(this.type)) {
+    parse = request.parse['application/json'];
+  }
   return parse && str && (str.length || str instanceof Object)
     ? parse(str)
     : null;
@@ -3864,12 +3666,11 @@ request.Response = Response;
 
 function Request(method, url) {
   var self = this;
-  Emitter.call(this);
   this._query = this._query || [];
   this.method = method;
   this.url = url;
-  this.header = {};
-  this._header = {};
+  this.header = {}; // preserves header name case
+  this._header = {}; // coerces header names to lowercase
   this.on('end', function(){
     var err = null;
     var res = null;
@@ -3882,6 +3683,8 @@ function Request(method, url) {
       err.original = e;
       // issue #675: return the raw response if the response parsing fails
       err.rawResponse = self.xhr && self.xhr.responseText ? self.xhr.responseText : null;
+      // issue #876: return the http status code if the response parsing fails
+      err.statusCode = self.xhr && self.xhr.status ? self.xhr.status : null;
       return self.callback(err);
     }
 
@@ -3905,45 +3708,13 @@ function Request(method, url) {
 }
 
 /**
- * Mixin `Emitter`.
+ * Mixin `Emitter` and `requestBase`.
  */
 
 Emitter(Request.prototype);
-
-/**
- * Allow for extension
- */
-
-Request.prototype.use = function(fn) {
-  fn(this);
-  return this;
+for (var key in requestBase) {
+  Request.prototype[key] = requestBase[key];
 }
-
-/**
- * Set timeout to `ms`.
- *
- * @param {Number} ms
- * @return {Request} for chaining
- * @api public
- */
-
-Request.prototype.timeout = function(ms){
-  this._timeout = ms;
-  return this;
-};
-
-/**
- * Clear previous timeout.
- *
- * @return {Request} for chaining
- * @api public
- */
-
-Request.prototype.clearTimeout = function(){
-  this._timeout = 0;
-  clearTimeout(this._timer);
-  return this;
-};
 
 /**
  * Abort the request, and clear potential timeout.
@@ -3959,70 +3730,6 @@ Request.prototype.abort = function(){
   this.clearTimeout();
   this.emit('abort');
   return this;
-};
-
-/**
- * Set header `field` to `val`, or multiple fields with one object.
- *
- * Examples:
- *
- *      req.get('/')
- *        .set('Accept', 'application/json')
- *        .set('X-API-Key', 'foobar')
- *        .end(callback);
- *
- *      req.get('/')
- *        .set({ Accept: 'application/json', 'X-API-Key': 'foobar' })
- *        .end(callback);
- *
- * @param {String|Object} field
- * @param {String} val
- * @return {Request} for chaining
- * @api public
- */
-
-Request.prototype.set = function(field, val){
-  if (isObject(field)) {
-    for (var key in field) {
-      this.set(key, field[key]);
-    }
-    return this;
-  }
-  this._header[field.toLowerCase()] = val;
-  this.header[field] = val;
-  return this;
-};
-
-/**
- * Remove header `field`.
- *
- * Example:
- *
- *      req.get('/')
- *        .unset('User-Agent')
- *        .end(callback);
- *
- * @param {String} field
- * @return {Request} for chaining
- * @api public
- */
-
-Request.prototype.unset = function(field){
-  delete this._header[field.toLowerCase()];
-  delete this.header[field];
-  return this;
-};
-
-/**
- * Get case-insensitive header `field` value.
- *
- * @param {String} field
- * @return {String}
- * @api private
- */
-
-Request.prototype.getHeader = function(field){
-  return this._header[field.toLowerCase()];
 };
 
 /**
@@ -4053,16 +3760,22 @@ Request.prototype.type = function(type){
 };
 
 /**
- * Force given parser
+ * Set responseType to `val`. Presently valid responseTypes are 'blob' and 
+ * 'arraybuffer'.
  *
- * Sets the body parser no matter type.
+ * Examples:
  *
- * @param {Function}
+ *      req.get('/')
+ *        .responseType('blob')
+ *        .end(callback);
+ *
+ * @param {String} val
+ * @return {Request} for chaining
  * @api public
  */
 
-Request.prototype.parse = function(fn){
-  this._parser = fn;
+Request.prototype.responseType = function(val){
+  this._responseType = val;
   return this;
 };
 
@@ -4096,13 +3809,29 @@ Request.prototype.accept = function(type){
  *
  * @param {String} user
  * @param {String} pass
+ * @param {Object} options with 'type' property 'auto' or 'basic' (default 'basic')
  * @return {Request} for chaining
  * @api public
  */
 
-Request.prototype.auth = function(user, pass){
-  var str = btoa(user + ':' + pass);
-  this.set('Authorization', 'Basic ' + str);
+Request.prototype.auth = function(user, pass, options){
+  if (!options) {
+    options = {
+      type: 'basic'
+    }
+  }
+
+  switch (options.type) {
+    case 'basic':
+      var str = btoa(user + ':' + pass);
+      this.set('Authorization', 'Basic ' + str);
+    break;
+
+    case 'auto':
+      this.username = user;
+      this.password = pass;
+    break;
+  }
   return this;
 };
 
@@ -4127,28 +3856,6 @@ Request.prototype.query = function(val){
 };
 
 /**
- * Write the field `name` and `val` for "multipart/form-data"
- * request bodies.
- *
- * ``` js
- * request.post('/upload')
- *   .field('foo', 'bar')
- *   .end(callback);
- * ```
- *
- * @param {String} name
- * @param {String|Blob|File} val
- * @return {Request} for chaining
- * @api public
- */
-
-Request.prototype.field = function(name, val){
-  if (!this._formData) this._formData = new root.FormData();
-  this._formData.append(name, val);
-  return this;
-};
-
-/**
  * Queue the given `file` as an attachment to the specified `field`,
  * with optional `filename`.
  *
@@ -4166,9 +3873,15 @@ Request.prototype.field = function(name, val){
  */
 
 Request.prototype.attach = function(field, file, filename){
-  if (!this._formData) this._formData = new root.FormData();
-  this._formData.append(field, file, filename || file.name);
+  this._getFormData().append(field, file, filename || file.name);
   return this;
+};
+
+Request.prototype._getFormData = function(){
+  if (!this._formData) {
+    this._formData = new root.FormData();
+  }
+  return this._formData;
 };
 
 /**
@@ -4213,7 +3926,7 @@ Request.prototype.attach = function(field, file, filename){
 
 Request.prototype.send = function(data){
   var obj = isObject(data);
-  var type = this.getHeader('Content-Type');
+  var type = this._header['content-type'];
 
   // merge
   if (obj && isObject(this._data)) {
@@ -4222,7 +3935,7 @@ Request.prototype.send = function(data){
     }
   } else if ('string' == typeof data) {
     if (!type) this.type('form');
-    type = this.getHeader('Content-Type');
+    type = this._header['content-type'];
     if ('application/x-www-form-urlencoded' == type) {
       this._data = this._data
         ? this._data + '&' + data
@@ -4236,6 +3949,22 @@ Request.prototype.send = function(data){
 
   if (!obj || isHost(data)) return this;
   if (!type) this.type('json');
+  return this;
+};
+
+/**
+ * @deprecated
+ */
+Response.prototype.parse = function serialize(fn){
+  if (root.console) {
+    console.warn("Client-side parse() method has been renamed to serialize(). This method is not compatible with superagent v2.0");
+  }
+  this.serialize(fn);
+  return this;
+};
+
+Response.prototype.serialize = function serialize(fn){
+  this._parser = fn;
   return this;
 };
 
@@ -4374,7 +4103,11 @@ Request.prototype.end = function(fn){
   }
 
   // initiate request
-  xhr.open(this.method, this.url, true);
+  if (this.username && this.password) {
+    xhr.open(this.method, this.url, true, this.username, this.password);
+  } else {
+    xhr.open(this.method, this.url, true);
+  }
 
   // CORS
   if (this._withCredentials) xhr.withCredentials = true;
@@ -4382,7 +4115,7 @@ Request.prototype.end = function(fn){
   // body
   if ('GET' != this.method && 'HEAD' != this.method && 'string' != typeof data && !isHost(data)) {
     // serialize stuff
-    var contentType = this.getHeader('Content-Type');
+    var contentType = this._header['content-type'];
     var serialize = this._parser || request.serialize[contentType ? contentType.split(';')[0] : ''];
     if (!serialize && isJSON(contentType)) serialize = request.serialize['application/json'];
     if (serialize) data = serialize(data);
@@ -4394,6 +4127,10 @@ Request.prototype.end = function(fn){
     xhr.setRequestHeader(field, this.header[field]);
   }
 
+  if (this._responseType) {
+    xhr.responseType = this._responseType;
+  }
+
   // send stuff
   this.emit('request', this);
 
@@ -4403,54 +4140,12 @@ Request.prototype.end = function(fn){
   return this;
 };
 
-/**
- * Faux promise support
- *
- * @param {Function} fulfill
- * @param {Function} reject
- * @return {Request}
- */
-
-Request.prototype.then = function (fulfill, reject) {
-  return this.end(function(err, res) {
-    err ? reject(err) : fulfill(res);
-  });
-}
 
 /**
  * Expose `Request`.
  */
 
 request.Request = Request;
-
-/**
- * Issue a request:
- *
- * Examples:
- *
- *    request('GET', '/users').end(callback)
- *    request('/users').end(callback)
- *    request('/users', callback)
- *
- * @param {String} method
- * @param {String|Function} url or callback
- * @return {Request}
- * @api public
- */
-
-function request(method, url) {
-  // callback
-  if ('function' == typeof url) {
-    return new Request('GET', method).end(url);
-  }
-
-  // url first
-  if (1 == arguments.length) {
-    return new Request('GET', method);
-  }
-
-  return new Request(method, url);
-}
 
 /**
  * GET `url` with optional callback `fn(res)`.
@@ -4560,13 +4255,389 @@ request.put = function(url, data, fn){
   return req;
 };
 
+},{"./is-object":17,"./request":19,"./request-base":18,"emitter":20,"reduce":14}],17:[function(require,module,exports){
 /**
- * Expose `request`.
+ * Check if `obj` is an object.
+ *
+ * @param {Object} obj
+ * @return {Boolean}
+ * @api private
  */
+
+function isObject(obj) {
+  return null != obj && 'object' == typeof obj;
+}
+
+module.exports = isObject;
+
+},{}],18:[function(require,module,exports){
+/**
+ * Module of mixed-in functions shared between node and client code
+ */
+var isObject = require('./is-object');
+
+/**
+ * Clear previous timeout.
+ *
+ * @return {Request} for chaining
+ * @api public
+ */
+
+exports.clearTimeout = function _clearTimeout(){
+  this._timeout = 0;
+  clearTimeout(this._timer);
+  return this;
+};
+
+/**
+ * Force given parser
+ *
+ * Sets the body parser no matter type.
+ *
+ * @param {Function}
+ * @api public
+ */
+
+exports.parse = function parse(fn){
+  this._parser = fn;
+  return this;
+};
+
+/**
+ * Set timeout to `ms`.
+ *
+ * @param {Number} ms
+ * @return {Request} for chaining
+ * @api public
+ */
+
+exports.timeout = function timeout(ms){
+  this._timeout = ms;
+  return this;
+};
+
+/**
+ * Faux promise support
+ *
+ * @param {Function} fulfill
+ * @param {Function} reject
+ * @return {Request}
+ */
+
+exports.then = function then(fulfill, reject) {
+  return this.end(function(err, res) {
+    err ? reject(err) : fulfill(res);
+  });
+}
+
+/**
+ * Allow for extension
+ */
+
+exports.use = function use(fn) {
+  fn(this);
+  return this;
+}
+
+
+/**
+ * Get request header `field`.
+ * Case-insensitive.
+ *
+ * @param {String} field
+ * @return {String}
+ * @api public
+ */
+
+exports.get = function(field){
+  return this._header[field.toLowerCase()];
+};
+
+/**
+ * Get case-insensitive header `field` value.
+ * This is a deprecated internal API. Use `.get(field)` instead.
+ *
+ * (getHeader is no longer used internally by the superagent code base)
+ *
+ * @param {String} field
+ * @return {String}
+ * @api private
+ * @deprecated
+ */
+
+exports.getHeader = exports.get;
+
+/**
+ * Set header `field` to `val`, or multiple fields with one object.
+ * Case-insensitive.
+ *
+ * Examples:
+ *
+ *      req.get('/')
+ *        .set('Accept', 'application/json')
+ *        .set('X-API-Key', 'foobar')
+ *        .end(callback);
+ *
+ *      req.get('/')
+ *        .set({ Accept: 'application/json', 'X-API-Key': 'foobar' })
+ *        .end(callback);
+ *
+ * @param {String|Object} field
+ * @param {String} val
+ * @return {Request} for chaining
+ * @api public
+ */
+
+exports.set = function(field, val){
+  if (isObject(field)) {
+    for (var key in field) {
+      this.set(key, field[key]);
+    }
+    return this;
+  }
+  this._header[field.toLowerCase()] = val;
+  this.header[field] = val;
+  return this;
+};
+
+/**
+ * Remove header `field`.
+ * Case-insensitive.
+ *
+ * Example:
+ *
+ *      req.get('/')
+ *        .unset('User-Agent')
+ *        .end(callback);
+ *
+ * @param {String} field
+ */
+exports.unset = function(field){
+  delete this._header[field.toLowerCase()];
+  delete this.header[field];
+  return this;
+};
+
+/**
+ * Write the field `name` and `val` for "multipart/form-data"
+ * request bodies.
+ *
+ * ``` js
+ * request.post('/upload')
+ *   .field('foo', 'bar')
+ *   .end(callback);
+ * ```
+ *
+ * @param {String} name
+ * @param {String|Blob|File|Buffer|fs.ReadStream} val
+ * @return {Request} for chaining
+ * @api public
+ */
+exports.field = function(name, val) {
+  this._getFormData().append(name, val);
+  return this;
+};
+
+},{"./is-object":17}],19:[function(require,module,exports){
+// The node and browser modules expose versions of this with the
+// appropriate constructor function bound as first argument
+/**
+ * Issue a request:
+ *
+ * Examples:
+ *
+ *    request('GET', '/users').end(callback)
+ *    request('/users').end(callback)
+ *    request('/users', callback)
+ *
+ * @param {String} method
+ * @param {String|Function} url or callback
+ * @return {Request}
+ * @api public
+ */
+
+function request(RequestConstructor, method, url) {
+  // callback
+  if ('function' == typeof url) {
+    return new RequestConstructor('GET', method).end(url);
+  }
+
+  // url first
+  if (2 == arguments.length) {
+    return new RequestConstructor('GET', method);
+  }
+
+  return new RequestConstructor(method, url);
+}
 
 module.exports = request;
 
-},{"emitter":8,"reduce":15}],18:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
+
+/**
+ * Expose `Emitter`.
+ */
+
+if (typeof module !== 'undefined') {
+  module.exports = Emitter;
+}
+
+/**
+ * Initialize a new `Emitter`.
+ *
+ * @api public
+ */
+
+function Emitter(obj) {
+  if (obj) return mixin(obj);
+};
+
+/**
+ * Mixin the emitter properties.
+ *
+ * @param {Object} obj
+ * @return {Object}
+ * @api private
+ */
+
+function mixin(obj) {
+  for (var key in Emitter.prototype) {
+    obj[key] = Emitter.prototype[key];
+  }
+  return obj;
+}
+
+/**
+ * Listen on the given `event` with `fn`.
+ *
+ * @param {String} event
+ * @param {Function} fn
+ * @return {Emitter}
+ * @api public
+ */
+
+Emitter.prototype.on =
+Emitter.prototype.addEventListener = function(event, fn){
+  this._callbacks = this._callbacks || {};
+  (this._callbacks['$' + event] = this._callbacks['$' + event] || [])
+    .push(fn);
+  return this;
+};
+
+/**
+ * Adds an `event` listener that will be invoked a single
+ * time then automatically removed.
+ *
+ * @param {String} event
+ * @param {Function} fn
+ * @return {Emitter}
+ * @api public
+ */
+
+Emitter.prototype.once = function(event, fn){
+  function on() {
+    this.off(event, on);
+    fn.apply(this, arguments);
+  }
+
+  on.fn = fn;
+  this.on(event, on);
+  return this;
+};
+
+/**
+ * Remove the given callback for `event` or all
+ * registered callbacks.
+ *
+ * @param {String} event
+ * @param {Function} fn
+ * @return {Emitter}
+ * @api public
+ */
+
+Emitter.prototype.off =
+Emitter.prototype.removeListener =
+Emitter.prototype.removeAllListeners =
+Emitter.prototype.removeEventListener = function(event, fn){
+  this._callbacks = this._callbacks || {};
+
+  // all
+  if (0 == arguments.length) {
+    this._callbacks = {};
+    return this;
+  }
+
+  // specific event
+  var callbacks = this._callbacks['$' + event];
+  if (!callbacks) return this;
+
+  // remove all handlers
+  if (1 == arguments.length) {
+    delete this._callbacks['$' + event];
+    return this;
+  }
+
+  // remove specific handler
+  var cb;
+  for (var i = 0; i < callbacks.length; i++) {
+    cb = callbacks[i];
+    if (cb === fn || cb.fn === fn) {
+      callbacks.splice(i, 1);
+      break;
+    }
+  }
+  return this;
+};
+
+/**
+ * Emit `event` with the given args.
+ *
+ * @param {String} event
+ * @param {Mixed} ...
+ * @return {Emitter}
+ */
+
+Emitter.prototype.emit = function(event){
+  this._callbacks = this._callbacks || {};
+  var args = [].slice.call(arguments, 1)
+    , callbacks = this._callbacks['$' + event];
+
+  if (callbacks) {
+    callbacks = callbacks.slice(0);
+    for (var i = 0, len = callbacks.length; i < len; ++i) {
+      callbacks[i].apply(this, args);
+    }
+  }
+
+  return this;
+};
+
+/**
+ * Return array of callbacks for `event`.
+ *
+ * @param {String} event
+ * @return {Array}
+ * @api public
+ */
+
+Emitter.prototype.listeners = function(event){
+  this._callbacks = this._callbacks || {};
+  return this._callbacks['$' + event] || [];
+};
+
+/**
+ * Check if this emitter has `event` handlers.
+ *
+ * @param {String} event
+ * @return {Boolean}
+ * @api public
+ */
+
+Emitter.prototype.hasListeners = function(event){
+  return !! this.listeners(event).length;
+};
+
+},{}],21:[function(require,module,exports){
 'use strict';
 
 var halfred = require('halfred');
@@ -4890,7 +4961,7 @@ JsonHalAdapter.prototype._handleHeader = function(httpResponse, link) {
 
 module.exports = JsonHalAdapter;
 
-},{"halfred":19}],19:[function(require,module,exports){
+},{"halfred":22}],22:[function(require,module,exports){
 var Parser = require('./lib/parser')
   , validationFlag = false;
 
@@ -4909,13 +4980,13 @@ module.exports = {
   }
 };
 
-},{"./lib/parser":21}],20:[function(require,module,exports){
+},{"./lib/parser":24}],23:[function(require,module,exports){
+arguments[4][10][0].apply(exports,arguments)
+},{"dup":10}],24:[function(require,module,exports){
 arguments[4][11][0].apply(exports,arguments)
-},{"dup":11}],21:[function(require,module,exports){
+},{"./immutable_stack":23,"./resource":25,"dup":11}],25:[function(require,module,exports){
 arguments[4][12][0].apply(exports,arguments)
-},{"./immutable_stack":20,"./resource":22,"dup":12}],22:[function(require,module,exports){
-arguments[4][13][0].apply(exports,arguments)
-},{"dup":13}],23:[function(require,module,exports){
+},{"dup":12}],26:[function(require,module,exports){
 'use strict';
 
 // TODO Replace by a proper lightweight logging module, suited for the browser
@@ -4966,7 +5037,7 @@ minilog.enable = function() {
 
 module.exports = minilog;
 
-},{}],24:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -4978,7 +5049,7 @@ module.exports = {
   }
 };
 
-},{}],25:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 'use strict';
 
 var superagent = require('superagent');
@@ -5104,7 +5175,7 @@ function handleResponse(callback) {
 
 module.exports = new Request();
 
-},{"superagent":17}],26:[function(require,module,exports){
+},{"superagent":16}],29:[function(require,module,exports){
 'use strict';
 
 /*
@@ -5148,7 +5219,7 @@ var _s = {
 
 module.exports = _s;
 
-},{}],27:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 'use strict';
 
 var resolveUrl = require('resolve-url');
@@ -5157,7 +5228,7 @@ exports.resolve = function(from, to) {
   return resolveUrl(from, to);
 };
 
-},{"resolve-url":60}],28:[function(require,module,exports){
+},{"resolve-url":63}],31:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -5195,7 +5266,7 @@ exports.abortError = function abortError() {
   return error;
 };
 
-},{"minilog":23}],29:[function(require,module,exports){
+},{"minilog":26}],32:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -5331,7 +5402,7 @@ function createTraversalHandle(t) {
   };
 }
 
-},{"./abort_traversal":28,"./http_requests":31,"./is_continuation":32,"./transforms/apply_transforms":38,"./transforms/check_http_status":39,"./transforms/continuation_to_doc":40,"./transforms/continuation_to_response":41,"./transforms/convert_embedded_doc_to_response":42,"./transforms/execute_http_request":44,"./transforms/execute_last_http_request":45,"./transforms/extract_doc":46,"./transforms/extract_response":47,"./transforms/extract_url":48,"./transforms/fetch_last_resource":49,"./transforms/parse":52,"./walker":58,"minilog":23}],30:[function(require,module,exports){
+},{"./abort_traversal":31,"./http_requests":34,"./is_continuation":35,"./transforms/apply_transforms":41,"./transforms/check_http_status":42,"./transforms/continuation_to_doc":43,"./transforms/continuation_to_response":44,"./transforms/convert_embedded_doc_to_response":45,"./transforms/execute_http_request":47,"./transforms/execute_last_http_request":48,"./transforms/extract_doc":49,"./transforms/extract_response":50,"./transforms/extract_url":51,"./transforms/fetch_last_resource":52,"./transforms/parse":55,"./walker":61,"minilog":26}],33:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -5975,7 +6046,7 @@ function shallowCloneArray(array) {
 
 module.exports = Builder;
 
-},{"./abort_traversal":28,"./actions":29,"./media_type_registry":34,"./media_types":35,"./merge_recursive":36,"minilog":23,"request":25,"util":24}],31:[function(require,module,exports){
+},{"./abort_traversal":31,"./actions":32,"./media_type_registry":37,"./media_types":38,"./merge_recursive":39,"minilog":26,"request":28,"util":27}],34:[function(require,module,exports){
 (function (process){
 'use strict';
 var minilog = require('minilog')
@@ -6081,14 +6152,14 @@ exports.executeHttpRequest = function(t, request, method, callback) {
 };
 
 }).call(this,require('_process'))
-},{"./abort_traversal":28,"./transforms/detect_content_type":43,"./transforms/get_options_for_step":51,"_process":64,"minilog":23}],32:[function(require,module,exports){
+},{"./abort_traversal":31,"./transforms/detect_content_type":46,"./transforms/get_options_for_step":54,"_process":67,"minilog":26}],35:[function(require,module,exports){
 'use strict';
 
 module.exports = function isContinuation(t) {
   return t.continuation && t.step && t.step.response;
 };
 
-},{}],33:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 'use strict';
 
 var jsonpath = require('jsonpath-plus')
@@ -6193,7 +6264,7 @@ JsonAdapter.prototype._handleHeader = function(httpResponse, link) {
 
 module.exports = JsonAdapter;
 
-},{"jsonpath-plus":59,"minilog":23,"underscore.string":26}],34:[function(require,module,exports){
+},{"jsonpath-plus":62,"minilog":26,"underscore.string":29}],37:[function(require,module,exports){
 'use strict';
 
 var mediaTypes = require('./media_types');
@@ -6212,7 +6283,7 @@ exports.register(mediaTypes.CONTENT_NEGOTIATION,
     require('./negotiation_adapter'));
 exports.register(mediaTypes.JSON, require('./json_adapter'));
 
-},{"./json_adapter":33,"./media_types":35,"./negotiation_adapter":37}],35:[function(require,module,exports){
+},{"./json_adapter":36,"./media_types":38,"./negotiation_adapter":40}],38:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -6221,7 +6292,7 @@ module.exports = {
   JSON_HAL: 'application/hal+json',
 };
 
-},{}],36:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 'use strict';
 
 // TODO Maybe replace with https://github.com/Raynos/xtend
@@ -6258,7 +6329,7 @@ function merge(obj1, obj2, key) {
 
 module.exports = mergeRecursive;
 
-},{}],37:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 'use strict';
 
 function NegotiationAdapter(log) {}
@@ -6269,7 +6340,7 @@ NegotiationAdapter.prototype.findNextStep = function(doc, link) {
 
 module.exports = NegotiationAdapter;
 
-},{}],38:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 (function (process){
 /* jshint loopfunc: true */
 'use strict';
@@ -6311,7 +6382,7 @@ function applyTransforms(transforms, t, callback) {
 module.exports = applyTransforms;
 
 }).call(this,require('_process'))
-},{"_process":64,"minilog":23}],39:[function(require,module,exports){
+},{"_process":67,"minilog":26}],42:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6365,7 +6436,7 @@ function httpError(url, httpStatus, body) {
   return error;
 }
 
-},{"../is_continuation":32,"minilog":23}],40:[function(require,module,exports){
+},{"../is_continuation":35,"minilog":26}],43:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6387,7 +6458,7 @@ module.exports = function continuationToDoc(t) {
   return true;
 };
 
-},{"../is_continuation":32,"minilog":23}],41:[function(require,module,exports){
+},{"../is_continuation":35,"minilog":26}],44:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6412,7 +6483,7 @@ module.exports = function continuationToResponse(t) {
   return true;
 };
 
-},{"../is_continuation":32,"./convert_embedded_doc_to_response":42,"minilog":23}],42:[function(require,module,exports){
+},{"../is_continuation":35,"./convert_embedded_doc_to_response":45,"minilog":26}],45:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6432,7 +6503,7 @@ module.exports = function convertEmbeddedDocToResponse(t) {
   return true;
 };
 
-},{"minilog":23}],43:[function(require,module,exports){
+},{"minilog":26}],46:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6458,7 +6529,7 @@ module.exports = function detectContentType(t, callback) {
   return true;
 };
 
-},{"../media_type_registry":34,"minilog":23}],44:[function(require,module,exports){
+},{"../media_type_registry":37,"minilog":26}],47:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6500,7 +6571,7 @@ executeLastHttpRequest.isAsync = true;
 
 module.exports = executeLastHttpRequest;
 
-},{"../abort_traversal":28,"../http_requests":31,"minilog":23}],45:[function(require,module,exports){
+},{"../abort_traversal":31,"../http_requests":34,"minilog":26}],48:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6529,7 +6600,7 @@ executeLastHttpRequest.isAsync = true;
 
 module.exports = executeLastHttpRequest;
 
-},{"../abort_traversal":28,"../http_requests":31,"minilog":23}],46:[function(require,module,exports){
+},{"../abort_traversal":31,"../http_requests":34,"minilog":26}],49:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6558,7 +6629,7 @@ module.exports = function extractDoc(t) {
   return false;
 };
 
-},{"minilog":23}],47:[function(require,module,exports){
+},{"minilog":26}],50:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6588,7 +6659,7 @@ module.exports = function extractDoc(t) {
   return false;
 };
 
-},{"minilog":23}],48:[function(require,module,exports){
+},{"minilog":26}],51:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6618,7 +6689,7 @@ module.exports = function extractDoc(t) {
   }
 };
 
-},{"minilog":23,"url":27}],49:[function(require,module,exports){
+},{"minilog":26,"url":30}],52:[function(require,module,exports){
 'use strict';
 
 // TODO Only difference to lib/transform/fetch_resource is the continuation
@@ -6656,7 +6727,7 @@ fetchLastResource.isAsync = true;
 
 module.exports = fetchLastResource;
 
-},{"../abort_traversal":28,"../http_requests":31,"minilog":23}],50:[function(require,module,exports){
+},{"../abort_traversal":31,"../http_requests":34,"minilog":26}],53:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -6714,7 +6785,7 @@ function fetchViaHttp(t, callback) {
 module.exports = fetchResource;
 
 }).call(this,require('_process'))
-},{"../abort_traversal":28,"../http_requests":31,"../is_continuation":32,"_process":64,"minilog":23}],51:[function(require,module,exports){
+},{"../abort_traversal":31,"../http_requests":34,"../is_continuation":35,"_process":67,"minilog":26}],54:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6730,7 +6801,7 @@ module.exports = function getOptionsForStep(t) {
   return options;
 };
 
-},{"minilog":23,"util":24}],52:[function(require,module,exports){
+},{"minilog":26,"util":27}],55:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6781,7 +6852,7 @@ function jsonError(url, body) {
   return error;
 }
 
-},{"../is_continuation":32,"minilog":23}],53:[function(require,module,exports){
+},{"../is_continuation":35,"minilog":26}],56:[function(require,module,exports){
 'use strict';
 
 var isContinuation = require('../is_continuation');
@@ -6796,7 +6867,7 @@ module.exports = function resetLastStep(t) {
   return true;
 };
 
-},{"../is_continuation":32}],54:[function(require,module,exports){
+},{"../is_continuation":35}],57:[function(require,module,exports){
 'use strict';
 
 var isContinuation = require('../is_continuation');
@@ -6811,7 +6882,7 @@ module.exports = function resetLastStep(t) {
   return true;
 };
 
-},{"../is_continuation":32}],55:[function(require,module,exports){
+},{"../is_continuation":35}],58:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6844,7 +6915,7 @@ module.exports = function resolveNextUrl(t) {
   return true;
 };
 
-},{"minilog":23,"underscore.string":26,"url":27}],56:[function(require,module,exports){
+},{"minilog":26,"underscore.string":29,"url":30}],59:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6877,7 +6948,7 @@ module.exports = function resolveUriTemplate(t) {
 
 
 
-},{"minilog":23,"underscore.string":26,"url-template":61,"util":24}],57:[function(require,module,exports){
+},{"minilog":26,"underscore.string":29,"url-template":64,"util":27}],60:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6916,7 +6987,7 @@ function findNextStep(t, link) {
   }
 }
 
-},{"minilog":23}],58:[function(require,module,exports){
+},{"minilog":26}],61:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -6993,7 +7064,7 @@ function isAborted(t) {
   return t.aborted;
 }
 
-},{"./abort_traversal":28,"./is_continuation":32,"./transforms/apply_transforms":38,"./transforms/check_http_status":39,"./transforms/fetch_resource":50,"./transforms/parse":52,"./transforms/reset_continuation":53,"./transforms/reset_last_step":54,"./transforms/resolve_next_url":55,"./transforms/resolve_uri_template":56,"./transforms/switch_to_next_step":57,"minilog":23}],59:[function(require,module,exports){
+},{"./abort_traversal":31,"./is_continuation":35,"./transforms/apply_transforms":41,"./transforms/check_http_status":42,"./transforms/fetch_resource":53,"./transforms/parse":55,"./transforms/reset_continuation":56,"./transforms/reset_last_step":57,"./transforms/resolve_next_url":58,"./transforms/resolve_uri_template":59,"./transforms/switch_to_next_step":60,"minilog":26}],62:[function(require,module,exports){
 /*global exports, require*/
 /* eslint-disable no-eval */
 /* JSONPath 0.8.0 - XPath for JSON
@@ -7449,7 +7520,7 @@ else {
 }
 }(typeof require === 'undefined' ? null : require));
 
-},{"vm":65}],60:[function(require,module,exports){
+},{"vm":68}],63:[function(require,module,exports){
 // Copyright 2014 Simon Lydell
 // X11 (“MIT”) Licensed. (See LICENSE.)
 
@@ -7498,7 +7569,7 @@ void (function(root, factory) {
 
 }));
 
-},{}],61:[function(require,module,exports){
+},{}],64:[function(require,module,exports){
 (function (root, factory) {
     if (typeof exports === 'object') {
         module.exports = factory();
@@ -7679,7 +7750,7 @@ void (function(root, factory) {
   return new UrlTemplate();
 }));
 
-},{}],62:[function(require,module,exports){
+},{}],65:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -7753,7 +7824,7 @@ exports.registerMediaType = mediaTypeRegistry.register;
 exports.mediaTypes = mediaTypes;
 
 }).call(this,require('_process'))
-},{"./lib/builder":30,"./lib/media_type_registry":34,"./lib/media_types":35,"_process":64,"minilog":23}],63:[function(require,module,exports){
+},{"./lib/builder":33,"./lib/media_type_registry":37,"./lib/media_types":38,"_process":67,"minilog":26}],66:[function(require,module,exports){
 
 var indexOf = [].indexOf;
 
@@ -7764,7 +7835,7 @@ module.exports = function(arr, obj){
   }
   return -1;
 };
-},{}],64:[function(require,module,exports){
+},{}],67:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -7857,7 +7928,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],65:[function(require,module,exports){
+},{}],68:[function(require,module,exports){
 var indexOf = require('indexof');
 
 var Object_keys = function (obj) {
@@ -7997,7 +8068,7 @@ exports.createContext = Script.createContext = function (context) {
     return copy;
 };
 
-},{"indexof":63}],"ec.datamanager.js":[function(require,module,exports){
+},{"indexof":66}],"ec.datamanager.js":[function(require,module,exports){
 'use strict';
 
 module.exports = require('./lib/DataManager');
