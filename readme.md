@@ -972,6 +972,9 @@ grunt build
 
 
 ## Changelog
+### 0.7.8
+-fixed some bugs with those nested entries (CMS-2129)
+
 ### 0.7.7
 - fixed bug when saving nested entries (CMS-2127)
 
