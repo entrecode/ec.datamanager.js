@@ -834,6 +834,7 @@ describe('nested Entry', function() { // this is basically modelList
       .that.is.instanceOf(Array);
       expect(entry.value['list-items'][0].value).to.have.property('_id', '4JGrCvm27e');
       entry.value.title = 'Shopping List 2';
+      entry.value['list-items'][0] = entry.value['list-items'][0].value._id;
       return entry.save()
       .then(function(entry) {
         expect(entry).to.be.ok;
