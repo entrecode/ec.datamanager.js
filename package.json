@@ -45,7 +45,7 @@
     "grunt-express-server": "0.5.3",
     "grunt-karma": "0.12.2",
     "grunt-mocha-test": "0.12.7",
-    "grunt-run": "0.5.3",
+    "grunt-run": "0.6.0",
     "istanbul": "0.4.3",
     "karma": "0.13.22",
     "karma-bamboo-reporter": "0.1.2",
