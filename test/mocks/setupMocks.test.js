@@ -6,11 +6,13 @@ if (isNode) {
   var nock = require('nock')
     , walk = require('walk')
     , path = require('path')
-    , fs   = require('fs')
-    , _    = require('lodash')
+    , fs = require('fs')
+    , etag = require('etag')
+    , _ = {}
     ;
+  _.isEmpty = require('lodash.isempty');
 
-  before(function(done) { // global before hook: swap axios for axios mock
+  before(function(done) {
     var dmMock = nock('https://datamanager.entrecode.de');
     var baseDM = path.resolve(__dirname, 'datamanager');
     var walker = walk.walk(baseDM);
@@ -18,7 +20,7 @@ if (isNode) {
       if (fileStat.name.charAt(0) === '.') {
         return next();
       }
-      var reqPath   = root.replace(baseDM, '');
+      var reqPath = root.replace(baseDM, '');
       var fileElems = fileStat.name.split('.');
       fs.readFile(path.resolve(root, fileStat.name), function(err, data) {
         if (err) {
@@ -36,7 +38,7 @@ if (isNode) {
         if (fileElems[1] === "500") {
           dmMock = dmMock.replyWithError(file.res);
         } else {
-          dmMock = dmMock.reply(fileElems[1], file.res);
+          dmMock = dmMock.reply(fileElems[1], file.res, { 'ETag': etag(JSON.stringify(file.res)) });
         }
 
         return next();

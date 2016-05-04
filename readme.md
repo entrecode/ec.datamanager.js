@@ -100,7 +100,7 @@ var dataManager = new DataManager({
 ```
 
 ### DataManager
-##### Resolve
+#### Resolve
 Retrieves information about the connected Data Manager. Like title, id, …
 
 ```js
@@ -111,7 +111,7 @@ dataManager.resolve()
 }, errorHandler);
 ```
 
-##### Permission Check
+#### Permission Check
 To check if the currently instantiated Data Manager has a specific right you can use `can(…)`.
 
 ```js
@@ -125,6 +125,43 @@ dataManager.can('myModel:delete')
 .catch(function(err) {
   console.log(err.message); // permission_denied
 });
+```
+
+#### Enable Cache
+
+```js
+dataManager.enableCache('myModel', DataManager.DB_NODEJS)…
+// OR
+dataManager.enableCache({
+  myModel: 3600,
+  'my-model-with-dash': 600000
+}, DataManager.DB_CORDOVA)
+// OR
+dataManager.enableCache([
+  'myModel',
+  'myOtherModel'
+], DataManager.DB_BROWSER, 3600)
+.then(function(models){
+  console.log(models); // Array of LokiJS collections
+  models[0].find({ lokiJS: 'doesThis' });
+}, errorHandler);
+```
+
+#### Clear Cache
+ 
+```js
+dataManager.clearCache('myModel')… // only myModel gets cleared
+// OR
+dataManager.clearCache([           // all in the array
+  'myModel',
+  'myOtherModel'
+]…
+// OR
+dataManager.clearCache()			// all models
+.then(function(){
+  // cache is cleared and disabled
+})
+.catch(errorHandler)
 ```
 
 ### Model
@@ -148,6 +185,24 @@ dataManager.model('myModel').resolve()
 .then(function(model){
   console.log(model.metadata.titleField);
   model.entries()…
+}, errorHandler);
+```
+
+#### Model enable cache
+
+```js
+dataManager.model('myModel').enableCache(DataManager.DB_NODEJS, 3600)
+.then(function(lokiJSCollection){
+  lokiJSCollection.find({ lokiJS: 'doesThis' });
+}, errorHandler);
+```
+
+#### Model clear cache
+
+```js
+dataManager.model('myModel').clearCache()
+.then(function() {
+  // cache cleared and disabled
 }, errorHandler);
 ```
 
@@ -178,6 +233,36 @@ dataManager.model('myModel').entryList({size: 100, sort: ['property', '-date']})
 }, errorHandler);
 ```
 
+#### Get EntryList with cacheType
+also works on `entry(…)` and `entries(…)`
+
+```js
+dataManager.model('myModel').entryList({ cacheType: 'default' })
+.then(function(list){
+  console.log(list.entries); // refreshed data when cache was stale, cached data otherwise
+}, errorHandler);
+…
+dataManager.model('myModel').entryList()
+.then(function(list){
+  console.log(list.entries); // same as cacheType: 'default'
+}, errorHandler);
+…
+dataManager.model('myModel').entryList({ cacheType: 'refresh' })
+.then(function(list){
+  console.log(list.entries); // contains refreshed entries
+}, errorHandler);
+…
+// the following type only works on entryList, is handled like default on entry/entries
+dataManager.model('myModel').entryList({ cacheType: 'stale' })
+.then(function(list){
+  console.log(list.entries); // contains cache data, even stale
+  list.refreshedData().then(function(list){
+    console.log(list.entries); // contains refreshed data
+  }, errorHandler);
+}, errorHandler);
+
+```
+
 #### Get Entries
 *`size: 0` will return ALL entries*
 
@@ -185,6 +270,7 @@ dataManager.model('myModel').entryList({size: 100, sort: ['property', '-date']})
 dataManager.model('myModel').entries({size: 0, sort: ['property' , '-date']})
 .then(function(entries) {
   console.log(entries); // success! array of Entries
+  var clonedEntries = DataManager.cloneEntries(entries); // clones entry objects.
 }, errorHandler);
 ```
 
@@ -201,6 +287,7 @@ dataManager.model('myModel').entry('my7fmeXh')
 dataManager.model('myModel').entry('my7fmeXh', 2}) // since 0.6.0 no longer object
 .then(function(entry) {
   console.log(entry); // success! an Entry
+  var clonedEntry = DataManager.cloneEntry(entry); // clones entry object.
 }, errorHandler);
 ```
 
@@ -262,7 +349,7 @@ dataManager.model('myModel').entry('f328af3')
 ```
 
 #### Get Title of Entry
-Returns the title of any nested entry in the entry. Only works when the entry was received using levels.
+Returns the title of any nested entry in the entry.
 
 Example:
 
@@ -270,6 +357,20 @@ Example:
 dataManager.model('myModel).entry('f328af3', 2')
 .then(function(entry) {
   console.log(entry.getTitle('child')); // prints the title of the child 'child'
+  // is String for entry
+  // is Array of String for entries
+}, errorHandler);
+```
+
+#### Get Model Name of Entry
+Returns the model title of any nested entry in the entry.
+
+Example:
+
+```js
+dataManager.model('myModel).entry('f328af3', 2')
+.then(function(entry) {
+  console.log(entry.getModelTitle('child')); // prints the model title of the child 'child'
 }, errorHandler);
 ```
 
@@ -412,6 +513,7 @@ dataManager.assetList()
 dataManager.assets()
 .then(function(assets) {
   console.log(assets); // array with assets
+  var clonedAssets = DataManager.cloneAssets(assets); // clones assets objects.
 }, errorHandler);
 ```
 
@@ -421,6 +523,7 @@ dataManager.assets()
 dataManager.asset('46092f02-7441-4759-b6ff-8f3831d3da4b')
 .then(function(asset) {
   console.log(asset); // the Asset
+  var clonedAsset = DataManager.cloneAsset(asset); // clones asset objects.
 }, errorHandler);
 ```
 
@@ -537,6 +640,7 @@ dataManager.tagList()
 dataManager.tags()
 .then(function(tags){
   console.log(tags); // array of tags
+  var clonedTags = DataManager.cloneTags(tags); // clones tags objects.
 }, errorHanlder);
 ```
 
@@ -545,6 +649,7 @@ dataManager.tags()
 dataManager.tag('tag1')
 .then(function(tag){
   console.log(tag); // tag
+  var clonedTag = DataManager.cloneTag(tag); // clones tag objects.
 }).catch(function(error){
   console.log(error); // error getting tag
 });
@@ -638,8 +743,23 @@ returns an image thumbnail (square cropped). `size` is required and states the s
 
 Note that the image may still be smaller if the original image is smaller than `size`. Optionally, a specific `locale` can be requested. The promise is getting rejected if no file is found. The following sizes are being returned: 50, 100, 200, 400
 
+##### `cloneEntries(entries)`, `cloneAssets(assets)`, `cloneTags(tags)`
+
+returns a cloned copy of `entries`, `assets`, or `tags`.
+
+##### `cloneEntry(entry)`, `cloneAsset(asset)`, `cloneTag(tag)`
+
+returns a cloned copy of the `entrie`, `asset`, or `tag`.
+
 
 #### DataManager Instance Methods
+##### `enableCache(stringOrArrayofObject[, lokiJsEnv[, maxCacheAge]])`
+enables caching for the given models. Either one model title (`String`) or multiple model titles (`Array`) or multiple model titles(`key`) with custom maxCacheAge(`value`) (`Object`). returns a Promise which resolves to a array of LokiJS collections.
+
+##### `clearCache(stringOrArray)`
+disables and cleares the cache for the given models. Either one model title (`String`) or multiple model titles (`Array`).
+return a Promise which resovles after successfully clearing cache.
+
 ##### `asset(identifier)`
 returns an Asset object as Promise. `identifier` (String) is required.
 
@@ -708,6 +828,9 @@ Checks if the currently connected Data Manager is able to perform `permission`. 
 * `url` The url of the connected Data Manager.
 * `clientID` ClientID which will be used to generate authLinks, or `null`/`undefined` if not set.
 * `errorHandler` The global errorHandler for all erorrs which can occur.
+* `DB_NODEJS` LokiJS env for node.
+* `DB_CORDOVA` LokiJS env for cordova.
+* `DB_BROWSER` LokiJS env for browsers.
 
 ### Model object
 #### Connecting a Model
@@ -717,7 +840,14 @@ var myModel = dataManager.model('myModel');
 returns Model Object which is a promise.
 
 #### Model Instance Methods
-##### entries(options)/entryList(options)
+##### `enableCache([lokiJsEnv [, maxCacheAge])`
+enables caching for the connected model with `maxCacheAge` (in ms). Returns a Promise which resolves to a LokiJS collection.
+
+##### `clearCache()`
+disables and cleares the cache for the model.
+return a Promise which resovles after successfully clearing cache.
+
+##### `entries(options)`/`entryList(options)`
 returns JSON Array of Entries (async).
 The request can be configured using `options`.
 Valid keys are:
@@ -732,6 +862,11 @@ Valid keys are:
     - `to`: Range filter: value is the value to have as upper end (≤) 
     - `any`: Multiple-exact-match filter. Value is an Array containing allowed values (OR)
     - `all`: Multiple-exact-match filter. Value is an Array containing required values (AND)
+- `cacheType` - selected cachedType (default: `default`)
+	- `default` - refreshes data when stale, cached otherwise
+	- `refresh` - refreshes data every time
+	- `stale` - resolves promise directly with stale data. add `refreshedData` (`Promise`) to result which can be used to refresh the data asyncronously. This only works on `entryList`.
+
 
 Example:
 
@@ -758,22 +893,22 @@ dataManager.model('myModel').entries({size: 100, sort: ['property' , '-date'])
 }
 ```
 
-##### entry(id [, levels])
+##### `entry(id [, levels])`
 returns a Entry object as Promise. Levels property can be used to request nested entries.
 
-##### nestedEntry(id [, levels])
+##### `nestedEntry(id [, levels])`
 returns a Entry object as Promise. Levels property can be used to request nested entries. Resolved nested elementes are proper SDK objects with all functions like `save()` and `delete()`.
 
-##### createEntry(object)
+##### `createEntry(object)`
 create a new entry. Returns the Entry.
 
-##### deleteEntry(id)
+##### `deleteEntry(id)`
 return a Promise for deleting an entry.
 
-##### getSchema([method])
+##### `getSchema([method])`
 retrieve JSON Schema. `method` is `get` by default. Other possible values: `put`, `post`.
 
-##### resolve()
+##### `resolve()`
 return a resolved model as Promise.
 
 Can be used when creating a model object without calling `modelList()` to resolve model metadata.
@@ -822,6 +957,31 @@ dataManager.model('myModel').entry('f328af3')
 .then(function(){
   console.log('deleted');
 });
+```
+##### getTitle(String)
+gets the title of any child entry identified by `String`. Will return `String` for single types and `Array<String>` for multiple types.
+
+Example:
+
+```js
+dataManager.model('myModel).entry('f328af3', 2')
+.then(function(entry) {
+  console.log(entry.getTitle('child')); // prints the title of the child 'child'
+  // is String for entry
+  // is Array of String for entries
+}, errorHandler);
+```
+
+##### getModelTitle(String)
+gets the model title of any child entry identified by `String`.
+
+Example:
+
+```js
+dataManager.model('myModel).entry('f328af3', 2')
+.then(function(entry) {
+  console.log(entry.getModelTitle('child')); // prints the model title of the child 'child'
+}, errorHandler);
 ```
 
 ### Asset object
@@ -972,6 +1132,13 @@ grunt build
 
 
 ## Changelog
+### 0.8.0
+- cache entries with [LokiJS](http://lokijs.org/)
+- cache functionality has to be enable per model basis with `enableCache(…)`
+- IMPORTANT: if cache is enabled ALL entries of the model will be loaded
+- adds clone functions for assets, tags, and entries
+- adds getModelTitle(…) to Entry CMS-2069
+
 ### 0.7.9
 - fixed some rare cases where nested entries are broken
 

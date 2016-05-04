@@ -5,16 +5,24 @@ var isNode = typeof process !== 'undefined';
 if (isNode) { // require only in node, frontend knows things. ;)
   var chai = require('chai') // main testing lib
     , expect = chai.expect
+    , fs = require('fs')
+    , path = require('path')
     , traverson = require('traverson')
     , TraversonJsonHalAdapter = require('traverson-hal')
+    , sinon = require('sinon')
 
     , DataManager = require('../lib/DataManager.js')
+    , Model = require('../lib/Model.js')
 
     ;
 
   var baseUrl = 'https://datamanager.entrecode.de/api/';
+  var lokiEnv = DataManager.DB_NODEJS;
+  var isPhantomJS = false;
 } else {
   var baseUrl = 'http://localhost:54815/datamanager/api/';
+  var lokiEnv = DataManager.DB_BROWSER;
+  var isPhantomJS = /PhantomJS/.test(window.navigator.userAgent);
 }
 traverson.registerMediaType(TraversonJsonHalAdapter.mediaType, TraversonJsonHalAdapter);
 
@@ -281,7 +289,7 @@ if (isNode) {
       });
     });
   });
-
+  
   describe('best file routes', function() {
     var dm;
     before(function() {
@@ -432,6 +440,13 @@ describe('model', function() {
       expect(err).to.have.property('message', 'ec_sdk_model_not_found');
     });
   });
+  it('model not found on entries', function() {
+    return dm.model('not-found').entries().then(function(result) {
+      throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+    }).catch(function(err) {
+      expect(err).to.be.ok;
+    });
+  });
   it('get schema', function() {
     return dm.model('to-do-list').getSchema().then(function(schema) {
       expect(schema).to.be.ok;
@@ -470,6 +485,800 @@ describe('model', function() {
   });
 });
 
+if (isNode || !isPhantomJS) {
+  describe('offline model', function() {
+    var dm;
+    beforeEach(function() {
+      dm = new DataManager({
+        url: baseUrl + '58b9a1f5'
+      });
+    });
+    afterEach(function() {
+      dm = null;
+    });
+    it('make single model offline by dm', function() {
+      return dm.enableCache('to-do-list', lokiEnv).then(function(models) {
+        expect(dm._cacheMetaData).to.be.a('object');
+        expect(models[0]).to.be.a('object');
+        expect(models[0].name).to.be.equal('to-do-list');
+      });
+    });
+    it('make single model offline by model', function() {
+      return dm.model('to-do-list').enableCache(lokiEnv).then(function(model) {
+        expect(dm._cacheMetaData).to.be.a('object');
+        expect(model).to.be.a('object');
+        expect(model.name).to.be.equal('to-do-list');
+      });
+    });
+    it('make multiple models offline by dm', function() {
+      return dm.enableCache([
+        'to-do-list',
+        'to-do-item'
+      ], lokiEnv).then(function(models) {
+        expect(models).to.be.a('array');
+        expect(models.length).to.be.equal(2);
+      });
+    });
+    it('make multiple models offline by object', function() {
+      return dm.enableCache({
+        'to-do-list': 3600,
+        'to-do-item': 600000
+      }, lokiEnv).then(function(models) {
+        expect(models).to.be.a('array');
+        expect(models.length).to.be.equal(2);
+        //expect(models[0]._maxAge).to.be.equal(3600);
+        //expect(models[1]._maxAge).to.be.equal(600000);
+      })
+    });
+  });
+
+  describe('cache data age: -1', function() {
+    var dm;
+    before(function(done) {
+      dm = new DataManager({
+        url: baseUrl + '58b9a1f5'
+      });
+      dm.enableCache([
+        'to-do-item',
+        'to-do-list'
+      ], lokiEnv, -1)
+      .then(function() {
+        done();
+      })
+      .catch(done);
+    });
+    after(function(done) {
+      dm = null;
+      if (isNode) {
+        fs.unlink(path.resolve(__dirname, '..', '58b9a1f5.db.json'), done);
+      } else {
+        localStorage.clear();
+        done();
+      }
+    });
+    it('entries, no cacheType', function() {
+      return dm.model('to-do-list').entries()
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+      });
+    });
+    it('entries, cacheType default', function() {
+      return dm.model('to-do-list').entries({ cacheType: 'default' })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+      });
+    });
+    it('entries, cacheType refresh', function() {
+      return dm.model('to-do-list').entries({ cacheType: 'refresh' })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+      });
+    });
+    it('entryList, cacheType stale', function() {
+      return dm.model('to-do-list').entryList({ cacheType: 'stale' })
+      .then(function(list) {
+        expect(list.entries.length).to.be.equal(2);
+        expect(list).to.have.property('refreshedData');
+        return list.refreshedData.then(function(list2) {
+          expect(list2.entries.length).to.be.equal(2);
+        });
+      });
+    });
+    it('entries, cacheType stale', function() {
+      return dm.model('to-do-list').entries({ cacheType: 'stale' })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+      });
+    });
+    it('entries, filter exact', function() {
+      return dm.model('to-do-list').entries({
+        filter: {
+          _id: {
+            exact: 'V1EXdcJHl'
+          }
+        }
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(1);
+        expect(entries[0].value).to.have.property('_id', 'V1EXdcJHl');
+      });
+    });
+    it('entries, filter search', function() {
+      return dm.model('to-do-list').entries({
+        filter: {
+          title: {
+            search: 'Single'
+          }
+        }
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(1);
+        expect(entries[0].value).to.have.property('title', 'Single Item List');
+      });
+    });
+    it('entries, filter from', function() {
+      return dm.model('to-do-list').entries({
+        filter: {
+          _created: {
+            from: '2015-12-08T09:55:15.000Z'
+          }
+        }
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(1);
+        expect(entries[0].value).to.have.property('_created', '2015-12-08T09:55:15.171Z');
+      });
+    });
+    it('entries, filter to', function() {
+      return dm.model('to-do-list').entries({
+        filter: {
+          _created: {
+            to: '2015-12-08T09:55:15.000Z'
+          }
+        }
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(1);
+        expect(entries[0].value).to.have.property('_created', '2015-11-23T16:03:38.304Z');
+      });
+    });
+    it('entries, filter from and to', function() {
+      return dm.model('to-do-list').entries({
+        filter: {
+          _created: {
+            to: '2015-12-08T09:55:15.000Z',
+            from: '2015-12-08T09:55:15.000Z'
+          }
+        }
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(0);
+      });
+    });
+    it('entries, sort -', function() {
+      return dm.model('to-do-list').entries({
+        sort: [
+          '-created'
+        ]
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+        expect(entries[0].value).to.have.property('_created', '2015-12-08T09:55:15.171Z');
+        expect(entries[1].value).to.have.property('_created', '2015-11-23T16:03:38.304Z');
+      });
+    });
+    it('entries, sort implicit +', function() {
+      return dm.model('to-do-list').entries({
+        sort: [
+          'created'
+        ]
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+        expect(entries[0].value).to.have.property('_created', '2015-11-23T16:03:38.304Z');
+        expect(entries[1].value).to.have.property('_created', '2015-12-08T09:55:15.171Z');
+      });
+    });
+    it('entries, sort +', function() {
+      return dm.model('to-do-list').entries({
+        sort: [
+          '+created'
+        ]
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+        expect(entries[0].value).to.have.property('_created', '2015-11-23T16:03:38.304Z');
+        expect(entries[1].value).to.have.property('_created', '2015-12-08T09:55:15.171Z');
+      });
+    });
+    it('entries, size & page 1', function() { // TODO
+      return dm.model('to-do-item').entries({
+        size: 3,
+        page: 1
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(3);
+        expect(entries[0].value._id).to.be.equal('4kt6UzOGBl');
+        expect(entries[1].value._id).to.be.equal('41zp8Guzrx');
+        expect(entries[2].value._id).to.be.equal('N1GJuenPEl');
+      });
+    });
+    it('entries, size & page 2', function() { // TODO
+      return dm.model('to-do-item').entries({
+        size: 3,
+        page: 2
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(3);
+        expect(entries[0].value._id).to.be.equal('VkGhAPQ2Qe');
+        expect(entries[1].value._id).to.be.equal('4JGrCvm27e');
+        expect(entries[2].value._id).to.be.equal('V1G2TvQnXx');
+      });
+    });
+    it('entries, size & page 3', function() { // TODO
+      return dm.model('to-do-item').entries({
+        size: 3,
+        page: 3
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(1);
+        expect(entries[0].value._id).to.be.equal('VkM8aPQnQe');
+      });
+    });
+    it('entries, page', function() { // TODO
+      return dm.model('to-do-item').entries({
+        page: 1
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(7);
+      });
+    });
+    it('entries, size 0', function() { // TODO
+      return dm.model('to-do-item').entries({
+        size: 0
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(7);
+      });
+    });
+  });
+  describe('cache data age: 120000', function() {
+    var dm;
+    before(function(done) {
+      dm = new DataManager({
+        url: baseUrl + '58b9a1f5'
+      });
+      dm.enableCache([
+        'to-do-item',
+        'to-do-list'
+      ], lokiEnv, 120000)
+      .then(function() {
+        done();
+      })
+      .catch(done);
+    });
+    after(function(done) {
+      dm = null;
+      if (isNode) {
+        fs.unlink(path.resolve(__dirname, '..', '58b9a1f5.db.json'), done);
+      } else {
+        localStorage.clear();
+        done();
+      }
+    });
+    it('entries, no cacheType', function() {
+      return dm.model('to-do-list').entries()
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+      });
+    });
+    it('entries, cacheType default', function() {
+      return dm.model('to-do-list').entries({ cacheType: 'default' })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+      });
+    });
+    it('entries, cacheType refresh', function() {
+      return dm.model('to-do-list').entries({ cacheType: 'refresh' })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+      });
+    });
+    it('entryList, cacheType stale', function() {
+      return dm.model('to-do-list').entryList({ cacheType: 'stale' })
+      .then(function(list) {
+        expect(list.entries.length).to.be.equal(2);
+        expect(list).to.have.property('refreshedData');
+        return list.refreshedData.then(function(list2) {
+          expect(list2.entries.length).to.be.equal(2);
+        });
+      });
+    });
+    it('entries, cacheType stale', function() {
+      return dm.model('to-do-list').entries({ cacheType: 'stale' })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+      });
+    });
+    it('entries, filter exact', function() {
+      return dm.model('to-do-list').entries({
+        filter: {
+          _id: {
+            exact: 'V1EXdcJHl'
+          }
+        }
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(1);
+        expect(entries[0].value).to.have.property('_id', 'V1EXdcJHl');
+      });
+    });
+    it('entries, filter search', function() {
+      return dm.model('to-do-list').entries({
+        filter: {
+          title: {
+            search: 'Single'
+          }
+        }
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(1);
+        expect(entries[0].value).to.have.property('title', 'Single Item List');
+      });
+    });
+    it('entries, filter from', function() {
+      return dm.model('to-do-list').entries({
+        filter: {
+          _created: {
+            from: '2015-12-08T09:55:15.000Z'
+          }
+        }
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(1);
+        expect(entries[0].value).to.have.property('_created', '2015-12-08T09:55:15.171Z');
+      });
+    });
+    it('entries, filter to', function() {
+      return dm.model('to-do-list').entries({
+        filter: {
+          _created: {
+            to: '2015-12-08T09:55:15.000Z'
+          }
+        }
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(1);
+        expect(entries[0].value).to.have.property('_created', '2015-11-23T16:03:38.304Z');
+      });
+    });
+    it('entries, sort -', function() {
+      return dm.model('to-do-list').entries({
+        sort: [
+          '-created'
+        ]
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+        expect(entries[0].value).to.have.property('_created', '2015-12-08T09:55:15.171Z');
+        expect(entries[1].value).to.have.property('_created', '2015-11-23T16:03:38.304Z');
+      });
+    });
+    it('entries, sort implicit +', function() {
+      return dm.model('to-do-list').entries({
+        sort: [
+          'created'
+        ]
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+        expect(entries[0].value).to.have.property('_created', '2015-11-23T16:03:38.304Z');
+        expect(entries[1].value).to.have.property('_created', '2015-12-08T09:55:15.171Z');
+      });
+    });
+    it('entries, sort +', function() {
+      return dm.model('to-do-list').entries({
+        sort: [
+          '+created'
+        ]
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+        expect(entries[0].value).to.have.property('_created', '2015-11-23T16:03:38.304Z');
+        expect(entries[1].value).to.have.property('_created', '2015-12-08T09:55:15.171Z');
+      });
+    });
+    it('entries, size & page 1', function() { // TODO
+      return dm.model('to-do-item').entries({
+        size: 3,
+        page: 1
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(3);
+        expect(entries[0].value._id).to.be.equal('4kt6UzOGBl');
+        expect(entries[1].value._id).to.be.equal('41zp8Guzrx');
+        expect(entries[2].value._id).to.be.equal('N1GJuenPEl');
+      });
+    });
+    it('entries, size & page 2', function() { // TODO
+      return dm.model('to-do-item').entries({
+        size: 3,
+        page: 2
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(3);
+        expect(entries[0].value._id).to.be.equal('VkGhAPQ2Qe');
+        expect(entries[1].value._id).to.be.equal('4JGrCvm27e');
+        expect(entries[2].value._id).to.be.equal('V1G2TvQnXx');
+      });
+    });
+    it('entries, size & page 3', function() { // TODO
+      return dm.model('to-do-item').entries({
+        size: 3,
+        page: 3
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(1);
+        expect(entries[0].value._id).to.be.equal('VkM8aPQnQe');
+      });
+    });
+    it('entries, page', function() { // TODO
+      return dm.model('to-do-item').entries({
+        page: 1
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(7);
+      });
+    });
+  });
+  describe('cache data age: undefined', function() {
+    var dm;
+    before(function(done) {
+      dm = new DataManager({
+        url: baseUrl + '58b9a1f5'
+      });
+      dm.enableCache([
+        'to-do-item',
+        'to-do-list'
+      ], lokiEnv)
+      .then(function() {
+        done();
+      })
+      .catch(done);
+    });
+    after(function(done) {
+      dm = null;
+      if (isNode) {
+        fs.unlink(path.resolve(__dirname, '..', '58b9a1f5.db.json'), done);
+      } else {
+        localStorage.clear();
+        done();
+      }
+    });
+    it('entries, no cacheType', function() {
+      return dm.model('to-do-list').entries()
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+      });
+    });
+    it('entries, cacheType default', function() {
+      return dm.model('to-do-list').entries({ cacheType: 'default' })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+      });
+    });
+    it('entries, cacheType refresh', function() {
+      return dm.model('to-do-list').entries({ cacheType: 'refresh' })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+      });
+    });
+    it('entryList, cacheType stale', function() {
+      return dm.model('to-do-list').entryList({ cacheType: 'stale' })
+      .then(function(list) {
+        expect(list.entries.length).to.be.equal(2);
+        expect(list).to.have.property('refreshedData');
+        return list.refreshedData.then(function(list2) {
+          expect(list2.entries.length).to.be.equal(2);
+        });
+      });
+    });
+    it('entries, cacheType stale', function() {
+      return dm.model('to-do-list').entries({ cacheType: 'stale' })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+      });
+    });
+    it('entries, filter exact', function() {
+      return dm.model('to-do-list').entries({
+        filter: {
+          _id: {
+            exact: 'V1EXdcJHl'
+          }
+        }
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(1);
+        expect(entries[0].value).to.have.property('_id', 'V1EXdcJHl');
+      });
+    });
+    it('entries, filter search', function() {
+      return dm.model('to-do-list').entries({
+        filter: {
+          title: {
+            search: 'Single'
+          }
+        }
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(1);
+        expect(entries[0].value).to.have.property('title', 'Single Item List');
+      });
+    });
+    it('entries, filter from', function() {
+      return dm.model('to-do-list').entries({
+        filter: {
+          _created: {
+            from: '2015-12-08T09:55:15.000Z'
+          }
+        }
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(1);
+        expect(entries[0].value).to.have.property('_created', '2015-12-08T09:55:15.171Z');
+      });
+    });
+    it('entries, filter to', function() {
+      return dm.model('to-do-list').entries({
+        filter: {
+          _created: {
+            to: '2015-12-08T09:55:15.000Z'
+          }
+        }
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(1);
+        expect(entries[0].value).to.have.property('_created', '2015-11-23T16:03:38.304Z');
+      });
+    });
+    it('entries, sort -', function() {
+      return dm.model('to-do-list').entries({
+        sort: [
+          '-created'
+        ]
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+        expect(entries[0].value).to.have.property('_created', '2015-12-08T09:55:15.171Z');
+        expect(entries[1].value).to.have.property('_created', '2015-11-23T16:03:38.304Z');
+      });
+    });
+    it('entries, sort implicit +', function() {
+      return dm.model('to-do-list').entries({
+        sort: [
+          'created'
+        ]
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+        expect(entries[0].value).to.have.property('_created', '2015-11-23T16:03:38.304Z');
+        expect(entries[1].value).to.have.property('_created', '2015-12-08T09:55:15.171Z');
+      });
+    });
+    it('entries, sort +', function() {
+      return dm.model('to-do-list').entries({
+        sort: [
+          '+created'
+        ]
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+        expect(entries[0].value).to.have.property('_created', '2015-11-23T16:03:38.304Z');
+        expect(entries[1].value).to.have.property('_created', '2015-12-08T09:55:15.171Z');
+      });
+    });
+    it('entries, size & page 1', function() { // TODO
+      return dm.model('to-do-item').entries({
+        size: 3,
+        page: 1
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(3);
+        expect(entries[0].value._id).to.be.equal('4kt6UzOGBl');
+        expect(entries[1].value._id).to.be.equal('41zp8Guzrx');
+        expect(entries[2].value._id).to.be.equal('N1GJuenPEl');
+      });
+    });
+    it('entries, size & page 2', function() { // TODO
+      return dm.model('to-do-item').entries({
+        size: 3,
+        page: 2
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(3);
+        expect(entries[0].value._id).to.be.equal('VkGhAPQ2Qe');
+        expect(entries[1].value._id).to.be.equal('4JGrCvm27e');
+        expect(entries[2].value._id).to.be.equal('V1G2TvQnXx');
+      });
+    });
+    it('entries, size & page 3', function() { // TODO
+      return dm.model('to-do-item').entries({
+        size: 3,
+        page: 3
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(1);
+        expect(entries[0].value._id).to.be.equal('VkM8aPQnQe');
+      });
+    });
+    it('entries, page', function() { // TODO
+      return dm.model('to-do-item').entries({
+        page: 1
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(7);
+      });
+    });
+  });
+
+  describe('fresh db, then new dmSDK with load old db', function() {
+    it('load, save and load again', function() {
+      var dm = new DataManager({
+        url: baseUrl + '58b9a1f5'
+      });
+      return dm.enableCache([
+        'to-do-item'
+      ], lokiEnv, 120000)
+      .then(function() {
+        return dm.model('to-do-item').entries()
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(7);
+        dm = new DataManager({
+          url: baseUrl + '58b9a1f5'
+        });
+        return dm.enableCache([
+          'to-do-item'
+        ], lokiEnv, 120000)
+      })
+      .then(function() {
+        return dm.model('to-do-item').entries()
+      })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(7);
+        return new Promise(function(resolve, reject) {
+          if (!isNode) {
+            localStorage.clear();
+            return resolve();
+          }
+
+          fs.unlink(path.resolve(__dirname, '..', '58b9a1f5.db.json'), function(err) {
+            if (err) {
+              return reject(err);
+            }
+            return resolve()
+          });
+        });
+      });
+    });
+  });
+  describe('disable cache', function() {
+    var dm;
+    beforeEach(function(done) {
+      dm = new DataManager({
+        url: baseUrl + '58b9a1f5'
+      });
+      dm.enableCache([
+        'to-do-item',
+        'to-do-list'
+      ], lokiEnv)
+      .then(function() {
+        done();
+      })
+      .catch(done);
+    });
+    afterEach(function(done) {
+      dm = null;
+      if (isNode) {
+        fs.unlink(path.resolve(__dirname, '..', '58b9a1f5.db.json'), done);
+      } else {
+        localStorage.clear();
+        done();
+      }
+    });
+    it('disable via model', function() {
+      var collection = dm._db.getCollection('to-do-item');
+      expect(collection.data.length).to.be.equal(7);
+      return dm.model('to-do-item').clearCache()
+      .then(function() {
+        collection = dm._db.getCollection('to-do-item');
+        expect(collection.data.length).to.be.equal(0);
+      });
+    });
+    it('disable all', function() {
+      var collection = dm._db.getCollection('to-do-item');
+      expect(collection.data.length).to.be.equal(7);
+      collection = dm._db.getCollection('to-do-list');
+      expect(collection.data.length).to.be.equal(2);
+      return dm.clearCache()
+      .then(function() {
+        collection = dm._db.getCollection('to-do-item');
+        expect(collection.data.length).to.be.equal(0);
+        collection = dm._db.getCollection('to-do-list');
+        expect(collection.data.length).to.be.equal(0);
+      });
+    });
+    it('disable via datamanager single', function() {
+      var collection = dm._db.getCollection('to-do-item');
+      expect(collection.data.length).to.be.equal(7);
+      return dm.clearCache('to-do-item')
+      .then(function() {
+        collection = dm._db.getCollection('to-do-item');
+        expect(collection.data.length).to.be.equal(0);
+      });
+    });
+    it('disable via datamanager multiple', function() {
+      var collection = dm._db.getCollection('to-do-item');
+      expect(collection.data.length).to.be.equal(7);
+      collection = dm._db.getCollection('to-do-list');
+      expect(collection.data.length).to.be.equal(2);
+      return dm.clearCache([
+        'to-do-item',
+        'to-do-list'
+      ])
+      .then(function() {
+        collection = dm._db.getCollection('to-do-item');
+        expect(collection.data.length).to.be.equal(0);
+        collection = dm._db.getCollection('to-do-list');
+        expect(collection.data.length).to.be.equal(0);
+      });
+    });
+  });
+}
+
+if (isNode) { // only on node since we stub stuff
+  describe('offline detection', function() {
+    var dm;
+    var stub;
+    before(function(done) {
+      dm = new DataManager({
+        url: baseUrl + '58b9a1f5'
+      });
+      dm.enableCache([
+        'to-do-list'
+      ], lokiEnv)
+      .then(function() {
+        stub = sinon.stub(Model.prototype, '_isReachable', function(dests) {
+          return Promise.reject(new Error('offline'));
+        });
+        done();
+      })
+      .catch(done);
+    });
+    after(function(done) {
+      dm = null;
+      stub.restore();
+      fs.unlink(path.resolve(__dirname, '..', '58b9a1f5.db.json'), done);
+    });
+    it('entries loaded from cache', function() {
+      return dm.model('to-do-list').entries({ cacheType: 'refresh' })
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(2);
+      });
+    });
+    it('set model offline when not reachable', function() {
+      return dm.model('to-do-item').enableCache(lokiEnv)
+      .then(function() {
+        throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
+      })
+      .catch(function(err) {
+        expect(err).to.be.ok;
+        expect(err.message).to.be.equal('Network unreachable. No cached data available for model to-do-item.');
+      });
+    });
+  });
+}
+
 describe('entry/entries', function() { // this is basically modelList
   var dm;
   beforeEach(function() {
@@ -493,11 +1302,20 @@ describe('entry/entries', function() { // this is basically modelList
       expect(entries.length).to.be.equal(1);
     });
   });
-  it('get entries, list multiple item', function() {
+  it('get entries, list multiple item, cloning', function() {
     return dm.model('to-do-item').entries().then(function(entries) {
       expect(entries).to.be.ok;
       expect(entries).to.be.instanceOf(Array);
       expect(entries.length).to.be.at.least(4);
+      expect(entries[0].value.title).to.be.equal('Beef');
+      var clonedEntries = DataManager.cloneEntries(entries);
+      expect(clonedEntries).to.be.ok;
+      expect(clonedEntries).to.be.instanceOf(Array);
+      expect(clonedEntries.length).to.be.at.least(4);
+      expect(clonedEntries[0].value.title).to.be.equal('Beef');
+      clonedEntries[0].value.title = 'Turkey';
+      expect(clonedEntries[0].value.title).to.be.equal('Turkey');
+      expect(entries[0].value.title).to.be.equal('Beef');
     });
   });
   it('get entries, then single (tests _getTraversal)', function() {
@@ -736,6 +1554,18 @@ describe('entry/entries', function() { // this is basically modelList
       expect(title).to.be.equal('NewItem');
     });
   });
+  it('get model title', function() {
+    return dm.model('to-do-list').entry('4JMjeO737e').then(function(entry) {
+      var title = entry.getModelTitle('list-items');
+      expect(title).to.be.equal('to-do-item');
+    });
+  });
+  it('get model title single link', function() {
+    return dm.model('to-do-list').entry('V1EXdcJHl').then(function(entry) {
+      var title = entry.getModelTitle('list-items');
+      expect(title).to.be.equal('to-do-item');
+    });
+  });
   it('500 error', function() {
     return dm.model('to-do-item').entries({
       filter: {
@@ -897,11 +1727,20 @@ describe('asset/assets', function() {
   afterEach(function() {
     dm = null;
   });
-  it('get assets, list multiple items', function() {
+  it('get assets, list multiple items, cloning', function() {
     return dm.assets().then(function(assets) {
       expect(assets).to.be.ok;
       expect(assets).to.be.instanceOf(Array);
       expect(assets.length).to.be.equal(3);
+      expect(assets[0].value.title).to.be.equal('anotherhardday');
+      var clonedAssets = DataManager.cloneAssets(assets);
+      expect(clonedAssets).to.be.ok;
+      expect(clonedAssets).to.be.instanceOf(Array);
+      expect(clonedAssets.length).to.be.equal(3);
+      expect(clonedAssets[0].value.title).to.be.equal('anotherhardday');
+      clonedAssets[0].value.title = 'beinginvacationisawesome';
+      expect(clonedAssets[0].value.title).to.be.equal('beinginvacationisawesome');
+      expect(assets[0].value.title).to.be.equal('anotherhardday');
     });
   });
   it('get assets, list single item', function() {
@@ -1041,13 +1880,12 @@ describe('asset/assets', function() {
       expect(assets.assets.length).to.be.equal(0);
     });
   });
-
+  
   if (isNode) {
     it('create asset, node', function() {
       return dm.createAsset(__dirname + '/whynotboth.jpg').then(function(assets) {
         expect(assets).to.be.instanceOf(Array);
         expect(assets.length).to.be.equal(1);
-        expect(assets[0]).to.be.instanceOf(Promise);
         return assets[0].then(function(asset) {
           expect(asset).to.be.ok;
           expect(asset).to.be.instanceOf(Object);
@@ -1061,7 +1899,6 @@ describe('asset/assets', function() {
       return dm.createAsset([__dirname + '/whynotboth.jpg', __dirname + '/whynotboth.jpg']).then(function(assets) {
         expect(assets).to.be.instanceOf(Array);
         expect(assets.length).to.be.equal(1);
-        expect(assets[0]).to.be.instanceOf(Promise);
         return assets[0].then(function(asset) {
           expect(asset).to.be.ok;
           expect(asset).to.be.instanceOf(Object);
@@ -1172,7 +2009,7 @@ describe('asset best file helper', function() {
       expect(asset.getImageThumbUrl(100, 'de-DE')).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/qaRs3a9dFiiu_Mq7P0R7gG2e.gif');
     });
   });
-
+  
   describe('image', function() {
     var dm;
     var asset;
@@ -1321,11 +2158,20 @@ describe('tag/tags', function() {
   afterEach(function() {
     dm = null;
   });
-  it('get tags, list multiple items', function() {
+  it('get tags, list multiple items, cloning', function() {
     return dm.tags().then(function(tags) {
       expect(tags).to.be.ok;
       expect(tags).to.be.instanceOf(Array);
       expect(tags.length).to.be.equal(2);
+      expect(tags[0].value.tag).to.be.equal('work-memes');
+      var clonedTags = DataManager.cloneTags(tags);
+      expect(clonedTags).to.be.ok;
+      expect(clonedTags).to.be.instanceOf(Array);
+      expect(clonedTags.length).to.be.equal(2);
+      expect(clonedTags[0].value.tag).to.be.equal('work-memes');
+      clonedTags[0].value.tag = 'fex-memes';
+      expect(clonedTags[0].value.tag).to.be.equal('fex-memes');
+      expect(tags[0].value.tag).to.be.equal('work-memes');
     });
   });
   it('get tags, list single item', function() {
@@ -1454,6 +2300,11 @@ describe('tag/tags', function() {
         expect(tag).to.be.ok;
         expect(tag).to.have.property('value');
         expect(tag.value).to.have.property('tag', 'workmemes');
+        return tag.save().then(function(tag) {
+          expect(tag).to.be.ok;
+          expect(tag).to.have.property('value');
+          expect(tag.value).to.have.property('tag', 'workmemes');
+        });
       });
     });
   });
@@ -1570,7 +2421,7 @@ describe('user management', function() {
     });
     it('model resolve, then register', function() {
       return dm.model('to-do-list').resolve().then(function() {
-        dm.registerAnonymous().then(function(user) {
+        return dm.registerAnonymous().then(function(user) {
           expect(user).to.be.ok;
           expect(dm).to.have.property('_user');
           expect(dm).to.have.property('accessToken')
