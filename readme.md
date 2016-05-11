@@ -1132,6 +1132,9 @@ grunt build
 
 
 ## Changelog
+### 0.8.1
+- fixed rare cases when cache metadata is invalid
+
 ### 0.8.0
 - cache entries with [LokiJS](http://lokijs.org/)
 - cache functionality has to be enable per model basis with `enableCache(…)`
