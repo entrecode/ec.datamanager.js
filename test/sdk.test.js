@@ -741,6 +741,32 @@ if (isNode || !isPhantomJS) {
         expect(entries.length).to.be.equal(7);
       });
     });
+    it('cache metadata no created', function() {
+      var model = dm.model('to-do-item');
+      return model.entries()
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(7);
+        var metadata = dm._cacheMetaData.find({ title: 'to-do-item' })[0];
+        delete metadata.created;
+        dm._cacheMetaData.update(metadata);
+        return model.entries()
+        .then(function(entries) {
+          expect(entries.length).to.be.equal(7);
+        });
+      })
+    });
+    it('cache metadata no created', function() {
+      var model = dm.model('to-do-item');
+      return model.entries()
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(7);
+        dm._cacheMetaData.removeWhere({ title: 'to-do-item' });
+        return model.entries()
+        .then(function(entries) {
+          expect(entries.length).to.be.equal(7);
+        });
+      })
+    });
   });
   describe('cache data age: 120000', function() {
     var dm;
@@ -930,6 +956,32 @@ if (isNode || !isPhantomJS) {
         expect(entries.length).to.be.equal(7);
       });
     });
+    it('cache metadata no created', function() {
+      var model = dm.model('to-do-item');
+      return model.entries()
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(7);
+        var metadata = dm._cacheMetaData.find({ title: 'to-do-item' })[0];
+        delete metadata.created;
+        dm._cacheMetaData.update(metadata);
+        return model.entries()
+        .then(function(entries) {
+          expect(entries.length).to.be.equal(7);
+        });
+      })
+    });
+    it('cache metadata no created', function() {
+      var model = dm.model('to-do-item');
+      return model.entries()
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(7);
+        dm._cacheMetaData.removeWhere({ title: 'to-do-item' });
+        return model.entries()
+        .then(function(entries) {
+          expect(entries.length).to.be.equal(7);
+        });
+      })
+    });
   });
   describe('cache data age: undefined', function() {
     var dm;
@@ -1118,6 +1170,32 @@ if (isNode || !isPhantomJS) {
       .then(function(entries) {
         expect(entries.length).to.be.equal(7);
       });
+    });
+    it('cache metadata no created', function() {
+      var model = dm.model('to-do-item');
+      return model.entries()
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(7);
+        var metadata = dm._cacheMetaData.find({ title: 'to-do-item' })[0];
+        delete metadata.created;
+        dm._cacheMetaData.update(metadata);
+        return model.entries()
+        .then(function(entries) {
+          expect(entries.length).to.be.equal(7);
+        });
+      })
+    });
+    it('cache metadata no created', function() {
+      var model = dm.model('to-do-item');
+      return model.entries()
+      .then(function(entries) {
+        expect(entries.length).to.be.equal(7);
+        dm._cacheMetaData.removeWhere({ title: 'to-do-item' });
+        return model.entries()
+        .then(function(entries) {
+          expect(entries.length).to.be.equal(7);
+        });
+      })
     });
   });
 

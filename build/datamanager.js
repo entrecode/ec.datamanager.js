@@ -1475,6 +1475,11 @@ Model.prototype.deleteEntry = function(entryId) {
 Model.prototype._ensureNotStale = function() {
   var maxAge = new Date().getTime() - this._maxAge;
   var metadata = this._dm._cacheMetaData.find({ title: this.title })[0];
+  if (!metadata || !metadata.hasOwnProperty('created')) {
+    metadata = {
+      created: 0,
+    }
+  }
   var created = new Date(metadata.created).getTime();
   if (created > maxAge) {
     return Promise.resolve(this._items);
