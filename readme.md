@@ -1132,6 +1132,9 @@ grunt build
 
 
 ## Changelog
+### 0.9.0
+- use active promise for refreshing data when using cache CMS-2120.
+
 ### 0.8.1
 - fixed rare cases when cache metadata is invalid
 
