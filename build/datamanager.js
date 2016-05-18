@@ -1484,7 +1484,10 @@ Model.prototype._ensureNotStale = function() {
   if (created > maxAge) {
     return Promise.resolve(this._items);
   }
-  return this._loadData(true);
+  if (!this._loadDataActivePromise) {
+    this._loadDataActivePromise = this._loadData(true);
+  }
+  return this._loadDataActivePromise;
 };
 
 Model.prototype._loadData = function(force) {
@@ -1499,6 +1502,7 @@ Model.prototype._loadData = function(force) {
     return this._load();
   }.bind(this))
   .catch(function(error) {
+    this._loadDataActivePromise = null;
     /* istanbul ignore else */
     if (error.message === 'offline') {
       if (this._items.data.length > 0) {
@@ -1547,9 +1551,14 @@ Model.prototype._load = function() {
         if (err) {
           return reject(err);
         }
+        this._loadDataActivePromise = null;
         return resolve(this._items);
       }.bind(this));
     }.bind(this));
+  }.bind(this))
+  .catch(function(err) {
+    this._loadDataActivePromise = null;
+    return Promise.reject(err);
   }.bind(this))
 };
 
