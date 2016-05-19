@@ -230,6 +230,15 @@ dataManager.model('myModel').entryList({size: 100, sort: ['property', '-date']})
   console.log(res.entries); // success! array of Entries
   console.log(res.count); // no. of received entries
   console.log(res.total); // total no. of available entries (accesss with pagination)
+  if(res.hasOwnProperty('next'){
+    res.next.then(…);
+  }
+  if(res.hasOwnProperty('prev'){
+    res.next.then(…);
+  }
+  if(res.hasOwnProperty('first'){
+    res.next.then(…);
+  }
 }, errorHandler);
 ```
 
@@ -889,7 +898,10 @@ dataManager.model('myModel').entries({size: 100, sort: ['property' , '-date'])
     /* array of entries */
   ],
   total: 10,
-  count: 5
+  count: 5,
+  next: /* Promise */,
+  prev: /* Promise */,
+  first: /* Promise */
 }
 ```
 
@@ -1134,6 +1146,7 @@ grunt build
 ## Changelog
 ### 0.9.0
 - use active promise for refreshing data when using cache CMS-2120.
+- adds pagination links to `entryList` (`next`, `prev`, `first`) CMS-2076.
 
 ### 0.8.1
 - fixed rare cases when cache metadata is invalid
