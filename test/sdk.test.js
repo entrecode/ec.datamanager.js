@@ -194,16 +194,16 @@ if (isNode) {
     });
     it('get file url fail, no assetID', function() {
       return DataManager.getFileUrl().then(function(result) {
-        throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
-      }).catch(function(err) {
+        throw new Error('Test ' + this.test.title + ' was unexpectedly fulfilled. Result: ' + result);
+      }.bind(this)).catch(function(err) {
         expect(err).to.be.ok;
         expect(err).to.have.property('message', 'ec_sdk_no_assetid_provided');
       });
     });
     it('get file url fail, not found', function() {
       return DataManager.getFileUrl('eab1bfdf-2184-48c2-abfa-a69119a8acec').then(function(result) {
-        throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
-      }).catch(function(err) {
+        throw new Error('Test ' + this.test.title + ' was unexpectedly fulfilled. Result: ' + result);
+      }.bind(this)).catch(function(err) {
         expect(err).to.be.ok;
         expect(err).to.have.property('message', 'ec_sdk_could_not_get_url_for_file');
       });
@@ -228,16 +228,16 @@ if (isNode) {
     });
     it('get image url fail, no assetID', function() {
       return DataManager.getImageUrl().then(function(result) {
-        throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
-      }).catch(function(err) {
+        throw new Error('Test ' + this.test.title + ' was unexpectedly fulfilled. Result: ' + result);
+      }.bind(this)).catch(function(err) {
         expect(err).to.be.ok;
         expect(err).to.have.property('message', 'ec_sdk_no_assetid_provided');
       });
     });
     it('get image url fail, not found', function() {
       return DataManager.getImageUrl('eab1bfdf-2184-48c2-abfa-a69119a8acec').then(function(result) {
-        throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
-      }).catch(function(err) {
+        throw new Error('Test ' + this.test.title + ' was unexpectedly fulfilled. Result: ' + result);
+      }.bind(this)).catch(function(err) {
         expect(err).to.be.ok;
         expect(err).to.have.property('message', 'ec_sdk_could_not_get_url_for_file');
       });
@@ -274,16 +274,16 @@ if (isNode) {
     });
     it('get thumb url fail, no assetID', function() {
       return DataManager.getImageThumbUrl().then(function(result) {
-        throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
-      }).catch(function(err) {
+        throw new Error('Test ' + this.test.title + ' was unexpectedly fulfilled. Result: ' + result);
+      }.bind(this)).catch(function(err) {
         expect(err).to.be.ok;
         expect(err).to.have.property('message', 'ec_sdk_no_assetid_provided');
       });
     });
     it('get thumb url fail, not found', function() {
       return DataManager.getImageThumbUrl('eab1bfdf-2184-48c2-abfa-a69119a8acec').then(function(result) {
-        throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
-      }).catch(function(err) {
+        throw new Error('Test ' + this.test.title + ' was unexpectedly fulfilled. Result: ' + result);
+      }.bind(this)).catch(function(err) {
         expect(err).to.be.ok;
         expect(err).to.have.property('message', 'ec_sdk_could_not_get_url_for_file');
       });
@@ -305,8 +305,8 @@ if (isNode) {
     });
     it('get file url - server error', function() {
       return dm.getFileUrl('8b941ee5-3bb9-4911-b5b4-f1e0d558a3aa').then(function(result) {
-        throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
-      }).catch(function(err) {
+        throw new Error('Test ' + this.test.title + ' was unexpectedly fulfilled. Result: ' + result);
+      }.bind(this)).catch(function(err) {
         expect(err).to.be.ok;
         expect(err).to.have.property('title', 'Internal Server Error');
       });
@@ -325,8 +325,8 @@ if (isNode) {
     });
     it('get image url - server error', function() {
       return dm.getImageUrl('8b941ee5-3bb9-4911-b5b4-f1e0d558a3aa').then(function(result) {
-        throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
-      }).catch(function(err) {
+        throw new Error('Test ' + this.test.title + ' was unexpectedly fulfilled. Result: ' + result);
+      }.bind(this)).catch(function(err) {
         expect(err).to.be.ok;
         expect(err).to.have.property('title', 'Internal Server Error');
       });
@@ -351,8 +351,8 @@ if (isNode) {
     });
     it('get thumb url - server error', function() {
       return dm.getImageThumbUrl('8b941ee5-3bb9-4911-b5b4-f1e0d558a3aa').then(function(result) {
-        throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
-      }).catch(function(err) {
+        throw new Error('Test ' + this.test.title + ' was unexpectedly fulfilled. Result: ' + result);
+      }.bind(this)).catch(function(err) {
         expect(err).to.be.ok;
         expect(err).to.have.property('title', 'Internal Server Error');
       });
@@ -434,16 +434,16 @@ describe('model', function() {
   });
   it('model not found', function() {
     return dm.model('not-found').resolve().then(function(result) {
-      throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
-    }).catch(function(err) {
+      throw new Error('Test ' + this.test.title + ' was unexpectedly fulfilled. Result: ' + result);
+    }.bind(this)).catch(function(err) {
       expect(err).to.be.ok;
       expect(err).to.have.property('message', 'ec_sdk_model_not_found');
     });
   });
   it('model not found on entries', function() {
     return dm.model('not-found').entries().then(function(result) {
-      throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
-    }).catch(function(err) {
+      throw new Error('Test ' + this.test.title + ' was unexpectedly fulfilled. Result: ' + result);
+    }.bind(this)).catch(function(err) {
       expect(err).to.be.ok;
     });
   });
@@ -477,8 +477,8 @@ describe('model', function() {
   });
   it('invalid schema method', function() {
     return dm.model('to-do-list').getSchema('not-a-method').then(function(result) {
-      throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
-    }).catch(function(err) {
+      throw new Error('Test ' + this.test.title + ' was unexpectedly fulfilled. Result: ' + result);
+    }.bind(this)).catch(function(err) {
       expect(err).to.be.ok;
       expect(err).to.have.property('message', 'ec_sdk_invalid_method_for_schema');
     });
@@ -755,7 +755,7 @@ if (isNode || !isPhantomJS) {
         });
       })
     });
-    it('cache metadata no created', function() {
+    it('cache metadata no metadata', function() {
       var model = dm.model('to-do-item');
       return model.entries()
       .then(function(entries) {
@@ -767,6 +767,34 @@ if (isNode || !isPhantomJS) {
         });
       })
     });
+    it('parallel refesh', function() {
+      return Promise.all([
+        dm.model('to-do-list').entries(),
+        dm.model('to-do-list').entries()
+      ])
+      .then(function(entries) {
+        expect(entries[0].length).to.be.equal(2);
+        expect(entries[1].length).to.be.equal(2);
+      });
+    });
+    if (isNode) {
+      it('parallel refesh - error in load()', function() {
+        var spy = sinon.stub(dm._db, 'save')
+        .throws(new Error('stubbed error'));
+        return Promise.all([
+          dm.model('to-do-list').entries(),
+          dm.model('to-do-list').entries()
+        ])
+        .then(function() {
+          throw new Error('Test ' + this.test.title + ' was unexpectedly fulfilled. Result: ' + result);
+        }.bind(this))
+        .catch(function(error) {
+          expect(error).to.be.ok;
+          expect(error).to.have.property('message', 'stubbed error');
+          spy.restore();
+        });
+      });
+    }
   });
   describe('cache data age: 120000', function() {
     var dm;
@@ -970,7 +998,7 @@ if (isNode || !isPhantomJS) {
         });
       })
     });
-    it('cache metadata no created', function() {
+    it('cache metadata no metadata', function() {
       var model = dm.model('to-do-item');
       return model.entries()
       .then(function(entries) {
@@ -981,6 +1009,16 @@ if (isNode || !isPhantomJS) {
           expect(entries.length).to.be.equal(7);
         });
       })
+    });
+    it('parallel refesh', function() {
+      return Promise.all([
+        dm.model('to-do-list').entries(),
+        dm.model('to-do-list').entries()
+      ])
+      .then(function(entries) {
+        expect(entries[0].length).to.be.equal(2);
+        expect(entries[1].length).to.be.equal(2);
+      });
     });
   });
   describe('cache data age: undefined', function() {
@@ -1185,7 +1223,7 @@ if (isNode || !isPhantomJS) {
         });
       })
     });
-    it('cache metadata no created', function() {
+    it('cache metadata no metadata', function() {
       var model = dm.model('to-do-item');
       return model.entries()
       .then(function(entries) {
@@ -1196,6 +1234,16 @@ if (isNode || !isPhantomJS) {
           expect(entries.length).to.be.equal(7);
         });
       })
+    });
+    it('parallel refesh', function() {
+      return Promise.all([
+        dm.model('to-do-list').entries(),
+        dm.model('to-do-list').entries()
+      ])
+      .then(function(entries) {
+        expect(entries[0].length).to.be.equal(2);
+        expect(entries[1].length).to.be.equal(2);
+      });
     });
   });
 
@@ -1347,8 +1395,8 @@ if (isNode) { // only on node since we stub stuff
     it('set model offline when not reachable', function() {
       return dm.model('to-do-item').enableCache(lokiEnv)
       .then(function() {
-        throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
-      })
+        throw new Error('Test ' + this.test.title + ' was unexpectedly fulfilled. Result: ' + result);
+      }.bind(this))
       .catch(function(err) {
         expect(err).to.be.ok;
         expect(err.message).to.be.equal('Network unreachable. No cached data available for model to-do-item.');
@@ -1511,8 +1559,8 @@ describe('entry/entries', function() { // this is basically modelList
         }
       }
     }).then(function(result) {
-      throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
-    }, function(err) {
+      throw new Error('Test ' + this.test.title + ' was unexpectedly fulfilled. Result: ' + result);
+    }.bind(this), function(err) {
       expect(err).to.be.ok;
       expect(err).to.have.property('message', 'ec_sdk_no_match_due_to_filter');
     });
@@ -1572,8 +1620,8 @@ describe('entry/entries', function() { // this is basically modelList
     return dm.model('to-do-item').createEntry({
       description: 'But No Title.'
     }).then(function(result) {
-      throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
-    }, function(err) {
+      throw new Error('Test ' + this.test.title + ' was unexpectedly fulfilled. Result: ' + result);
+    }.bind(this), function(err) {
       expect(err).to.be.ok;
       expect(err).to.have.property('status', 400);
       expect(err).to.have.property('code', 2201);
@@ -1652,8 +1700,8 @@ describe('entry/entries', function() { // this is basically modelList
         }
       }
     }).then(function(result) {
-      throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
-    }).catch(function(err) {
+      throw new Error('Test ' + this.test.title + ' was unexpectedly fulfilled. Result: ' + result);
+    }.bind(this)).catch(function(err) {
       expect(err).to.be.ok;
       expect(err).to.have.property('code', 2000);
       expect(err).to.have.property('status', 500);
@@ -1675,8 +1723,8 @@ describe('entry/entries', function() { // this is basically modelList
         }
       }
     }).then(function(result) {
-      throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
-    }).catch(function(err) {
+      throw new Error('Test ' + this.test.title + ' was unexpectedly fulfilled. Result: ' + result);
+    }.bind(this)).catch(function(err) {
       expect(err).to.be.ok;
       expect(err).to.have.property('code', 2000);
       expect(err).to.have.property('status', 500);
@@ -1786,8 +1834,8 @@ describe('nested Entry', function() { // this is basically modelList
         }
       }
     }).then(function(result) {
-      throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
-    }, function(err) {
+      throw new Error('Test ' + this.test.title + ' was unexpectedly fulfilled. Result: ' + result);
+    }.bind(this), function(err) {
       expect(err).to.be.ok;
       expect(err).to.have.property('message', 'ec_sdk_no_match_due_to_filter');
     });
@@ -1858,8 +1906,8 @@ describe('asset/assets', function() {
   });
   it('no assetID provided', function() {
     return dm.asset().then(function(result) {
-      throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
-    }).catch(function(err) {
+      throw new Error('Test ' + this.test.title + ' was unexpectedly fulfilled. Result: ' + result);
+    }.bind(this)).catch(function(err) {
       expect(err).to.be.ok;
       expect(err).to.have.property('message', 'ec_sdk_no_assetid_provided');
     });
@@ -1899,8 +1947,8 @@ describe('asset/assets', function() {
         }
       }
     }).then(function(result) {
-      throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
-    }, function(err) {
+      throw new Error('Test ' + this.test.title + ' was unexpectedly fulfilled. Result: ' + result);
+    }.bind(this), function(err) {
       expect(err).to.be.ok;
       expect(err).to.have.property('message', 'ec_sdk_no_match_due_to_filter');
     });
@@ -2289,8 +2337,8 @@ describe('tag/tags', function() {
   });
   it('no tag name', function() {
     return dm.tag().then(function(result) {
-      throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
-    }, function(err) {
+      throw new Error('Test ' + this.test.title + ' was unexpectedly fulfilled. Result: ' + result);
+    }.bind(this), function(err) {
       expect(err).to.be.ok;
       expect(err).to.have.property('message', 'ec_sdk_no_tag_name_provided');
     });
@@ -2331,8 +2379,8 @@ describe('tag/tags', function() {
         }
       }
     }).then(function(result) {
-      throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
-    }, function(err) {
+      throw new Error('Test ' + this.test.title + ' was unexpectedly fulfilled. Result: ' + result);
+    }.bind(this), function(err) {
       expect(err).to.be.ok;
       expect(err).to.have.property('message', 'ec_sdk_no_match_due_to_filter');
     });
@@ -2568,8 +2616,8 @@ describe('user management', function() {
     });
     it('not available', function() {
       return dm.getAuthLink('not-available').then(function(result) {
-        throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
-      }).catch(function(err) {
+        throw new Error('Test ' + this.test.title + ' was unexpectedly fulfilled. Result: ' + result);
+      }.bind(this)).catch(function(err) {
         expect(err).to.be.ok;
       });
     });
@@ -2608,8 +2656,8 @@ describe('user management', function() {
     });
     it('email malformed', function() {
       return dm.emailAvailable('malformed').then(function(result) {
-        throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
-      }).catch(function(err) {
+        throw new Error('Test ' + this.test.title + ' was unexpectedly fulfilled. Result: ' + result);
+      }.bind(this)).catch(function(err) {
         expect(err).to.be.ok;
       });
     });
@@ -2639,8 +2687,8 @@ describe('user management', function() {
     });
     it('account info failes without login', function() {
       return dm.account().then(function(result) {
-        throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
-      }).catch(function(err) {
+        throw new Error('Test ' + this.test.title + ' was unexpectedly fulfilled. Result: ' + result);
+      }.bind(this)).catch(function(err) {
         expect(err).to.be.ok;
         expect(err).to.have.property('message', 'ec_sdk_not_logged_in');
       });
@@ -2675,8 +2723,8 @@ describe('user management', function() {
     });
     it('permission not ok', function() {
       return dm.can('to-do-item:delete').then(function() {
-        throw new Error('Test ' + this.currentTest.title + ' was unexpectedly fulfilled. Result: ' + result);
-      }).catch(function(error) {
+        throw new Error('Test ' + this.test.title + ' was unexpectedly fulfilled. Result: ' + result);
+      }.bind(this)).catch(function(error) {
         expect(error.message).to.be.equal('permission_denied');
       });
     });
