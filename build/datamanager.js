@@ -1407,7 +1407,9 @@ Model.prototype.entryList = function(options) {
       } else {
         delete options.page;
       }
-      out.next = model.entryList(options);
+      out.next = function() {
+        return model.entryList(options);
+      };
     }
   
     var prev = body.link('prev');
@@ -1426,7 +1428,9 @@ Model.prototype.entryList = function(options) {
       } else {
         delete options.page;
       }
-      out.prev = model.entryList(options);
+      out.prev = function() {
+        return model.entryList(options);
+      };
     }
 
     var first = body.link('first');
@@ -1445,7 +1449,9 @@ Model.prototype.entryList = function(options) {
       } else {
         delete options.page;
       }
-      out.first = model.entryList(options);
+      out.first = function() {
+        return model.entryList(options);
+      };
     }
 
     return Promise.resolve(out);
