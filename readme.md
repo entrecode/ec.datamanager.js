@@ -231,13 +231,13 @@ dataManager.model('myModel').entryList({size: 100, sort: ['property', '-date']})
   console.log(res.count); // no. of received entries
   console.log(res.total); // total no. of available entries (accesss with pagination)
   if(res.hasOwnProperty('next'){
-    res.next.then(…);
+    res.next().then(…);
   }
   if(res.hasOwnProperty('prev'){
-    res.next.then(…);
+    res.prev().then(…);
   }
   if(res.hasOwnProperty('first'){
-    res.next.then(…);
+    res.first().then(…);
   }
 }, errorHandler);
 ```
@@ -899,9 +899,9 @@ dataManager.model('myModel').entries({size: 100, sort: ['property' , '-date'])
   ],
   total: 10,
   count: 5,
-  next: /* Promise */,
-  prev: /* Promise */,
-  first: /* Promise */
+  next: /* Promise Factory */,
+  prev: /* Promise Factory */,
+  first: /* Promise Factory */
 }
 ```
 
@@ -1144,6 +1144,9 @@ grunt build
 
 
 ## Changelog
+### 0.9.1
+- fixed bug introduced by `next`, `prev`, and `first` CMS-2194
+
 ### 0.9.0
 - use active promise for refreshing data when using cache CMS-2120.
 - adds pagination links to `entryList` (`next`, `prev`, `first`) CMS-2076.
