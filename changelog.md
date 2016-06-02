@@ -1,4 +1,7 @@
 # Changelog
+## 0.9.2
+- fixed another bug in `next`, `prev`, and `first`
+
 ## 0.9.1
 - fixed bug introduced by `next`, `prev`, and `first` CMS-2194
 
