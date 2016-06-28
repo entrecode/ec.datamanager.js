@@ -46,7 +46,7 @@
     "grunt-karma": "1.0.0",
     "grunt-mocha-test": "0.12.7",
     "grunt-run": "0.6.0",
-    "istanbul": "0.4.3",
+    "istanbul": "0.4.4",
     "karma": "1.1.0",
     "karma-bamboo-reporter": "0.1.2",
     "karma-chai-plugins": "0.7.0",
