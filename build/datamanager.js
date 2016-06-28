@@ -894,6 +894,9 @@ DataManager.prototype.can = function(permission) {
 DataManager.prototype.logout = function() {
   this.accessToken = null;
   this._rootTraversal = null;
+  this._modelCache = {};
+  this._db = null;
+  this._cacheMetaData = null;
 };
 
 DataManager.cloneEntry = function(entry) {
