@@ -1048,7 +1048,7 @@ Entry.prototype.save = function() {
     }
     entry.value = halfred.parse(JSON.parse(res.body));
     if (entry._isNested) {
-      Entry._makeNestedToResource(entry, entry._dm);
+      makeNestedToResource(entry, entry._dm);
     }
 
     entry._traversal = traversal;
@@ -1115,21 +1115,20 @@ Entry.prototype.getModelTitle = function(property) {
 };
 
 function cleanEntry(entry) {
-  removeNestedResources(entry);
   delete entry.value._curies;
   delete entry.value._curiesMap;
   delete entry.value._resolvedCuriesMap;
   delete entry.value._validation;
   delete entry.value._original;
   delete entry.value._embedded;
+  removeNestedResources(entry);
 }
 
 function removeNestedResources(entry) {
-  for (var link in entry.value._links) {
-    var l = /^[a-f0-9]{8}:.+\/(.+)$/.exec(link);
-    if (l) {
-      if (Array.isArray(entry.value[l[1]])) {
-        entry.value[l[1]] = entry.value[l[1]].map(function(e) {
+  for (var field in entry.value) {
+    if (entry.value.hasOwnProperty(field)) {
+      if (Array.isArray(entry.value[field])) {
+        entry.value[field] = entry.value[field].map(function(e) {
           if (e instanceof Asset) {
             return e.value.assetID;
           } else if (e instanceof Entry) {
@@ -1140,17 +1139,17 @@ function removeNestedResources(entry) {
         });
       } else {
         /* istanbul ignore else */
-        if (entry.value[l[1]] instanceof Asset) {
-          entry.value[l[1]] = entry.value[l[1]].value.assetID;
-        } else if (entry.value[l[1]] instanceof Entry) {
-          entry.value[l[1]] = entry.value[l[1]].value._id;
+        if (entry.value[field] instanceof Asset) {
+          entry.value[field] = entry.value[field].value.assetID;
+        } else if (entry.value[field] instanceof Entry) {
+          entry.value[field] = entry.value[field].value._id;
         }
       }
     }
   }
 }
 
-Entry._makeNestedToResource = function(entry, dm) {
+function makeNestedToResource(entry, dm) {
   entry._isNested = true;
   for (var link in entry.value._links) {
     var l = /^[a-f0-9]{8}:.+\/(.+)$/.exec(link);
@@ -1162,7 +1161,7 @@ Entry._makeNestedToResource = function(entry, dm) {
           }
           var out = new Entry(halfred.parse(e), dm);
           out._model = dm.model(entry.value.link(link).name);
-          Entry._makeNestedToResource(out, dm);
+          makeNestedToResource(out, dm);
           return out;
         });
       } else {
@@ -1170,12 +1169,14 @@ Entry._makeNestedToResource = function(entry, dm) {
           entry.value[l[1]] = new Asset(halfred.parse(entry.value[l[1]]), dm);
         } else {
           entry.value[l[1]] = new Entry(halfred.parse(entry.value[l[1]]), dm, dm.model(entry.value.link(link).name));
-          Entry._makeNestedToResource(entry.value[l[1]], dm);
+          makeNestedToResource(entry.value[l[1]], dm);
         }
       }
     }
   }
-};
+}
+
+Entry._makeNestedToResource = makeNestedToResource;
 
 module.exports = Entry;
 
