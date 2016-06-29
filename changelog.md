@@ -1,4 +1,7 @@
 # Changelog
+### 0.9.5
+- adds new browserify build 
+
 ### 0.9.4
 - improved nested handling on entry save
 
