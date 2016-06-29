@@ -1,4 +1,10 @@
 # Changelog
+### 0.9.4
+- improved nested handling on entry save
+
+### 0.9.3
+- improved logout and cache clear
+
 ## 0.9.2
 - fixed another bug in `next`, `prev`, and `first`
 
