@@ -1639,6 +1639,22 @@ describe('entry/entries', function() { // this is basically modelList
       expect(deleted).to.be.true;
     });
   });
+  it('entry delete with new object', function() {
+    return dm.model('to-do-item').entry('N1GJuenPEl').then(function(entry) {
+      delete entry.value._links;
+      return entry.delete();
+    }).then(function(deleted) {
+      expect(deleted).to.be.true;
+    });
+  });
+  it('entry delete with new object 2', function() {
+    return dm.model('to-do-item').entry('N1GJuenPEl').then(function(entry) {
+      delete entry.value._links.self;
+      return entry.delete();
+    }).then(function(deleted) {
+      expect(deleted).to.be.true;
+    });
+  });
   it('entry delete on entry from list', function() {
     return dm.model('to-do-item').entries().then(function(entries) {
       return entries[0].delete().then(function(deleted) {
@@ -1649,6 +1665,30 @@ describe('entry/entries', function() { // this is basically modelList
   it('put entry', function() {
     return dm.model('to-do-item').entry('N1GJuenPEl').then(function(entry) {
       entry.value.description = '<p>New Description.</p>';
+      return entry.save();
+    }).then(function(entry) {
+      expect(entry).to.be.ok;
+      expect(entry).to.have.property('value');
+      expect(entry.value).to.have.property('_id', 'N1GJuenPEl');
+      expect(entry.value).to.have.property('description', '<p>New Description.</p>');
+    });
+  });
+  it('put entry with new object', function() {
+    return dm.model('to-do-item').entry('N1GJuenPEl').then(function(entry) {
+      entry.value.description = '<p>New Description.</p>';
+      delete entry.value._links;
+      return entry.save();
+    }).then(function(entry) {
+      expect(entry).to.be.ok;
+      expect(entry).to.have.property('value');
+      expect(entry.value).to.have.property('_id', 'N1GJuenPEl');
+      expect(entry.value).to.have.property('description', '<p>New Description.</p>');
+    });
+  });
+  it('put entry with new object 2', function() {
+    return dm.model('to-do-item').entry('N1GJuenPEl').then(function(entry) {
+      entry.value.description = '<p>New Description.</p>';
+      delete entry.value._links.self;
       return entry.save();
     }).then(function(entry) {
       expect(entry).to.be.ok;
