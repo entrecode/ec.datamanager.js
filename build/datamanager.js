@@ -900,12 +900,13 @@ DataManager.prototype.logout = function() {
 };
 
 DataManager.cloneEntry = function(entry) {
-  return new Entry(halfred.parse(JSON.parse(JSON.stringify(entry.value.original()))), entry._dm, entry._model);
+  console.warn('DataManager.cloneEntry is deprecated. Use entry.clone() instead.');
+  return entry.clone();
 };
 
 DataManager.cloneEntries = function(entries) {
   return entries.map(function(entry) {
-    return DataManager.cloneEntry(entry);
+    return entry.clone();
   });
 };
 
@@ -1192,6 +1193,15 @@ function makeNestedToResource(entry, dm) {
     }
   }
 }
+
+Entry.prototype.clone = function() {
+  cleanEntry(this);
+  var e = new Entry(halfred.parse(JSON.parse(JSON.stringify(this.value))), this._dm);
+  if (this._isNested) {
+    makeNestedToResource(e, this._dm);
+  }
+  return e;
+};
 
 Entry._makeNestedToResource = makeNestedToResource;
 

@@ -296,7 +296,7 @@ dataManager.model('myModel').entry('my7fmeXh')
 dataManager.model('myModel').entry('my7fmeXh', 2}) // since 0.6.0 no longer object
 .then(function(entry) {
   console.log(entry); // success! an Entry
-  var clonedEntry = DataManager.cloneEntry(entry); // clones entry object.
+  var clonedEntry = entry.clone(); // clones entry object.
 }, errorHandler);
 ```
 
@@ -756,7 +756,7 @@ Note that the image may still be smaller if the original image is smaller than `
 
 returns a cloned copy of `entries`, `assets`, or `tags`.
 
-##### `cloneEntry(entry)`, `cloneAsset(asset)`, `cloneTag(tag)`
+##### `cloneEntry(entry)` *deprecated*, `cloneAsset(asset)`, `cloneTag(tag)`
 
 returns a cloned copy of the `entrie`, `asset`, or `tag`.
 
@@ -990,9 +990,27 @@ gets the model title of any child entry identified by `String`.
 Example:
 
 ```js
-dataManager.model('myModel).entry('f328af3', 2')
+dataManager.model('myModel').entry('f328af3', 2')
 .then(function(entry) {
   console.log(entry.getModelTitle('child')); // prints the model title of the child 'child'
+}, errorHandler);
+```
+
+##### clone()
+clones an entry.
+
+Example:
+
+```js
+dataManager.model('myModel').entry('f328af3', 2')
+.then(function(entry) {
+  var newEntry = entry.clone();
+
+  assert(newEntry !== entry);
+  assert(newEntry.value._id === entry.value._id);
+  assert(newEntry.value.field1 === entry.value.field1);
+  assert(newEntry.value.field2 === entry.value.field2);
+  // …
 }, errorHandler);
 ```
 

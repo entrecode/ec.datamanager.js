@@ -1,11 +1,15 @@
 # Changelog
-### 0.9.5
+## 0.10.0
+- optimized clone entry functions
+- deprecated DataManager.cloneEntry() in favor of entry.clone()
+
+## 0.9.5
 - adds new browserify build 
 
-### 0.9.4
+## 0.9.4
 - improved nested handling on entry save
 
-### 0.9.3
+## 0.9.3
 - improved logout and cache clear
 
 ## 0.9.2

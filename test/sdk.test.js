@@ -1477,6 +1477,19 @@ describe('entry/entries', function() { // this is basically modelList
       expect(entry.value).to.have.property('_id', 'VkGhAPQ2Qe');
     });
   });
+  it('clone entry', function() {
+    return dm.model('to-do-item').entry('VkGhAPQ2Qe').then(function(entry) {
+      expect(entry).to.be.ok;
+      expect(entry).to.be.instanceOf(Object);
+      expect(entry).to.have.property('value');
+      expect(entry.value).to.have.property('_id', 'VkGhAPQ2Qe');
+      expect(entry.value.title).to.be.equal('Beef');
+      var clone = entry.clone();
+      clone.value.title = 'new title';
+      expect(clone.value.title).to.be.equal('new title');
+      expect(entry.value.title).to.be.equal('Beef');
+    });
+  });
   it('get single entry, with levels', function() {
     return dm.model('to-do-list').entry('4JMjeO737e', 2).then(function(entry) {
       expect(entry).to.be.ok;
