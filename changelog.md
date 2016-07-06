@@ -3,6 +3,9 @@
 - optimized clone entry functions
 - deprecated DataManager.cloneEntry() in favor of entry.clone()
 
+## 0.9.6
+- make clone of options object when creating pagination promise factories in entryList
+
 ## 0.9.5
 - adds new browserify build 
 
