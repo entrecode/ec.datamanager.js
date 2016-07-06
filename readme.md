@@ -1144,6 +1144,9 @@ grunt build
 
 
 ## Changelog
+### 0.9.6
+- make clone of options object when creating pagination promise factories in entryList
+
 ### 0.9.5
 - adds new browserify build 
 
