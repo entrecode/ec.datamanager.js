@@ -1144,6 +1144,10 @@ grunt build
 
 
 ## Changelog
+
+### 0.9.7
+- fixed a bug where entryList's `next`, `prev` and `first` functions did work only once
+
 ### 0.9.6
 - make clone of options object when creating pagination promise factories in entryList
 
