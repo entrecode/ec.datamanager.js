@@ -1,7 +1,7 @@
 {
   "name": "ec.datamanager.js",
   "main": "build/datamanager.min.js",
-  "version": "0.9.6",
+  "version": "0.9.8",
   "authors": [
     "Ruben Deyhle <deyhle@entrecode.de>"
   ],
