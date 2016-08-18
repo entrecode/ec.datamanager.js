@@ -3,6 +3,10 @@
 - optimized clone entry functions
 - deprecated DataManager.cloneEntry() in favor of entry.clone()
 
+## 0.9.8
+- new build
+- fixed version in bower.json
+
 ## 0.9.7
 - fixed a bug where entryList's `next`, `prev` and `first` functions did work only once
 
