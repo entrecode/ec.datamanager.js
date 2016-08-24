@@ -2,6 +2,7 @@
 ## 0.10.0
 - optimized clone entry functions
 - deprecated DataManager.cloneEntry() in favor of entry.clone()
+- dependency update
 
 ## 0.9.8
 - new build
