@@ -1,4 +1,8 @@
 # Changelog
+
+## 0.10.1
+- better handling of certain server errors
+
 ## 0.10.0
 - optimized clone entry functions
 - deprecated DataManager.cloneEntry() in favor of entry.clone()
