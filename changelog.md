@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.10.2
+- make entries from a cached model saveable without error
+
 ## 0.10.1
 - better handling of certain server errors
 

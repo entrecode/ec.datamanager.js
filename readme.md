@@ -147,6 +147,8 @@ dataManager.enableCache([
 }, errorHandler);
 ```
 
+*If you use caching, you should not have the fields '$loki' and 'meta' in your Model.*
+
 #### Clear Cache
  
 ```js
@@ -764,6 +766,8 @@ returns a cloned copy of the `entrie`, `asset`, or `tag`.
 #### DataManager Instance Methods
 ##### `enableCache(stringOrArrayofObject[, lokiJsEnv[, maxCacheAge]])`
 enables caching for the given models. Either one model title (`String`) or multiple model titles (`Array`) or multiple model titles(`key`) with custom maxCacheAge(`value`) (`Object`). returns a Promise which resolves to a array of LokiJS collections.
+
+*If you use caching, you should not have the fields '$loki' and 'meta' in your Model.*
 
 ##### `clearCache(stringOrArray)`
 disables and cleares the cache for the given models. Either one model title (`String`) or multiple model titles (`Array`).
