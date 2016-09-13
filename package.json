@@ -1,6 +1,6 @@
 {
   "name": "ec.datamanager",
-  "version": "0.10.1",
+  "version": "0.10.2",
   "description": "JavaScript SDK for ec.datamanager. By entrecode.",
   "main": "index.js",
   "directories": {
