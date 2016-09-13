@@ -1030,6 +1030,7 @@ Entry.prototype.save = function() {
   var traversal;
   return Promise.resolve()
   .then(function() {
+    var property;
     cleanEntry(entry);
     var t;
     if (entry.value._links && entry.value._links.hasOwnProperty('self')) {
@@ -1044,7 +1045,16 @@ Entry.prototype.save = function() {
     t.withRequestOptions(entry._dm._requestOptions({
       'Content-Type': 'application/json'
     }));
-    return util.putP(t, entry.value);
+    var valueToSave = {};
+    if (!entry.value.hasOwnProperty('$loki') || !entry.value.hasOwnProperty('meta')) {
+      return util.putP(t, entry.value);
+    }
+    for (property in entry.value) { // loki.js poisons entry.value with properties "$loki" and "meta". We need to remove them in order to save the entry
+      if (entry.value.hasOwnProperty(property) && property !== '$loki' && property !== 'meta') {
+        valueToSave[property] = entry.value[property];
+      }
+    }
+    return util.putP(t, valueToSave);
   })
   .then(function(res) {
     traversal = res[1];
