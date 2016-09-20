@@ -2585,6 +2585,14 @@ describe('user management', function() {
         expect(user.value).to.have.property('jwt', 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJlbWFpbCI6bnVsbCwianRpIjoiM2EzYmQ5MzYtOWFlZS00ZWY0LTg0MjUtNjZhOGViODcyODk4IiwiaWF0IjoxNDQ5MTM2Njg0LCJleHAiOjQ2MDI3MzY2ODQsImlzcyI6ImVjX2RhdGFtYW5hZ2VyX3Nka190ZXN0c18xIiwic3ViIjoiMWNmOWUyOGUtZmE1NC00ZGVhLWJlMTQtZDlkYmNjMGMzYzY5In0.VMA0onkx4fpwBdTL9AQ2bzR4JBziY8UIavrAleIl7wj1Rh1-ZU09i-vze2sObarOZSygx74cO1uRkX37CFYj3Lf45mWPpHj-prJtfnS1xkn4KlfffTuz3VWINCorcZX-OyVeFWSexC6AwEQ9cW8FMEZPDpMLKodiFkhDUt1AIQg');
       });
     });
+    it('register, check anonymous', function() {
+      expect(dm).to.not.have.property('accessToken');
+      return dm.registerAnonymous().then(function(user) {
+        expect(user).to.be.ok;
+        expect(user.isAnon()).to.be.true;
+        expect(user.isAnonymous()).to.be.true;
+      });
+    });
     it('register, validUntil', function() {
       expect(dm).to.not.have.property('accessToken');
       return dm.registerAnonymous('2025-11-09T09:58:04.000Z').then(function(user) {
@@ -2727,7 +2735,9 @@ describe('user management', function() {
     });
     it('account info', function() {
       dm.accessToken = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJlbWFpbCI6bnVsbCwianRpIjoiM2EzYmQ5MzYtOWFlZS00ZWY0LTg0MjUtNjZhOGViODcyODk4IiwiaWF0IjoxNDQ5MTM2Njg0LCJleHAiOjQ2MDI3MzY2ODQsImlzcyI6ImVjX2RhdGFtYW5hZ2VyX3Nka190ZXN0c18xIiwic3ViIjoiMWNmOWUyOGUtZmE1NC00ZGVhLWJlMTQtZDlkYmNjMGMzYzY5In0.VMA0onkx4fpwBdTL9AQ2bzR4JBziY8UIavrAleIl7wj1Rh1-ZU09i-vze2sObarOZSygx74cO1uRkX37CFYj3Lf45mWPpHj-prJtfnS1xkn4KlfffTuz3VWINCorcZX-OyVeFWSexC6AwEQ9cW8FMEZPDpMLKodiFkhDUt1AIQg';
-      return dm.account().then(function(account) {
+      return dm.account().then(function(user) {
+        expect(user).to.be.ok;
+        var account = user.value;
         expect(account).to.be.ok;
         expect(account).to.have.property('accountID', 'c631bba1-a36b-4977-9b42-2c14f51b653c');
         expect(account).to.have.property('pending', false);

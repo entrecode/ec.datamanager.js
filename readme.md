@@ -399,6 +399,8 @@ dataManager.registerAnonymous()
   dataManager.model('myModel')… // this will be using the logged in anonymous user.
   …
   user.logout()… // this will clear the accessToken and reset the sdk instance.
+  user.isAnonymous(); // this will be true for anonymous users. false otherwise.
+  user.isAnon(); // this will be true for anonymous users. false otherwise.
 }, errorHandler);
 ```
 
