@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.10.3
+- fix for user/account inconsistency (CMS-2381)
+
 ## 0.10.2
 - make entries from a cached model saveable without error
 
