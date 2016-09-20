@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.10.3
+- fix for user/account inconsistency (CMS-2381)
+- fix for missing auth link (CMS-2386)
+- `user.isAnon()`/`user.isAnonymous()` added
+- fix for wrong nested handling of last level (CMS-2404)
+
 ## 0.10.2
 - make entries from a cached model saveable without error
 
