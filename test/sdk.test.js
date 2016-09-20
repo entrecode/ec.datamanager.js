@@ -2585,6 +2585,14 @@ describe('user management', function() {
         expect(user.value).to.have.property('jwt', 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJlbWFpbCI6bnVsbCwianRpIjoiM2EzYmQ5MzYtOWFlZS00ZWY0LTg0MjUtNjZhOGViODcyODk4IiwiaWF0IjoxNDQ5MTM2Njg0LCJleHAiOjQ2MDI3MzY2ODQsImlzcyI6ImVjX2RhdGFtYW5hZ2VyX3Nka190ZXN0c18xIiwic3ViIjoiMWNmOWUyOGUtZmE1NC00ZGVhLWJlMTQtZDlkYmNjMGMzYzY5In0.VMA0onkx4fpwBdTL9AQ2bzR4JBziY8UIavrAleIl7wj1Rh1-ZU09i-vze2sObarOZSygx74cO1uRkX37CFYj3Lf45mWPpHj-prJtfnS1xkn4KlfffTuz3VWINCorcZX-OyVeFWSexC6AwEQ9cW8FMEZPDpMLKodiFkhDUt1AIQg');
       });
     });
+    it('register, check anonymous', function() {
+      expect(dm).to.not.have.property('accessToken');
+      return dm.registerAnonymous().then(function(user) {
+        expect(user).to.be.ok;
+        expect(user.isAnon()).to.be.true;
+        expect(user.isAnonymous()).to.be.true;
+      });
+    });
     it('register, validUntil', function() {
       expect(dm).to.not.have.property('accessToken');
       return dm.registerAnonymous('2025-11-09T09:58:04.000Z').then(function(user) {
