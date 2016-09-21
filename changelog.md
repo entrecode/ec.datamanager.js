@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.10.4
+- fix when calling dm.account() with loggend in ec-user.
+
 ## 0.10.3
 - fix for user/account inconsistency (CMS-2381)
 - fix for missing auth link (CMS-2386)
