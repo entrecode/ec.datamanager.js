@@ -185,7 +185,7 @@ function remove(arr, func) {
 
 module.exports = Asset;
 
-},{"./util":7,"halfred":12,"locale":18}],2:[function(require,module,exports){
+},{"./util":7,"halfred":13,"locale":20}],2:[function(require,module,exports){
 'use strict';
 
 var halfred = require('halfred');
@@ -1013,7 +1013,7 @@ DataManager.DB_BROWSER = 'BROWSER';
 
 module.exports = DataManager;
 
-},{"./Asset":1,"./Entry":3,"./Model":4,"./Tag":5,"./User":6,"./util":7,"es6-promise":11,"halfred":12,"lokijs":20,"shiro-trie":24,"superagent":25,"traverson":70,"traverson-hal":29}],3:[function(require,module,exports){
+},{"./Asset":1,"./Entry":3,"./Model":4,"./Tag":5,"./User":6,"./util":7,"es6-promise":12,"halfred":13,"lokijs":22,"shiro-trie":27,"superagent":28,"traverson":73,"traverson-hal":32}],3:[function(require,module,exports){
 'use strict';
 
 var halfred = require('halfred');
@@ -1227,7 +1227,7 @@ Entry._makeNestedToResource = makeNestedToResource;
 
 module.exports = Entry;
 
-},{"./Asset":1,"./util":7,"halfred":12,"traverson":70,"traverson-hal":29}],4:[function(require,module,exports){
+},{"./Asset":1,"./util":7,"halfred":13,"traverson":73,"traverson-hal":32}],4:[function(require,module,exports){
 'use strict';
 
 var halfred = require('halfred');
@@ -1726,7 +1726,7 @@ Model.prototype._isReachable = function(dests) {
 
 module.exports = Model;
 
-},{"./Asset":1,"./Entry":3,"./util":7,"halfred":12,"is-reachable":16,"superagent":25,"traverson":70}],5:[function(require,module,exports){
+},{"./Asset":1,"./Entry":3,"./util":7,"halfred":13,"is-reachable":18,"superagent":28,"traverson":73}],5:[function(require,module,exports){
 'use strict';
 
 var halfred = require('halfred');
@@ -1825,7 +1825,7 @@ Tag.prototype._getTraversal = function() {
 
 module.exports = Tag;
 
-},{"./util":7,"halfred":12,"traverson":70}],6:[function(require,module,exports){
+},{"./util":7,"halfred":13,"traverson":73}],6:[function(require,module,exports){
 'use strict';
 
 var util = require('./util');
@@ -2085,6 +2085,8 @@ module.exports = function (val) {
 
 },{}],9:[function(require,module,exports){
 
+},{}],10:[function(require,module,exports){
+
 /**
  * Expose `Emitter`.
  */
@@ -2248,7 +2250,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 'use strict';
 var onetime = require('onetime');
 var setImmediateShim = require('set-immediate-shim');
@@ -2296,7 +2298,7 @@ module.exports = function (arr, next, cb) {
 	}
 };
 
-},{"onetime":21,"set-immediate-shim":23}],11:[function(require,module,exports){
+},{"onetime":23,"set-immediate-shim":26}],12:[function(require,module,exports){
 (function (process,global){
 /*!
  * @overview es6-promise - a tiny implementation of Promises/A+.
@@ -3456,7 +3458,7 @@ return Promise;
 })));
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":74}],12:[function(require,module,exports){
+},{"_process":24}],13:[function(require,module,exports){
 var Parser = require('./lib/parser')
   , Resource = require('./lib/resource')
   , validationFlag = false;
@@ -3479,7 +3481,7 @@ module.exports = {
 
 };
 
-},{"./lib/parser":14,"./lib/resource":15}],13:[function(require,module,exports){
+},{"./lib/parser":15,"./lib/resource":16}],14:[function(require,module,exports){
 'use strict';
 
 /*
@@ -3524,7 +3526,7 @@ ImmutableStack.prototype.peek = function() {
 
 module.exports = ImmutableStack;
 
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 'use strict';
 
 var Resource = require('./resource')
@@ -3734,7 +3736,7 @@ function pathToString(path) {
 
 module.exports = Parser;
 
-},{"./immutable_stack":13,"./resource":15}],15:[function(require,module,exports){
+},{"./immutable_stack":14,"./resource":16}],16:[function(require,module,exports){
 'use strict';
 
 function Resource(links, curies, embedded, validationIssues) {
@@ -3863,7 +3865,18 @@ Resource.prototype.validation = Resource.prototype.validationIssues;
 
 module.exports = Resource;
 
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
+
+var indexOf = [].indexOf;
+
+module.exports = function(arr, obj){
+  if (indexOf) return arr.indexOf(obj);
+  for (var i = 0; i < arr.length; ++i) {
+    if (arr[i] === obj) return i;
+  }
+  return -1;
+};
+},{}],18:[function(require,module,exports){
 /* eslint-env browser */
 'use strict';
 var eachAsync = require('each-async');
@@ -3893,7 +3906,7 @@ module.exports = function (hosts, cb) {
 	});
 };
 
-},{"arrify":8,"each-async":10,"onetime":21}],17:[function(require,module,exports){
+},{"arrify":8,"each-async":11,"onetime":23}],19:[function(require,module,exports){
 /*global exports, require*/
 /* eslint-disable no-eval */
 /* JSONPath 0.8.0 - XPath for JSON
@@ -4372,7 +4385,7 @@ else {
 }
 }(this || self, typeof require === 'undefined' ? null : require));
 
-},{"vm":75}],18:[function(require,module,exports){
+},{"vm":75}],20:[function(require,module,exports){
 (function (process){
 // Generated by CoffeeScript 1.6.3
 (function() {
@@ -4537,7 +4550,7 @@ else {
 }).call(this);
 
 }).call(this,require('_process'))
-},{"_process":74}],19:[function(require,module,exports){
+},{"_process":24}],21:[function(require,module,exports){
 /*
   Loki IndexedDb Adapter (need to include this script to use it)
 
@@ -5140,7 +5153,7 @@ else {
   }());
 }));
 
-},{}],20:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 (function (global){
 /**
  * LokiJS
@@ -10087,7 +10100,7 @@ else {
 }));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./loki-indexed-adapter.js":19,"fs":72}],21:[function(require,module,exports){
+},{"./loki-indexed-adapter.js":21,"fs":9}],23:[function(require,module,exports){
 'use strict';
 module.exports = function (fn, errMsg) {
 	if (typeof fn !== 'function') {
@@ -10120,7 +10133,189 @@ module.exports = function (fn, errMsg) {
 	return onetime;
 };
 
-},{}],22:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
+// shim for using process in browser
+var process = module.exports = {};
+
+// cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
+
+var cachedSetTimeout;
+var cachedClearTimeout;
+
+function defaultSetTimout() {
+    throw new Error('setTimeout has not been defined');
+}
+function defaultClearTimeout () {
+    throw new Error('clearTimeout has not been defined');
+}
+(function () {
+    try {
+        if (typeof setTimeout === 'function') {
+            cachedSetTimeout = setTimeout;
+        } else {
+            cachedSetTimeout = defaultSetTimout;
+        }
+    } catch (e) {
+        cachedSetTimeout = defaultSetTimout;
+    }
+    try {
+        if (typeof clearTimeout === 'function') {
+            cachedClearTimeout = clearTimeout;
+        } else {
+            cachedClearTimeout = defaultClearTimeout;
+        }
+    } catch (e) {
+        cachedClearTimeout = defaultClearTimeout;
+    }
+} ())
+function runTimeout(fun) {
+    if (cachedSetTimeout === setTimeout) {
+        //normal enviroments in sane situations
+        return setTimeout(fun, 0);
+    }
+    // if setTimeout wasn't available but was latter defined
+    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+        cachedSetTimeout = setTimeout;
+        return setTimeout(fun, 0);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedSetTimeout(fun, 0);
+    } catch(e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+            return cachedSetTimeout.call(null, fun, 0);
+        } catch(e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+            return cachedSetTimeout.call(this, fun, 0);
+        }
+    }
+
+
+}
+function runClearTimeout(marker) {
+    if (cachedClearTimeout === clearTimeout) {
+        //normal enviroments in sane situations
+        return clearTimeout(marker);
+    }
+    // if clearTimeout wasn't available but was latter defined
+    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+        cachedClearTimeout = clearTimeout;
+        return clearTimeout(marker);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedClearTimeout(marker);
+    } catch (e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+            return cachedClearTimeout.call(null, marker);
+        } catch (e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+            return cachedClearTimeout.call(this, marker);
+        }
+    }
+
+
+
+}
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    if (!draining || !currentQueue) {
+        return;
+    }
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    var timeout = runTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
+        }
+        queueIndex = -1;
+        len = queue.length;
+    }
+    currentQueue = null;
+    draining = false;
+    runClearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        runTimeout(drainQueue);
+    }
+};
+
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function() { return 0; };
+
+},{}],25:[function(require,module,exports){
 // Copyright 2014 Simon Lydell
 // X11 (“MIT”) Licensed. (See LICENSE.)
 
@@ -10169,7 +10364,7 @@ void (function(root, factory) {
 
 }));
 
-},{}],23:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 'use strict';
 module.exports = typeof setImmediate === 'function' ? setImmediate :
 	function setImmediate() {
@@ -10178,7 +10373,7 @@ module.exports = typeof setImmediate === 'function' ? setImmediate :
 		setTimeout.apply(null, args);
 	};
 
-},{}],24:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 'use strict';
 
 function uniq(arr) {
@@ -10406,7 +10601,7 @@ module.exports = {
   _expand: _expand,
 };
 
-},{}],25:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 /**
  * Root reference for iframes.
  */
@@ -11384,7 +11579,7 @@ request.put = function(url, data, fn){
   return req;
 };
 
-},{"./is-object":26,"./request":28,"./request-base":27,"emitter":9}],26:[function(require,module,exports){
+},{"./is-object":29,"./request":31,"./request-base":30,"emitter":10}],29:[function(require,module,exports){
 /**
  * Check if `obj` is an object.
  *
@@ -11399,7 +11594,7 @@ function isObject(obj) {
 
 module.exports = isObject;
 
-},{}],27:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 /**
  * Module of mixed-in functions shared between node and client code
  */
@@ -11773,7 +11968,7 @@ exports.send = function(data){
   return this;
 };
 
-},{"./is-object":26}],28:[function(require,module,exports){
+},{"./is-object":29}],31:[function(require,module,exports){
 // The node and browser modules expose versions of this with the
 // appropriate constructor function bound as first argument
 /**
@@ -11807,7 +12002,7 @@ function request(RequestConstructor, method, url) {
 
 module.exports = request;
 
-},{}],29:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 'use strict';
 
 var halfred = require('halfred');
@@ -12131,7 +12326,7 @@ JsonHalAdapter.prototype._handleHeader = function(httpResponse, link) {
 
 module.exports = JsonHalAdapter;
 
-},{"halfred":30}],30:[function(require,module,exports){
+},{"halfred":33}],33:[function(require,module,exports){
 var Parser = require('./lib/parser')
   , validationFlag = false;
 
@@ -12150,13 +12345,13 @@ module.exports = {
   }
 };
 
-},{"./lib/parser":32}],31:[function(require,module,exports){
-arguments[4][13][0].apply(exports,arguments)
-},{"dup":13}],32:[function(require,module,exports){
+},{"./lib/parser":35}],34:[function(require,module,exports){
 arguments[4][14][0].apply(exports,arguments)
-},{"./immutable_stack":31,"./resource":33,"dup":14}],33:[function(require,module,exports){
+},{"dup":14}],35:[function(require,module,exports){
 arguments[4][15][0].apply(exports,arguments)
-},{"dup":15}],34:[function(require,module,exports){
+},{"./immutable_stack":34,"./resource":36,"dup":15}],36:[function(require,module,exports){
+arguments[4][16][0].apply(exports,arguments)
+},{"dup":16}],37:[function(require,module,exports){
 'use strict';
 
 // TODO Replace by a proper lightweight logging module, suited for the browser
@@ -12207,7 +12402,7 @@ minilog.enable = function() {
 
 module.exports = minilog;
 
-},{}],35:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -12219,7 +12414,7 @@ module.exports = {
   }
 };
 
-},{}],36:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 'use strict';
 
 var superagent = require('superagent');
@@ -12348,7 +12543,7 @@ function handleResponse(callback) {
 
 module.exports = new Request();
 
-},{"superagent":25}],37:[function(require,module,exports){
+},{"superagent":28}],40:[function(require,module,exports){
 'use strict';
 
 /*
@@ -12392,7 +12587,7 @@ var _s = {
 
 module.exports = _s;
 
-},{}],38:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 'use strict';
 
 var resolveUrl = require('resolve-url');
@@ -12401,7 +12596,7 @@ exports.resolve = function(from, to) {
   return resolveUrl(from, to);
 };
 
-},{"resolve-url":22}],39:[function(require,module,exports){
+},{"resolve-url":25}],42:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -12439,7 +12634,7 @@ exports.abortError = function abortError() {
   return error;
 };
 
-},{"minilog":34}],40:[function(require,module,exports){
+},{"minilog":37}],43:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -12575,7 +12770,7 @@ function createTraversalHandle(t) {
   };
 }
 
-},{"./abort_traversal":39,"./http_requests":42,"./is_continuation":43,"./transforms/apply_transforms":49,"./transforms/check_http_status":50,"./transforms/continuation_to_doc":51,"./transforms/continuation_to_response":52,"./transforms/convert_embedded_doc_to_response":53,"./transforms/execute_http_request":55,"./transforms/execute_last_http_request":56,"./transforms/extract_doc":57,"./transforms/extract_response":58,"./transforms/extract_url":59,"./transforms/fetch_last_resource":60,"./transforms/parse":63,"./walker":69,"minilog":34}],41:[function(require,module,exports){
+},{"./abort_traversal":42,"./http_requests":45,"./is_continuation":46,"./transforms/apply_transforms":52,"./transforms/check_http_status":53,"./transforms/continuation_to_doc":54,"./transforms/continuation_to_response":55,"./transforms/convert_embedded_doc_to_response":56,"./transforms/execute_http_request":58,"./transforms/execute_last_http_request":59,"./transforms/extract_doc":60,"./transforms/extract_response":61,"./transforms/extract_url":62,"./transforms/fetch_last_resource":63,"./transforms/parse":66,"./walker":72,"minilog":37}],44:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -13219,7 +13414,7 @@ function shallowCloneArray(array) {
 
 module.exports = Builder;
 
-},{"./abort_traversal":39,"./actions":40,"./media_type_registry":45,"./media_types":46,"./merge_recursive":47,"minilog":34,"request":36,"util":35}],42:[function(require,module,exports){
+},{"./abort_traversal":42,"./actions":43,"./media_type_registry":48,"./media_types":49,"./merge_recursive":50,"minilog":37,"request":39,"util":38}],45:[function(require,module,exports){
 (function (process){
 'use strict';
 var minilog = require('minilog')
@@ -13326,14 +13521,14 @@ exports.executeHttpRequest = function(t, request, method, callback) {
 };
 
 }).call(this,require('_process'))
-},{"./abort_traversal":39,"./transforms/detect_content_type":54,"./transforms/get_options_for_step":62,"_process":74,"minilog":34}],43:[function(require,module,exports){
+},{"./abort_traversal":42,"./transforms/detect_content_type":57,"./transforms/get_options_for_step":65,"_process":24,"minilog":37}],46:[function(require,module,exports){
 'use strict';
 
 module.exports = function isContinuation(t) {
   return t.continuation && t.step && t.step.response;
 };
 
-},{}],44:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 'use strict';
 
 var jsonpath = require('jsonpath-plus')
@@ -13438,7 +13633,7 @@ JsonAdapter.prototype._handleHeader = function(httpResponse, link) {
 
 module.exports = JsonAdapter;
 
-},{"jsonpath-plus":17,"minilog":34,"underscore.string":37}],45:[function(require,module,exports){
+},{"jsonpath-plus":19,"minilog":37,"underscore.string":40}],48:[function(require,module,exports){
 'use strict';
 
 var mediaTypes = require('./media_types');
@@ -13457,7 +13652,7 @@ exports.register(mediaTypes.CONTENT_NEGOTIATION,
     require('./negotiation_adapter'));
 exports.register(mediaTypes.JSON, require('./json_adapter'));
 
-},{"./json_adapter":44,"./media_types":46,"./negotiation_adapter":48}],46:[function(require,module,exports){
+},{"./json_adapter":47,"./media_types":49,"./negotiation_adapter":51}],49:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -13466,7 +13661,7 @@ module.exports = {
   JSON_HAL: 'application/hal+json',
 };
 
-},{}],47:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 'use strict';
 
 // TODO Maybe replace with https://github.com/Raynos/xtend
@@ -13503,7 +13698,7 @@ function merge(obj1, obj2, key) {
 
 module.exports = mergeRecursive;
 
-},{}],48:[function(require,module,exports){
+},{}],51:[function(require,module,exports){
 'use strict';
 
 function NegotiationAdapter(log) {}
@@ -13514,7 +13709,7 @@ NegotiationAdapter.prototype.findNextStep = function(doc, link) {
 
 module.exports = NegotiationAdapter;
 
-},{}],49:[function(require,module,exports){
+},{}],52:[function(require,module,exports){
 (function (process){
 /* jshint loopfunc: true */
 'use strict';
@@ -13556,7 +13751,7 @@ function applyTransforms(transforms, t, callback) {
 module.exports = applyTransforms;
 
 }).call(this,require('_process'))
-},{"_process":74,"minilog":34}],50:[function(require,module,exports){
+},{"_process":24,"minilog":37}],53:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -13610,7 +13805,7 @@ function httpError(url, httpStatus, body) {
   return error;
 }
 
-},{"../is_continuation":43,"minilog":34}],51:[function(require,module,exports){
+},{"../is_continuation":46,"minilog":37}],54:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -13632,7 +13827,7 @@ module.exports = function continuationToDoc(t) {
   return true;
 };
 
-},{"../is_continuation":43,"minilog":34}],52:[function(require,module,exports){
+},{"../is_continuation":46,"minilog":37}],55:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -13657,7 +13852,7 @@ module.exports = function continuationToResponse(t) {
   return true;
 };
 
-},{"../is_continuation":43,"./convert_embedded_doc_to_response":53,"minilog":34}],53:[function(require,module,exports){
+},{"../is_continuation":46,"./convert_embedded_doc_to_response":56,"minilog":37}],56:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -13677,7 +13872,7 @@ module.exports = function convertEmbeddedDocToResponse(t) {
   return true;
 };
 
-},{"minilog":34}],54:[function(require,module,exports){
+},{"minilog":37}],57:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -13703,7 +13898,7 @@ module.exports = function detectContentType(t, callback) {
   return true;
 };
 
-},{"../media_type_registry":45,"minilog":34}],55:[function(require,module,exports){
+},{"../media_type_registry":48,"minilog":37}],58:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -13745,7 +13940,7 @@ executeLastHttpRequest.isAsync = true;
 
 module.exports = executeLastHttpRequest;
 
-},{"../abort_traversal":39,"../http_requests":42,"minilog":34}],56:[function(require,module,exports){
+},{"../abort_traversal":42,"../http_requests":45,"minilog":37}],59:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -13774,7 +13969,7 @@ executeLastHttpRequest.isAsync = true;
 
 module.exports = executeLastHttpRequest;
 
-},{"../abort_traversal":39,"../http_requests":42,"minilog":34}],57:[function(require,module,exports){
+},{"../abort_traversal":42,"../http_requests":45,"minilog":37}],60:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -13803,7 +13998,7 @@ module.exports = function extractDoc(t) {
   return false;
 };
 
-},{"minilog":34}],58:[function(require,module,exports){
+},{"minilog":37}],61:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -13833,7 +14028,7 @@ module.exports = function extractDoc(t) {
   return false;
 };
 
-},{"minilog":34}],59:[function(require,module,exports){
+},{"minilog":37}],62:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -13863,7 +14058,7 @@ module.exports = function extractDoc(t) {
   }
 };
 
-},{"minilog":34,"url":38}],60:[function(require,module,exports){
+},{"minilog":37,"url":41}],63:[function(require,module,exports){
 'use strict';
 
 // TODO Only difference to lib/transform/fetch_resource is the continuation
@@ -13901,7 +14096,7 @@ fetchLastResource.isAsync = true;
 
 module.exports = fetchLastResource;
 
-},{"../abort_traversal":39,"../http_requests":42,"minilog":34}],61:[function(require,module,exports){
+},{"../abort_traversal":42,"../http_requests":45,"minilog":37}],64:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -13959,7 +14154,7 @@ function fetchViaHttp(t, callback) {
 module.exports = fetchResource;
 
 }).call(this,require('_process'))
-},{"../abort_traversal":39,"../http_requests":42,"../is_continuation":43,"_process":74,"minilog":34}],62:[function(require,module,exports){
+},{"../abort_traversal":42,"../http_requests":45,"../is_continuation":46,"_process":24,"minilog":37}],65:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -13975,7 +14170,7 @@ module.exports = function getOptionsForStep(t) {
   return options;
 };
 
-},{"minilog":34,"util":35}],63:[function(require,module,exports){
+},{"minilog":37,"util":38}],66:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -14038,7 +14233,7 @@ function jsonError(url, body) {
   return error;
 }
 
-},{"../is_continuation":43,"minilog":34}],64:[function(require,module,exports){
+},{"../is_continuation":46,"minilog":37}],67:[function(require,module,exports){
 'use strict';
 
 var isContinuation = require('../is_continuation');
@@ -14053,7 +14248,7 @@ module.exports = function resetLastStep(t) {
   return true;
 };
 
-},{"../is_continuation":43}],65:[function(require,module,exports){
+},{"../is_continuation":46}],68:[function(require,module,exports){
 'use strict';
 
 var isContinuation = require('../is_continuation');
@@ -14068,7 +14263,7 @@ module.exports = function resetLastStep(t) {
   return true;
 };
 
-},{"../is_continuation":43}],66:[function(require,module,exports){
+},{"../is_continuation":46}],69:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -14101,7 +14296,7 @@ module.exports = function resolveNextUrl(t) {
   return true;
 };
 
-},{"minilog":34,"underscore.string":37,"url":38}],67:[function(require,module,exports){
+},{"minilog":37,"underscore.string":40,"url":41}],70:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -14134,7 +14329,7 @@ module.exports = function resolveUriTemplate(t) {
 
 
 
-},{"minilog":34,"underscore.string":37,"url-template":71,"util":35}],68:[function(require,module,exports){
+},{"minilog":37,"underscore.string":40,"url-template":74,"util":38}],71:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -14173,7 +14368,7 @@ function findNextStep(t, link) {
   }
 }
 
-},{"minilog":34}],69:[function(require,module,exports){
+},{"minilog":37}],72:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -14250,7 +14445,7 @@ function isAborted(t) {
   return t.aborted;
 }
 
-},{"./abort_traversal":39,"./is_continuation":43,"./transforms/apply_transforms":49,"./transforms/check_http_status":50,"./transforms/fetch_resource":61,"./transforms/parse":63,"./transforms/reset_continuation":64,"./transforms/reset_last_step":65,"./transforms/resolve_next_url":66,"./transforms/resolve_uri_template":67,"./transforms/switch_to_next_step":68,"minilog":34}],70:[function(require,module,exports){
+},{"./abort_traversal":42,"./is_continuation":46,"./transforms/apply_transforms":52,"./transforms/check_http_status":53,"./transforms/fetch_resource":64,"./transforms/parse":66,"./transforms/reset_continuation":67,"./transforms/reset_last_step":68,"./transforms/resolve_next_url":69,"./transforms/resolve_uri_template":70,"./transforms/switch_to_next_step":71,"minilog":37}],73:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -14324,7 +14519,7 @@ exports.registerMediaType = mediaTypeRegistry.register;
 exports.mediaTypes = mediaTypes;
 
 }).call(this,require('_process'))
-},{"./lib/builder":41,"./lib/media_type_registry":45,"./lib/media_types":46,"_process":74,"minilog":34}],71:[function(require,module,exports){
+},{"./lib/builder":44,"./lib/media_type_registry":48,"./lib/media_types":49,"_process":24,"minilog":37}],74:[function(require,module,exports){
 (function (root, factory) {
     if (typeof exports === 'object') {
         module.exports = factory();
@@ -14518,201 +14713,6 @@ exports.mediaTypes = mediaTypes;
   return new UrlTemplate();
 }));
 
-},{}],72:[function(require,module,exports){
-
-},{}],73:[function(require,module,exports){
-
-var indexOf = [].indexOf;
-
-module.exports = function(arr, obj){
-  if (indexOf) return arr.indexOf(obj);
-  for (var i = 0; i < arr.length; ++i) {
-    if (arr[i] === obj) return i;
-  }
-  return -1;
-};
-},{}],74:[function(require,module,exports){
-// shim for using process in browser
-var process = module.exports = {};
-
-// cached from whatever global is present so that test runners that stub it
-// don't break things.  But we need to wrap it in a try catch in case it is
-// wrapped in strict mode code which doesn't define any globals.  It's inside a
-// function because try/catches deoptimize in certain engines.
-
-var cachedSetTimeout;
-var cachedClearTimeout;
-
-function defaultSetTimout() {
-    throw new Error('setTimeout has not been defined');
-}
-function defaultClearTimeout () {
-    throw new Error('clearTimeout has not been defined');
-}
-(function () {
-    try {
-        if (typeof setTimeout === 'function') {
-            cachedSetTimeout = setTimeout;
-        } else {
-            cachedSetTimeout = defaultSetTimout;
-        }
-    } catch (e) {
-        cachedSetTimeout = defaultSetTimout;
-    }
-    try {
-        if (typeof clearTimeout === 'function') {
-            cachedClearTimeout = clearTimeout;
-        } else {
-            cachedClearTimeout = defaultClearTimeout;
-        }
-    } catch (e) {
-        cachedClearTimeout = defaultClearTimeout;
-    }
-} ())
-function runTimeout(fun) {
-    if (cachedSetTimeout === setTimeout) {
-        //normal enviroments in sane situations
-        return setTimeout(fun, 0);
-    }
-    // if setTimeout wasn't available but was latter defined
-    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
-        cachedSetTimeout = setTimeout;
-        return setTimeout(fun, 0);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedSetTimeout(fun, 0);
-    } catch(e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
-            return cachedSetTimeout.call(null, fun, 0);
-        } catch(e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
-            return cachedSetTimeout.call(this, fun, 0);
-        }
-    }
-
-
-}
-function runClearTimeout(marker) {
-    if (cachedClearTimeout === clearTimeout) {
-        //normal enviroments in sane situations
-        return clearTimeout(marker);
-    }
-    // if clearTimeout wasn't available but was latter defined
-    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
-        cachedClearTimeout = clearTimeout;
-        return clearTimeout(marker);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedClearTimeout(marker);
-    } catch (e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
-            return cachedClearTimeout.call(null, marker);
-        } catch (e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
-            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
-            return cachedClearTimeout.call(this, marker);
-        }
-    }
-
-
-
-}
-var queue = [];
-var draining = false;
-var currentQueue;
-var queueIndex = -1;
-
-function cleanUpNextTick() {
-    if (!draining || !currentQueue) {
-        return;
-    }
-    draining = false;
-    if (currentQueue.length) {
-        queue = currentQueue.concat(queue);
-    } else {
-        queueIndex = -1;
-    }
-    if (queue.length) {
-        drainQueue();
-    }
-}
-
-function drainQueue() {
-    if (draining) {
-        return;
-    }
-    var timeout = runTimeout(cleanUpNextTick);
-    draining = true;
-
-    var len = queue.length;
-    while(len) {
-        currentQueue = queue;
-        queue = [];
-        while (++queueIndex < len) {
-            if (currentQueue) {
-                currentQueue[queueIndex].run();
-            }
-        }
-        queueIndex = -1;
-        len = queue.length;
-    }
-    currentQueue = null;
-    draining = false;
-    runClearTimeout(timeout);
-}
-
-process.nextTick = function (fun) {
-    var args = new Array(arguments.length - 1);
-    if (arguments.length > 1) {
-        for (var i = 1; i < arguments.length; i++) {
-            args[i - 1] = arguments[i];
-        }
-    }
-    queue.push(new Item(fun, args));
-    if (queue.length === 1 && !draining) {
-        runTimeout(drainQueue);
-    }
-};
-
-// v8 likes predictible objects
-function Item(fun, array) {
-    this.fun = fun;
-    this.array = array;
-}
-Item.prototype.run = function () {
-    this.fun.apply(null, this.array);
-};
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-process.version = ''; // empty string to avoid regexp issues
-process.versions = {};
-
-function noop() {}
-
-process.on = noop;
-process.addListener = noop;
-process.once = noop;
-process.off = noop;
-process.removeListener = noop;
-process.removeAllListeners = noop;
-process.emit = noop;
-
-process.binding = function (name) {
-    throw new Error('process.binding is not supported');
-};
-
-process.cwd = function () { return '/' };
-process.chdir = function (dir) {
-    throw new Error('process.chdir is not supported');
-};
-process.umask = function() { return 0; };
-
 },{}],75:[function(require,module,exports){
 var indexOf = require('indexof');
 
@@ -14853,7 +14853,7 @@ exports.createContext = Script.createContext = function (context) {
     return copy;
 };
 
-},{"indexof":73}],"ec.datamanager.js":[function(require,module,exports){
+},{"indexof":17}],"ec.datamanager.js":[function(require,module,exports){
 'use strict';
 
 module.exports = require('./lib/DataManager');
