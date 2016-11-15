@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.11.0
+- several patches
+- version number for 0.11.x of appcms
+
 ## 0.10.4
 - fix when calling dm.account() with loggend in ec-user.
 
