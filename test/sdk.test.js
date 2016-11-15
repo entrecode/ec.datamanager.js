@@ -221,7 +221,7 @@ if (isNode) {
       });
     });
     it('get image url wit size and locale', function() {
-      DataManager.getImageUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 200, 'de-DE').then(function(url) {
+      return DataManager.getImageUrl('4920f5ac-eab9-400b-8e41-5a202488b249', 200, 'de-DE').then(function(url) {
         expect(url).to.be.ok;
         expect(url).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/BXf6iMdEd4MBBoAZAWTod5dM_256.jpg');
       });
@@ -2238,6 +2238,7 @@ describe('asset best file helper', function() {
       expect(asset.getImageThumbUrl(100, 'de-DE')).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/b_in72f5iM6szybZ4Un4W1zr_100_thumb.jpg');
     });
   });
+
   describe('text', function() {
     var dm;
     var asset;
@@ -2272,6 +2273,7 @@ describe('asset best file helper', function() {
       expect(asset.getImageThumbUrl.bind(asset)).to.throw('ec.datamanager.js getImageThumbUrl only works on image assets');
     });
   });
+
   describe('svg with locale', function() {
     var dm;
     var asset;
@@ -2512,7 +2514,7 @@ describe('filter options', function() {
     dm = null;
   });
   it('get entries, size and page', function() {
-    dm.model('to-do-item').entryList({
+    return dm.model('to-do-item').entryList({
       size: 2,
       page: 2
     }).then(function(list) {
@@ -2523,18 +2525,18 @@ describe('filter options', function() {
     });
   });
   it('get entries, sort', function() {
-    dm.model('to-do-item').entries({
+    return dm.model('to-do-item').entries({
       sort: [
         'title'
       ]
     }).then(function(entries) {
       expect(entries).to.be.ok;
       expect(entries).to.be.instanceOf(Array);
-      expect(entries[0]).to.have.property('title', 'Apples')
+      expect(entries[0].value).to.have.property('title', 'Apples')
     });
   });
   it('get entries, filter from', function() {
-    dm.model('to-do-item').entries({
+    return dm.model('to-do-item').entries({
       filter: {
         created: {
           from: '2015-12-02T08:00:46.511Z'
@@ -2547,7 +2549,7 @@ describe('filter options', function() {
     });
   });
   it('get entries, filter to', function() {
-    dm.model('to-do-item').entries({
+    return dm.model('to-do-item').entries({
       filter: {
         created: {
           to: '2015-12-02T08:00:46.511Z'
