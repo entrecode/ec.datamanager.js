@@ -69,7 +69,7 @@
     "locale": "0.1.0",
     "lokijs": "1.4.1",
     "shiro-trie": "0.3.10",
-    "superagent": "2.3.0",
+    "superagent": "3.0.0",
     "traverson": "3.2.0",
     "traverson-hal": "4.1.1"
   }
