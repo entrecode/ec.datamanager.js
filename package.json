@@ -55,7 +55,7 @@
     "karma-phantomjs-launcher": "1.0.2",
     "lodash.isempty": "4.4.0",
     "lodash.isequal": "4.4.0",
-    "mocha": "3.1.2",
+    "mocha": "3.2.0",
     "mocha-bamboo-reporter": "1.1.1",
     "nock": "9.0.2",
     "phantomjs-prebuilt": "2.1.13",
