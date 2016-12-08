@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.11.1
+- fixed nested object with creator set (CMS-2510)
+
 ## 0.11.0
 - several patches
 - version number for 0.11.x of appcms
