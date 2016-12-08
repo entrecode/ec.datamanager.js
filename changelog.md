@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.11.2
+- forgot the browser build
+
 ## 0.11.1
 - fixed nested object with creator set (CMS-2510)
 
