@@ -70,7 +70,7 @@
     "lokijs": "1.4.1",
     "shiro-trie": "0.3.12",
     "superagent": "3.3.1",
-    "traverson": "3.2.0",
-    "traverson-hal": "4.1.1"
+    "traverson": "5.0.0",
+    "traverson-hal": "5.0.0"
   }
 }
