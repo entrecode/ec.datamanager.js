@@ -147,7 +147,7 @@ dataManager.enableCache([
 }, errorHandler);
 ```
 
-*If you use caching, you should not have the fields '$loki' and 'meta' in your Model.*
+*If you use caching, you should not have the fields `$loki` and `meta` in your Model.*
 
 #### Clear Cache
  
@@ -365,7 +365,7 @@ Returns the title of any nested entry in the entry.
 Example:
 
 ```js
-dataManager.model('myModel).entry('f328af3', '2')
+dataManager.model('myModel').entry('f328af3', '2')
 .then(function(entry) {
   console.log(entry.getTitle('child')); // prints the title of the child 'child'
   // is String for entry
@@ -379,7 +379,7 @@ Returns the model title of any nested entry in the entry.
 Example:
 
 ```js
-dataManager.model('myModel).entry('f328af3', '2')
+dataManager.model('myModel').entry('f328af3', '2')
 .then(function(entry) {
   console.log(entry.getModelTitle('child')); // prints the model title of the child 'child'
 }, errorHandler);
@@ -982,7 +982,7 @@ gets the title of any child entry identified by `String`. Will return `String` f
 Example:
 
 ```js
-dataManager.model('myModel).entry('f328af3', 2')
+dataManager.model('myModel').entry('f328af3', 2')
 .then(function(entry) {
   console.log(entry.getTitle('child')); // prints the title of the child 'child'
   // is String for entry
