@@ -982,7 +982,7 @@ gets the title of any child entry identified by `String`. Will return `String` f
 Example:
 
 ```js
-dataManager.model('myModel').entry('f328af3', 2')
+dataManager.model('myModel').entry('f328af3', '2')
 .then(function(entry) {
   console.log(entry.getTitle('child')); // prints the title of the child 'child'
   // is String for entry
@@ -996,7 +996,7 @@ gets the model title of any child entry identified by `String`.
 Example:
 
 ```js
-dataManager.model('myModel').entry('f328af3', 2')
+dataManager.model('myModel').entry('f328af3', '2')
 .then(function(entry) {
   console.log(entry.getModelTitle('child')); // prints the model title of the child 'child'
 }, errorHandler);
@@ -1008,7 +1008,7 @@ clones an entry.
 Example:
 
 ```js
-dataManager.model('myModel').entry('f328af3', 2')
+dataManager.model('myModel').entry('f328af3', '2')
 .then(function(entry) {
   var newEntry = entry.clone();
 
