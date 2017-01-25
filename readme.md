@@ -295,7 +295,7 @@ dataManager.model('myModel').entry('my7fmeXh')
 
 // OR for nested entries
 
-dataManager.model('myModel').entry('my7fmeXh', 2}) // since 0.6.0 no longer object
+dataManager.model('myModel').entry('my7fmeXh', 2) // since 0.6.0 no longer object
 .then(function(entry) {
   console.log(entry); // success! an Entry
   var clonedEntry = entry.clone(); // clones entry object.
