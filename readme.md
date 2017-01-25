@@ -306,7 +306,7 @@ dataManager.model('myModel').entry('my7fmeXh', 2) // since 0.6.0 no longer objec
 Just like get entry but nested entries will be resolved as proper datamanager SDK objects.
 
 ```js
-dataManager.model('myModel').nestedEntry('my7fmeXh', 2}) // since 0.6.0 no longer object
+dataManager.model('myModel').nestedEntry('my7fmeXh', 2) // since 0.6.0 no longer object
 .then(function(entry) {
   console.log(entry); // success! an Entry
   entry.value.nestedEntry.delete().then(console.log)); // this will work now.
