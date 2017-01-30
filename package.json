@@ -65,7 +65,7 @@
   "dependencies": {
     "es6-promise": "4.0.5",
     "halfred": "1.0.0",
-    "is-reachable": "1.3.0",
+    "is-reachable": "2.1.0",
     "locale": "0.1.0",
     "lokijs": "1.4.1",
     "shiro-trie": "0.3.12",
