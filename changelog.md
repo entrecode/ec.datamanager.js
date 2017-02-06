@@ -1,4 +1,6 @@
 # Changelog
+## 0.11.3 - 0.11.4
+- typescript typings
 
 ## 0.11.2
 - forgot the browser build
