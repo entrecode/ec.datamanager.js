@@ -147,7 +147,7 @@ dataManager.enableCache([
 }, errorHandler);
 ```
 
-*If you use caching, you should not have the fields '$loki' and 'meta' in your Model.*
+*If you use caching, you should not have the fields `$loki` and `meta` in your Model.*
 
 #### Clear Cache
  
@@ -295,7 +295,7 @@ dataManager.model('myModel').entry('my7fmeXh')
 
 // OR for nested entries
 
-dataManager.model('myModel').entry('my7fmeXh', 2}) // since 0.6.0 no longer object
+dataManager.model('myModel').entry('my7fmeXh', 2) // since 0.6.0 no longer object
 .then(function(entry) {
   console.log(entry); // success! an Entry
   var clonedEntry = entry.clone(); // clones entry object.
@@ -306,7 +306,7 @@ dataManager.model('myModel').entry('my7fmeXh', 2}) // since 0.6.0 no longer obje
 Just like get entry but nested entries will be resolved as proper datamanager SDK objects.
 
 ```js
-dataManager.model('myModel').nestedEntry('my7fmeXh', 2}) // since 0.6.0 no longer object
+dataManager.model('myModel').nestedEntry('my7fmeXh', 2) // since 0.6.0 no longer object
 .then(function(entry) {
   console.log(entry); // success! an Entry
   entry.value.nestedEntry.delete().then(console.log)); // this will work now.
@@ -365,7 +365,7 @@ Returns the title of any nested entry in the entry.
 Example:
 
 ```js
-dataManager.model('myModel).entry('f328af3', 2')
+dataManager.model('myModel').entry('f328af3', '2')
 .then(function(entry) {
   console.log(entry.getTitle('child')); // prints the title of the child 'child'
   // is String for entry
@@ -379,7 +379,7 @@ Returns the model title of any nested entry in the entry.
 Example:
 
 ```js
-dataManager.model('myModel).entry('f328af3', 2')
+dataManager.model('myModel').entry('f328af3', '2')
 .then(function(entry) {
   console.log(entry.getModelTitle('child')); // prints the model title of the child 'child'
 }, errorHandler);
@@ -982,7 +982,7 @@ gets the title of any child entry identified by `String`. Will return `String` f
 Example:
 
 ```js
-dataManager.model('myModel).entry('f328af3', 2')
+dataManager.model('myModel').entry('f328af3', '2')
 .then(function(entry) {
   console.log(entry.getTitle('child')); // prints the title of the child 'child'
   // is String for entry
@@ -996,7 +996,7 @@ gets the model title of any child entry identified by `String`.
 Example:
 
 ```js
-dataManager.model('myModel').entry('f328af3', 2')
+dataManager.model('myModel').entry('f328af3', '2')
 .then(function(entry) {
   console.log(entry.getModelTitle('child')); // prints the model title of the child 'child'
 }, errorHandler);
@@ -1008,7 +1008,7 @@ clones an entry.
 Example:
 
 ```js
-dataManager.model('myModel').entry('f328af3', 2')
+dataManager.model('myModel').entry('f328af3', '2')
 .then(function(entry) {
   var newEntry = entry.clone();
 

@@ -1348,7 +1348,7 @@ DataManager.DB_BROWSER = 'BROWSER';
 
 module.exports = DataManager;
 
-},{"./Asset":5,"./Entry":7,"./Model":8,"./Tag":9,"./User":10,"./util":11,"es6-promise":15,"halfred":16,"lokijs":24,"shiro-trie":28,"superagent":29,"traverson":78,"traverson-hal":33}],7:[function(require,module,exports){
+},{"./Asset":5,"./Entry":7,"./Model":8,"./Tag":9,"./User":10,"./util":11,"es6-promise":15,"halfred":16,"lokijs":24,"shiro-trie":28,"superagent":29,"traverson":77,"traverson-hal":35}],7:[function(require,module,exports){
 'use strict';
 
 var halfred = require('halfred');
@@ -1562,7 +1562,7 @@ Entry._makeNestedToResource = makeNestedToResource;
 
 module.exports = Entry;
 
-},{"./Asset":5,"./util":11,"halfred":16,"traverson":78,"traverson-hal":33}],8:[function(require,module,exports){
+},{"./Asset":5,"./util":11,"halfred":16,"traverson":77,"traverson-hal":35}],8:[function(require,module,exports){
 'use strict';
 
 var halfred = require('halfred');
@@ -2061,7 +2061,7 @@ Model.prototype._isReachable = function(dests) {
 
 module.exports = Model;
 
-},{"./Asset":5,"./Entry":7,"./util":11,"halfred":16,"is-reachable":20,"superagent":29,"traverson":78}],9:[function(require,module,exports){
+},{"./Asset":5,"./Entry":7,"./util":11,"halfred":16,"is-reachable":20,"superagent":29,"traverson":77}],9:[function(require,module,exports){
 'use strict';
 
 var halfred = require('halfred');
@@ -2160,7 +2160,7 @@ Tag.prototype._getTraversal = function() {
 
 module.exports = Tag;
 
-},{"./util":11,"halfred":16,"traverson":78}],10:[function(require,module,exports){
+},{"./util":11,"halfred":16,"traverson":77}],10:[function(require,module,exports){
 'use strict';
 
 var util = require('./util');
@@ -10787,6 +10787,7 @@ var Emitter = require('emitter');
 var RequestBase = require('./request-base');
 var isObject = require('./is-object');
 var isFunction = require('./is-function');
+var ResponseBase = require('./response-base');
 
 /**
  * Noop.
@@ -11016,37 +11017,6 @@ function isJSON(mime) {
 }
 
 /**
- * Return the mime type for the given `str`.
- *
- * @param {String} str
- * @return {String}
- * @api private
- */
-
-function type(str){
-  return str.split(/ *; */).shift();
-};
-
-/**
- * Return header field parameters.
- *
- * @param {String} str
- * @return {Object}
- * @api private
- */
-
-function params(str){
-  return str.split(/ *; */).reduce(function(obj, str){
-    var parts = str.split(/ *= */),
-        key = parts.shift(),
-        val = parts.shift();
-
-    if (key && val) obj[key] = val;
-    return obj;
-  }, {});
-};
-
-/**
  * Initialize a new `Response` with the given `xhr`.
  *
  *  - set flags (.ok, .error, etc)
@@ -11101,51 +11071,29 @@ function Response(req, options) {
      ? this.xhr.responseText
      : null;
   this.statusText = this.req.xhr.statusText;
-  this._setStatusProperties(this.xhr.status);
+  var status = this.xhr.status;
+  // handle IE9 bug: http://stackoverflow.com/questions/10046972/msie-returns-status-code-of-1223-for-ajax-request
+  if (status === 1223) {
+      status = 204;
+  }
+  this._setStatusProperties(status);
   this.header = this.headers = parseHeader(this.xhr.getAllResponseHeaders());
   // getAllResponseHeaders sometimes falsely returns "" for CORS requests, but
   // getResponseHeader still works. so we get content-type even if getting
   // other headers fails.
   this.header['content-type'] = this.xhr.getResponseHeader('content-type');
   this._setHeaderProperties(this.header);
-  this.body = this.req.method != 'HEAD'
-    ? this._parseBody(this.text ? this.text : this.xhr.response)
-    : null;
+
+  if (null === this.text && req._responseType) {
+    this.body = this.xhr.response;
+  } else {
+    this.body = this.req.method != 'HEAD'
+      ? this._parseBody(this.text ? this.text : this.xhr.response)
+      : null;
+  }
 }
 
-/**
- * Get case-insensitive `field` value.
- *
- * @param {String} field
- * @return {String}
- * @api public
- */
-
-Response.prototype.get = function(field){
-  return this.header[field.toLowerCase()];
-};
-
-/**
- * Set header related properties:
- *
- *   - `.type` the content type without params
- *
- * A response of "Content-Type: text/plain; charset=utf-8"
- * will provide you with a `.type` of "text/plain".
- *
- * @param {Object} header
- * @api private
- */
-
-Response.prototype._setHeaderProperties = function(header){
-  // content-type
-  var ct = this.header['content-type'] || '';
-  this.type = type(ct);
-
-  // params
-  var obj = params(ct);
-  for (var key in obj) this[key] = obj[key];
-};
+ResponseBase(Response.prototype);
 
 /**
  * Parse the given body `str`.
@@ -11160,64 +11108,15 @@ Response.prototype._setHeaderProperties = function(header){
 
 Response.prototype._parseBody = function(str){
   var parse = request.parse[this.type];
+  if(this.req._parser) {
+    return this.req._parser(this, str);
+  }
   if (!parse && isJSON(this.type)) {
     parse = request.parse['application/json'];
   }
   return parse && str && (str.length || str instanceof Object)
     ? parse(str)
     : null;
-};
-
-/**
- * Set flags such as `.ok` based on `status`.
- *
- * For example a 2xx response will give you a `.ok` of __true__
- * whereas 5xx will be __false__ and `.error` will be __true__. The
- * `.clientError` and `.serverError` are also available to be more
- * specific, and `.statusType` is the class of error ranging from 1..5
- * sometimes useful for mapping respond colors etc.
- *
- * "sugar" properties are also defined for common cases. Currently providing:
- *
- *   - .noContent
- *   - .badRequest
- *   - .unauthorized
- *   - .notAcceptable
- *   - .notFound
- *
- * @param {Number} status
- * @api private
- */
-
-Response.prototype._setStatusProperties = function(status){
-  // handle IE9 bug: http://stackoverflow.com/questions/10046972/msie-returns-status-code-of-1223-for-ajax-request
-  if (status === 1223) {
-    status = 204;
-  }
-
-  var type = status / 100 | 0;
-
-  // status / class
-  this.status = this.statusCode = status;
-  this.statusType = type;
-
-  // basics
-  this.info = 1 == type;
-  this.ok = 2 == type;
-  this.clientError = 4 == type;
-  this.serverError = 5 == type;
-  this.error = (4 == type || 5 == type)
-    ? this.toError()
-    : false;
-
-  // sugar
-  this.accepted = 202 == status;
-  this.noContent = 204 == status;
-  this.badRequest = 400 == status;
-  this.unauthorized = 401 == status;
-  this.notAcceptable = 406 == status;
-  this.notFound = 404 == status;
-  this.forbidden = 403 == status;
 };
 
 /**
@@ -11277,10 +11176,11 @@ function Request(method, url) {
         // ie9 doesn't have 'response' property
         err.rawResponse = typeof self.xhr.responseType == 'undefined' ? self.xhr.responseText : self.xhr.response;
         // issue #876: return the http status code if the response parsing fails
-        err.statusCode = self.xhr.status ? self.xhr.status : null;
+        err.status = self.xhr.status ? self.xhr.status : null;
+        err.statusCode = err.status; // backwards-compat only
       } else {
         err.rawResponse = null;
-        err.statusCode = null;
+        err.status = null;
       }
 
       return self.callback(err);
@@ -11290,7 +11190,7 @@ function Request(method, url) {
 
     var new_err;
     try {
-      if (res.status < 200 || res.status >= 300) {
+      if (!self._isResponseOK(res)) {
         new_err = new Error(res.statusText || 'Unsuccessful HTTP response');
         new_err.original = err;
         new_err.response = res;
@@ -11344,26 +11244,6 @@ Request.prototype.type = function(type){
 };
 
 /**
- * Set responseType to `val`. Presently valid responseTypes are 'blob' and
- * 'arraybuffer'.
- *
- * Examples:
- *
- *      req.get('/')
- *        .responseType('blob')
- *        .end(callback);
- *
- * @param {String} val
- * @return {Request} for chaining
- * @api public
- */
-
-Request.prototype.responseType = function(val){
-  this._responseType = val;
-  return this;
-};
-
-/**
  * Set Accept to `type`, mapping values from `request.types`.
  *
  * Examples:
@@ -11401,14 +11281,13 @@ Request.prototype.accept = function(type){
 Request.prototype.auth = function(user, pass, options){
   if (!options) {
     options = {
-      type: 'basic'
+      type: 'function' === typeof btoa ? 'basic' : 'auto',
     }
   }
 
   switch (options.type) {
     case 'basic':
-      var str = btoa(user + ':' + pass);
-      this.set('Authorization', 'Basic ' + str);
+      this.set('Authorization', 'Basic ' + btoa(user + ':' + pass));
     break;
 
     case 'auto':
@@ -11521,19 +11400,6 @@ Request.prototype.pipe = Request.prototype.write = function(){
 };
 
 /**
- * Invoke callback with timeout error.
- *
- * @api private
- */
-
-Request.prototype._timeoutError = function(){
-  var timeout = this._timeout;
-  var err = new Error('timeout of ' + timeout + 'ms exceeded');
-  err.timeout = timeout;
-  this.callback(err);
-};
-
-/**
  * Compose querystring to append to req.url
  *
  * @api private
@@ -11542,9 +11408,20 @@ Request.prototype._timeoutError = function(){
 Request.prototype._appendQueryString = function(){
   var query = this._query.join('&');
   if (query) {
-    this.url += ~this.url.indexOf('?')
-      ? '&' + query
-      : '?' + query;
+    this.url += (this.url.indexOf('?') >= 0 ? '&' : '?') + query;
+  }
+
+  if (this._sort) {
+    var index = this.url.indexOf('?');
+    if (index >= 0) {
+      var queryArr = this.url.substring(index + 1).split('&');
+      if (isFunction(this._sort)) {
+        queryArr.sort(this._sort);
+      } else {
+        queryArr.sort();
+      }
+      this.url = this.url.substring(0, index) + '?' + queryArr.join('&');
+    }
   }
 };
 
@@ -11573,24 +11450,33 @@ Request.prototype._isHost = function _isHost(obj) {
 Request.prototype.end = function(fn){
   var self = this;
   var xhr = this.xhr = request.getXHR();
-  var timeout = this._timeout;
   var data = this._formData || this._data;
+
+  if (this._endCalled) {
+    console.warn("Warning: .end() was called twice. This is not supported in superagent");
+  }
+  this._endCalled = true;
 
   // store callback
   this._callback = fn || noop;
 
   // state change
   xhr.onreadystatechange = function(){
-    if (4 != xhr.readyState) return;
+    var readyState = xhr.readyState;
+    if (readyState >= 2 && self._responseTimeoutTimer) {
+      clearTimeout(self._responseTimeoutTimer);
+    }
+    if (4 != readyState) {
+      return;
+    }
 
     // In IE9, reads to any property (e.g. status) off of an aborted XHR will
     // result in the error "Could not complete the operation due to error c00c023f"
     var status;
     try { status = xhr.status } catch(e) { status = 0; }
 
-    if (0 == status) {
-      if (self.timedout) return self._timeoutError();
-      if (self._aborted) return;
+    if (!status) {
+      if (self.timedout || self._aborted) return;
       return self.crossDomainError();
     }
     self.emit('end');
@@ -11617,25 +11503,10 @@ Request.prototype.end = function(fn){
     }
   }
 
-  // timeout
-  if (timeout && !this._timer) {
-    this._timer = setTimeout(function(){
-      self.timedout = true;
-      self.abort();
-    }, timeout);
-  }
-
   // querystring
   this._appendQueryString();
 
-  if (this._sort) {
-    var index = this.url.indexOf('?');
-    if (~index) {
-      var queryArr = this.url.substring(index + 1).split('&');
-      isFunction(this._sort) ? queryArr.sort(this._sort) : queryArr.sort();
-    }
-    this.url = this.url.substring(0, index) + '?' + queryArr.join('&');
-  }
+  this._setTimeouts();
 
   // initiate request
   if (this.username && this.password) {
@@ -11652,7 +11523,9 @@ Request.prototype.end = function(fn){
     // serialize stuff
     var contentType = this._header['content-type'];
     var serialize = this._serializer || request.serialize[contentType ? contentType.split(';')[0] : ''];
-    if (!serialize && isJSON(contentType)) serialize = request.serialize['application/json'];
+    if (!serialize && isJSON(contentType)) {
+      serialize = request.serialize['application/json'];
+    }
     if (serialize) data = serialize(data);
   }
 
@@ -11801,7 +11674,7 @@ request.put = function(url, data, fn){
   return req;
 };
 
-},{"./is-function":30,"./is-object":31,"./request-base":32,"emitter":13}],30:[function(require,module,exports){
+},{"./is-function":30,"./is-object":31,"./request-base":32,"./response-base":33,"emitter":13}],30:[function(require,module,exports){
 /**
  * Check if `fn` is a function.
  *
@@ -11879,7 +11752,9 @@ function mixin(obj) {
 
 RequestBase.prototype.clearTimeout = function _clearTimeout(){
   this._timeout = 0;
+  this._responseTimeout = 0;
   clearTimeout(this._timer);
+  clearTimeout(this._responseTimeoutTimer);
   return this;
 };
 
@@ -11898,6 +11773,29 @@ RequestBase.prototype.parse = function parse(fn){
 };
 
 /**
+ * Set format of binary response body.
+ * In browser valid formats are 'blob' and 'arraybuffer',
+ * which return Blob and ArrayBuffer, respectively.
+ *
+ * In Node all values result in Buffer.
+ *
+ * Examples:
+ *
+ *      req.get('/')
+ *        .responseType('blob')
+ *        .end(callback);
+ *
+ * @param {String} val
+ * @return {Request} for chaining
+ * @api public
+ */
+
+RequestBase.prototype.responseType = function(val){
+  this._responseType = val;
+  return this;
+};
+
+/**
  * Override default request body serializer
  *
  * This function will be called to convert data set via .send or .attach into payload to send
@@ -11912,15 +11810,31 @@ RequestBase.prototype.serialize = function serialize(fn){
 };
 
 /**
- * Set timeout to `ms`.
+ * Set timeouts.
  *
- * @param {Number} ms
+ * - response timeout is time between sending request and receiving the first byte of the response. Includes DNS and connection time.
+ * - deadline is the time from start of the request to receiving response body in full. If the deadline is too short large files may not load at all on slow connections.
+ *
+ * Value of 0 or false means no timeout.
+ *
+ * @param {Number|Object} ms or {response, read, deadline}
  * @return {Request} for chaining
  * @api public
  */
 
-RequestBase.prototype.timeout = function timeout(ms){
-  this._timeout = ms;
+RequestBase.prototype.timeout = function timeout(options){
+  if (!options || 'object' !== typeof options) {
+    this._timeout = options;
+    this._responseTimeout = 0;
+    return this;
+  }
+
+  if ('undefined' !== typeof options.deadline) {
+    this._timeout = options.deadline;
+  }
+  if ('undefined' !== typeof options.response) {
+    this._responseTimeout = options.response;
+  }
   return this;
 };
 
@@ -11935,6 +11849,9 @@ RequestBase.prototype.timeout = function timeout(ms){
 RequestBase.prototype.then = function then(resolve, reject) {
   if (!this._fullfilledPromise) {
     var self = this;
+    if (this._endCalled) {
+      console.warn("Warning: superagent request was sent twice, because both .end() and .then() were called. Never call .end() if you use promises");
+    }
     this._fullfilledPromise = new Promise(function(innerResolve, innerReject){
       self.end(function(err, res){
         if (err) innerReject(err); else innerResolve(res);
@@ -11956,6 +11873,24 @@ RequestBase.prototype.use = function use(fn) {
   fn(this);
   return this;
 }
+
+RequestBase.prototype.ok = function(cb) {
+  if ('function' !== typeof cb) throw Error("Callback required");
+  this._okCallback = cb;
+  return this;
+};
+
+RequestBase.prototype._isResponseOK = function(res) {
+  if (!res) {
+    return false;
+  }
+
+  if (this._okCallback) {
+    return this._okCallback(res);
+  }
+
+  return res.status >= 200 && res.status < 300;
+};
 
 
 /**
@@ -12228,7 +12163,9 @@ RequestBase.prototype.send = function(data){
     this._data = data;
   }
 
-  if (!isObj || this._isHost(data)) return this;
+  if (!isObj || this._isHost(data)) {
+    return this;
+  }
 
   // default to json
   if (!type) this.type('json');
@@ -12270,7 +12207,247 @@ RequestBase.prototype.sortQuery = function(sort) {
   return this;
 };
 
+/**
+ * Invoke callback with timeout error.
+ *
+ * @api private
+ */
+
+RequestBase.prototype._timeoutError = function(reason, timeout){
+  if (this._aborted) {
+    return;
+  }
+  var err = new Error(reason + timeout + 'ms exceeded');
+  err.timeout = timeout;
+  err.code = 'ECONNABORTED';
+  this.timedout = true;
+  this.abort();
+  this.callback(err);
+};
+
+RequestBase.prototype._setTimeouts = function() {
+  var self = this;
+
+  // deadline
+  if (this._timeout && !this._timer) {
+    this._timer = setTimeout(function(){
+      self._timeoutError('Timeout of ', self._timeout);
+    }, this._timeout);
+  }
+  // response timeout
+  if (this._responseTimeout && !this._responseTimeoutTimer) {
+    this._responseTimeoutTimer = setTimeout(function(){
+      self._timeoutError('Response timeout of ', self._responseTimeout);
+    }, this._responseTimeout);
+  }
+}
+
 },{"./is-object":31}],33:[function(require,module,exports){
+
+/**
+ * Module dependencies.
+ */
+
+var utils = require('./utils');
+
+/**
+ * Expose `ResponseBase`.
+ */
+
+module.exports = ResponseBase;
+
+/**
+ * Initialize a new `ResponseBase`.
+ *
+ * @api public
+ */
+
+function ResponseBase(obj) {
+  if (obj) return mixin(obj);
+}
+
+/**
+ * Mixin the prototype properties.
+ *
+ * @param {Object} obj
+ * @return {Object}
+ * @api private
+ */
+
+function mixin(obj) {
+  for (var key in ResponseBase.prototype) {
+    obj[key] = ResponseBase.prototype[key];
+  }
+  return obj;
+}
+
+/**
+ * Get case-insensitive `field` value.
+ *
+ * @param {String} field
+ * @return {String}
+ * @api public
+ */
+
+ResponseBase.prototype.get = function(field){
+    return this.header[field.toLowerCase()];
+};
+
+/**
+ * Set header related properties:
+ *
+ *   - `.type` the content type without params
+ *
+ * A response of "Content-Type: text/plain; charset=utf-8"
+ * will provide you with a `.type` of "text/plain".
+ *
+ * @param {Object} header
+ * @api private
+ */
+
+ResponseBase.prototype._setHeaderProperties = function(header){
+    // TODO: moar!
+    // TODO: make this a util
+
+    // content-type
+    var ct = header['content-type'] || '';
+    this.type = utils.type(ct);
+
+    // params
+    var params = utils.params(ct);
+    for (var key in params) this[key] = params[key];
+
+    this.links = {};
+
+    // links
+    try {
+        if (header.link) {
+            this.links = utils.parseLinks(header.link);
+        }
+    } catch (err) {
+        // ignore
+    }
+};
+
+/**
+ * Set flags such as `.ok` based on `status`.
+ *
+ * For example a 2xx response will give you a `.ok` of __true__
+ * whereas 5xx will be __false__ and `.error` will be __true__. The
+ * `.clientError` and `.serverError` are also available to be more
+ * specific, and `.statusType` is the class of error ranging from 1..5
+ * sometimes useful for mapping respond colors etc.
+ *
+ * "sugar" properties are also defined for common cases. Currently providing:
+ *
+ *   - .noContent
+ *   - .badRequest
+ *   - .unauthorized
+ *   - .notAcceptable
+ *   - .notFound
+ *
+ * @param {Number} status
+ * @api private
+ */
+
+ResponseBase.prototype._setStatusProperties = function(status){
+    var type = status / 100 | 0;
+
+    // status / class
+    this.status = this.statusCode = status;
+    this.statusType = type;
+
+    // basics
+    this.info = 1 == type;
+    this.ok = 2 == type;
+    this.redirect = 3 == type;
+    this.clientError = 4 == type;
+    this.serverError = 5 == type;
+    this.error = (4 == type || 5 == type)
+        ? this.toError()
+        : false;
+
+    // sugar
+    this.accepted = 202 == status;
+    this.noContent = 204 == status;
+    this.badRequest = 400 == status;
+    this.unauthorized = 401 == status;
+    this.notAcceptable = 406 == status;
+    this.forbidden = 403 == status;
+    this.notFound = 404 == status;
+};
+
+},{"./utils":34}],34:[function(require,module,exports){
+
+/**
+ * Return the mime type for the given `str`.
+ *
+ * @param {String} str
+ * @return {String}
+ * @api private
+ */
+
+exports.type = function(str){
+  return str.split(/ *; */).shift();
+};
+
+/**
+ * Return header field parameters.
+ *
+ * @param {String} str
+ * @return {Object}
+ * @api private
+ */
+
+exports.params = function(str){
+  return str.split(/ *; */).reduce(function(obj, str){
+    var parts = str.split(/ *= */);
+    var key = parts.shift();
+    var val = parts.shift();
+
+    if (key && val) obj[key] = val;
+    return obj;
+  }, {});
+};
+
+/**
+ * Parse Link header fields.
+ *
+ * @param {String} str
+ * @return {Object}
+ * @api private
+ */
+
+exports.parseLinks = function(str){
+  return str.split(/ *, */).reduce(function(obj, str){
+    var parts = str.split(/ *; */);
+    var url = parts[0].slice(1, -1);
+    var rel = parts[1].split(/ *= */)[1].slice(1, -1);
+    obj[rel] = url;
+    return obj;
+  }, {});
+};
+
+/**
+ * Strip content related fields from `header`.
+ *
+ * @param {Object} header
+ * @return {Object} header
+ * @api private
+ */
+
+exports.cleanHeader = function(header, shouldStripCookie){
+  delete header['content-type'];
+  delete header['content-length'];
+  delete header['transfer-encoding'];
+  delete header['host'];
+  if (shouldStripCookie) {
+    delete header['cookie'];
+  }
+  return header;
+};
+
+},{}],35:[function(require,module,exports){
 'use strict';
 
 var halfred = require('halfred');
@@ -12279,18 +12456,28 @@ function JsonHalAdapter(log) {
   this.log = log;
 }
 
+JsonHalAdapter.errors = {
+  InvalidArgumentError: 'InvalidArgumentError',
+  InvalidStateError: 'InvalidStateError',
+  LinkError: 'HalLinkError',
+  LinkMissingOrInvalidError: 'HalLinkMissingOrInvalidError',
+  EmbeddedDocumentsError: 'HalEmbeddedDocumentsError',
+};
+
 JsonHalAdapter.mediaType = 'application/hal+json';
 
 JsonHalAdapter.prototype.findNextStep = function(t, linkObject) {
   if (typeof linkObject === 'undefined' || linkObject === null) {
-    throw new Error('Link object is null or undefined.');
+    throw createError('Link object is null or undefined.',
+      JsonHalAdapter.errors.InvalidArgumentError);
   }
   if (typeof linkObject !== 'object') {
-    throw new Error('Links must be objects, not ' + typeof linkObject +
-        ': ', linkObject);
+    throw createError('Links must be objects, not ' + typeof linkObject +
+        ': ', JsonHalAdapter.errors.InvalidArgumentError, linkObject);
   }
   if (!linkObject.type) {
-    throw new Error('Link objects has no type attribute.', linkObject);
+    throw createError('Link objects has no type attribute.',
+      JsonHalAdapter.errors.InvalidArgumentError, linkObject);
   }
 
   switch (linkObject.type) {
@@ -12299,15 +12486,15 @@ JsonHalAdapter.prototype.findNextStep = function(t, linkObject) {
     case 'header':
       return this._handleHeader(t.lastStep.response, linkObject);
     default:
-      throw new Error('Link objects with type ' + linkObject.type +
-        ' are not supported by this adapter.', linkObject);
+      throw createError('Link objects with type ' + linkObject.type +
+        ' are not supported by this adapter.',
+        JsonHalAdapter.errors.InvalidArgumentError, linkObject);
   }
 };
 
 JsonHalAdapter.prototype._handleLinkRel = function(t, linkObject) {
   var doc = t.lastStep.doc;
   var key = linkObject.value;
-  var preferEmbedded = t.preferEmbedded;
 
   this.log.debug('parsing hal');
   var ctx = {
@@ -12320,7 +12507,7 @@ JsonHalAdapter.prototype._handleLinkRel = function(t, linkObject) {
   resolveCurie(ctx);
   findLink(ctx, this.log);
   findEmbedded(ctx, this.log);
-  return prepareResult(ctx, key, preferEmbedded);
+  return prepareResult(ctx, key, t.preferEmbedded);
 };
 
 function prepareResult(ctx, key, preferEmbedded) {
@@ -12336,16 +12523,29 @@ function prepareResult(ctx, key, preferEmbedded) {
   } else {
     var message = 'Could not find a matching link nor an embedded document '+
       'for ' + key + '.';
+    var errorName = JsonHalAdapter.errors.LinkError;
     if (ctx.linkError) {
       message += ' Error while resolving linked documents: ' + ctx.linkError;
+      errorName = JsonHalAdapter.errors.LinkMissingOrInvalidError;
     }
     if (ctx.embeddedError) {
       message += ' Error while resolving embedded documents: ' +
         ctx.embeddedError;
+
+      // traverson-hal tries to find the linked resource in the `_links`
+      // section as well as in the `_embedded` section, thus, in
+      // some cases (if the document has a `_links` array with a matching key as
+      // well as an `_embedded` array with a matching key but no matching
+      // *entry* in either of these arrays) both ctx.linkError and
+      // ctx.embeddedError will be present. We only claim that it is an embedded
+      // documents error if there was no matching link array or when the
+      // preferEmbedded flag is set.
+      if (!ctx.linkError || preferEmbedded) {
+        errorName = JsonHalAdapter.errors.EmbeddedDocumentsError;
+      }
     }
     message += ' Document: ' + JSON.stringify(ctx.doc);
-
-    throw new Error(message);
+    throw createError(message, errorName, ctx.doc);
   }
 }
 
@@ -12423,7 +12623,8 @@ function findLink(ctx, log) {
       // do not process $all as a link at all, go straight to the findEmbedded
       break;
     default:
-      throw new Error('Illegal mode: ' + ctx.parsedKey.mode);
+      throw createError('Illegal mode: ' + ctx.parsedKey.mode,
+        JsonHalAdapter.errors.InvalidArgumentError);
   }
 }
 
@@ -12496,7 +12697,7 @@ function findEmbedded(ctx, log) {
   var resourceArray = ctx.halResource.embeddedArray(ctx.parsedKey.key);
   if ((!resourceArray || resourceArray.length === 0) &&
        ctx.parsedKey.mode !== 'all' ) {
-    return null;
+    return;
   }
   log.debug('Found an array of embedded resource for: ' + ctx.parsedKey.key);
 
@@ -12514,7 +12715,8 @@ function findEmbedded(ctx, log) {
       findEmbeddedWithoutIndex(ctx, resourceArray, log);
       break;
     default:
-      throw new Error('Illegal mode: ' + ctx.parsedKey.mode);
+      throw createError('Illegal mode: ' + ctx.parsedKey.mode,
+        JsonHalAdapter.errors.InvalidArgumentError);
   }
 }
 
@@ -12582,44 +12784,30 @@ JsonHalAdapter.prototype._handleHeader = function(httpResponse, link) {
     case 'location':
       var locationHeader = httpResponse.headers.location;
       if (!locationHeader) {
-        throw new Error('Following the location header but there was no ' +
-          'location header in the last response.');
+        throw createError('Following the location header but there was no ' +
+          'location header in the last response.',
+          JsonHalAdapter.errors.InvalidStateError);
       }
       return { url : locationHeader };
     default:
-      throw new Error('Link objects with type header and value ' + link.value +
-        ' are not supported by this adapter.', link);
+      throw createError('Link objects with type header and value ' +
+        link.value + ' are not supported by this adapter.',
+        JsonHalAdapter.errors.InvalidArgumentError, link);
   }
 };
+
+function createError(message, name, data) {
+  var error = new Error(message);
+  error.name = name;
+  if (data) {
+    error.data = data;
+  }
+  return error;
+}
 
 module.exports = JsonHalAdapter;
 
-},{"halfred":34}],34:[function(require,module,exports){
-var Parser = require('./lib/parser')
-  , validationFlag = false;
-
-module.exports = {
-
-  parse: function(unparsed) {
-    return new Parser().parse(unparsed, validationFlag);
-  },
-
-  enableValidation: function(flag) {
-    validationFlag = (flag != null) ? flag : true;
-  },
-
-  disableValidation: function() {
-    validationFlag = false;
-  }
-};
-
-},{"./lib/parser":36}],35:[function(require,module,exports){
-arguments[4][17][0].apply(exports,arguments)
-},{"dup":17}],36:[function(require,module,exports){
-arguments[4][18][0].apply(exports,arguments)
-},{"./immutable_stack":35,"./resource":37,"dup":18}],37:[function(require,module,exports){
-arguments[4][19][0].apply(exports,arguments)
-},{"dup":19}],38:[function(require,module,exports){
+},{"halfred":16}],36:[function(require,module,exports){
 'use strict';
 
 // TODO Replace by a proper lightweight logging module, suited for the browser
@@ -12670,7 +12858,7 @@ minilog.enable = function() {
 
 module.exports = minilog;
 
-},{}],39:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -12682,7 +12870,7 @@ module.exports = {
   }
 };
 
-},{}],40:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 'use strict';
 
 var superagent = require('superagent');
@@ -12811,7 +12999,7 @@ function handleResponse(callback) {
 
 module.exports = new Request();
 
-},{"superagent":74}],41:[function(require,module,exports){
+},{"superagent":73}],39:[function(require,module,exports){
 'use strict';
 
 /*
@@ -12855,7 +13043,7 @@ var _s = {
 
 module.exports = _s;
 
-},{}],42:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 'use strict';
 
 var resolveUrl = require('resolve-url');
@@ -12864,10 +13052,13 @@ exports.resolve = function(from, to) {
   return resolveUrl(from, to);
 };
 
-},{"resolve-url":26}],43:[function(require,module,exports){
+},{"resolve-url":26}],41:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
+  , errorModule = require('./errors')
+  , errors = errorModule.errors
+  , createError = errorModule.createError
   , log = minilog('traverson');
 
 exports.abortTraversal = function abortTraversal() {
@@ -12896,13 +13087,13 @@ exports.callCallbackOnAbort = function callCallbackOnAbort(t) {
 };
 
 exports.abortError = function abortError() {
-  var error = new Error('Link traversal process has been aborted.');
-  error.name = 'AbortError';
+  var error = createError('Link traversal process has been aborted.',
+    errors.TraversalAbortedError);
   error.aborted = true;
   return error;
 };
 
-},{"minilog":38}],44:[function(require,module,exports){
+},{"./errors":44,"minilog":36}],42:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -13038,7 +13229,7 @@ function createTraversalHandle(t) {
   };
 }
 
-},{"./abort_traversal":43,"./http_requests":46,"./is_continuation":47,"./transforms/apply_transforms":53,"./transforms/check_http_status":54,"./transforms/continuation_to_doc":55,"./transforms/continuation_to_response":56,"./transforms/convert_embedded_doc_to_response":57,"./transforms/execute_http_request":59,"./transforms/execute_last_http_request":60,"./transforms/extract_doc":61,"./transforms/extract_response":62,"./transforms/extract_url":63,"./transforms/fetch_last_resource":64,"./transforms/parse":67,"./walker":73,"minilog":38}],45:[function(require,module,exports){
+},{"./abort_traversal":41,"./http_requests":45,"./is_continuation":46,"./transforms/apply_transforms":52,"./transforms/check_http_status":53,"./transforms/continuation_to_doc":54,"./transforms/continuation_to_response":55,"./transforms/convert_embedded_doc_to_response":56,"./transforms/execute_http_request":58,"./transforms/execute_last_http_request":59,"./transforms/extract_doc":60,"./transforms/extract_response":61,"./transforms/extract_url":62,"./transforms/fetch_last_resource":63,"./transforms/parse":66,"./walker":72,"minilog":36}],43:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -13047,6 +13238,9 @@ var minilog = require('minilog')
 
 var actions = require('./actions')
   , abortTraversal = require('./abort_traversal').abortTraversal
+  , errorModule = require('./errors')
+  , errors = errorModule.errors
+  , createError = errorModule.createError
   , mediaTypeRegistry = require('./media_type_registry')
   , mediaTypes = require('./media_types')
   , mergeRecursive = require('./merge_recursive');
@@ -13076,7 +13270,8 @@ function Builder(mediaType) {
 Builder.prototype._createAdapter = function(mediaType) {
   var AdapterType = mediaTypeRegistry.get(mediaType);
   if (!AdapterType) {
-    throw new Error('Unknown or unsupported media type: ' + mediaType);
+    throw createError('Unknown or unsupported media type: ' + mediaType,
+      errors.UnsupportedMediaType);
   }
   log.debug('creating new ' + AdapterType.name);
   return new AdapterType(log);
@@ -13622,7 +13817,8 @@ function wrapForContinue(self, t, callback, firstTraversalAction) {
     return callback(null, result, {
       continue: function() {
         if (!t) {
-          throw new Error('no traversal state to continue from.');
+          throw createError('No traversal state to continue from.',
+            errors.InvalidStateError);
         }
 
         log.debug('> continuing finished traversal process');
@@ -13682,13 +13878,42 @@ function shallowCloneArray(array) {
 
 module.exports = Builder;
 
-},{"./abort_traversal":43,"./actions":44,"./media_type_registry":49,"./media_types":50,"./merge_recursive":51,"minilog":38,"request":40,"util":39}],46:[function(require,module,exports){
+},{"./abort_traversal":41,"./actions":42,"./errors":44,"./media_type_registry":48,"./media_types":49,"./merge_recursive":50,"minilog":36,"request":38,"util":37}],44:[function(require,module,exports){
+'use strict';
+
+module.exports = {
+  errors: {
+    HTTPError: 'HTTPError',
+    InvalidArgumentError: 'InvalidArgumentError',
+    InvalidStateError: 'InvalidStateError',
+    JSONError: 'JSONError',
+    JSONPathError: 'JSONPathError',
+    LinkError: 'LinkError',
+    TraversalAbortedError: 'TraversalAbortedError',
+    UnsupportedMediaType: 'UnsupportedMediaTypeError',
+  },
+
+  createError: function(message, name, data) {
+    var error = new Error(message);
+    error.name = name;
+    if (data) {
+      error.data = data;
+    }
+    return error;
+  },
+
+};
+
+},{}],45:[function(require,module,exports){
 (function (process){
 'use strict';
 var minilog = require('minilog')
   , log = minilog('traverson')
   , abortTraversal = require('./abort_traversal')
   , detectContentType = require('./transforms/detect_content_type')
+  , errorModule = require('./errors')
+  , errors = errorModule.errors
+  , createError = errorModule.createError
   , getOptionsForStep = require('./transforms/get_options_for_step');
 
 /**
@@ -13713,7 +13938,8 @@ exports.fetchResource = function fetchResource(t, callback) {
     });
   } else {
     return process.nextTick(function() {
-      var error = new Error('Can not process step');
+      var error = createError('Can not process step.',
+        errors.InvalidStateError);
       error.step = t.step;
       callback(error, t);
     });
@@ -13789,19 +14015,23 @@ exports.executeHttpRequest = function(t, request, method, callback) {
 };
 
 }).call(this,require('_process'))
-},{"./abort_traversal":43,"./transforms/detect_content_type":58,"./transforms/get_options_for_step":66,"_process":3,"minilog":38}],47:[function(require,module,exports){
+},{"./abort_traversal":41,"./errors":44,"./transforms/detect_content_type":57,"./transforms/get_options_for_step":65,"_process":3,"minilog":36}],46:[function(require,module,exports){
 'use strict';
 
 module.exports = function isContinuation(t) {
   return t.continuation && t.step && t.step.response;
 };
 
-},{}],48:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 'use strict';
 
 var jsonpath = require('jsonpath-plus')
   , minilog = require('minilog')
   , _s = require('underscore.string');
+
+var errorModule = require('./errors')
+  , errors = errorModule.errors
+  , createError = errorModule.createError;
 
 function JsonAdapter(log) {
   this.log = log;
@@ -13817,8 +14047,8 @@ JsonAdapter.prototype.findNextStep = function(t, link) {
     case 'header':
       return this._handleHeader(t.lastStep.response, link);
     default:
-      throw new Error('Link objects with type ' + link.type + ' are not ' +
-        'supported by this adapter.', link);
+      throw createError('Link objects with type ' + link.type + ' are not ' +
+        'supported by this adapter.', errors.InvalidArgumentError, link);
   }
 };
 
@@ -13831,21 +14061,23 @@ JsonAdapter.prototype._handleLinkRel = function(doc, link) {
   } else if (doc[linkRel]) {
     return { url : doc[linkRel] };
   } else {
-    throw new Error('Could not find property ' + linkRel +
-        ' in document:\n', doc);
+    throw createError('Could not find property ' + linkRel +
+        ' in document.', errors.LinkError, doc);
   }
 };
 
 function validateLinkObject(link) {
   if (typeof link === 'undefined' || link === null) {
-    throw new Error('Link object is null or undefined.');
+    throw createError('Link object is null or undefined.',
+      errors.InvalidArgumentError);
   }
   if (typeof link !== 'object') {
-    throw new Error('Links must be objects, not ' + typeof link +
-        ': ', link);
+    throw createError('Links must be objects, not ' + typeof link +
+        '.', errors.InvalidArgumentError, link);
   }
   if (!link.type) {
-    throw new Error('Link objects has no type attribute.', link);
+    throw createError('Link objects has no type attribute.',
+      errors.InvalidArgumentError, link);
   }
 }
 
@@ -13861,26 +14093,29 @@ JsonAdapter.prototype._resolveJSONPath = function(doc, link) {
   if (matches.length === 1) {
     var url = matches[0];
     if (!url) {
-      throw new Error('JSONPath expression ' + link +
+      throw createError('JSONPath expression ' + link +
         ' was resolved but the result was null, undefined or an empty' +
-        ' string in document:\n' + JSON.stringify(doc));
+        ' string in document:\n' + JSON.stringify(doc),
+        errors.JSONPathError, doc);
     }
     if (typeof url !== 'string') {
-      throw new Error('JSONPath expression ' + link +
+      throw createError('JSONPath expression ' + link +
         ' was resolved but the result is not a property of type string. ' +
         'Instead it has type "' + (typeof url) +
-        '" in document:\n' + JSON.stringify(doc));
+        '" in document:\n' + JSON.stringify(doc), errors.JSONPathError,
+        doc);
     }
     return url;
   } else if (matches.length > 1) {
     // ambigious match
-    throw new Error('JSONPath expression ' + link +
+    throw createError('JSONPath expression ' + link +
       ' returned more than one match in document:\n' +
-      JSON.stringify(doc));
+      JSON.stringify(doc), errors.JSONPathError, doc);
   } else {
     // no match at all
-    throw new Error('JSONPath expression ' + link +
-      ' returned no match in document:\n' + JSON.stringify(doc));
+    throw createError('JSONPath expression ' + link +
+      ' returned no match in document:\n' + JSON.stringify(doc),
+      errors.JSONPathError, doc);
   }
 };
 
@@ -13889,19 +14124,21 @@ JsonAdapter.prototype._handleHeader = function(httpResponse, link) {
     case 'location':
       var locationHeader = httpResponse.headers.location;
       if (!locationHeader) {
-        throw new Error('Following the location header but there was no ' +
-          'location header in the last response.');
+        throw createError('Following the location header but there was no ' +
+          'location header in the last response.', errors.LinkError,
+          httpResponse.headers);
       }
       return { url : locationHeader };
     default:
-      throw new Error('Link objects with type header and value ' + link.value +
-        ' are not supported by this adapter.', link);
+      throw createError('Link objects with type header and value ' +
+        link.value + ' are not supported by this adapter.',
+        errors.InvalidArgumentError, link);
   }
 };
 
 module.exports = JsonAdapter;
 
-},{"jsonpath-plus":21,"minilog":38,"underscore.string":41}],49:[function(require,module,exports){
+},{"./errors":44,"jsonpath-plus":21,"minilog":36,"underscore.string":39}],48:[function(require,module,exports){
 'use strict';
 
 var mediaTypes = require('./media_types');
@@ -13920,7 +14157,7 @@ exports.register(mediaTypes.CONTENT_NEGOTIATION,
     require('./negotiation_adapter'));
 exports.register(mediaTypes.JSON, require('./json_adapter'));
 
-},{"./json_adapter":48,"./media_types":50,"./negotiation_adapter":52}],50:[function(require,module,exports){
+},{"./json_adapter":47,"./media_types":49,"./negotiation_adapter":51}],49:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -13929,7 +14166,7 @@ module.exports = {
   JSON_HAL: 'application/hal+json',
 };
 
-},{}],51:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 'use strict';
 
 // TODO Maybe replace with https://github.com/Raynos/xtend
@@ -13966,18 +14203,23 @@ function merge(obj1, obj2, key) {
 
 module.exports = mergeRecursive;
 
-},{}],52:[function(require,module,exports){
+},{}],51:[function(require,module,exports){
 'use strict';
+
+var errorModule = require('./errors')
+  , errors = errorModule.errors
+  , createError = errorModule.createError;
 
 function NegotiationAdapter(log) {}
 
 NegotiationAdapter.prototype.findNextStep = function(doc, link) {
-  throw new Error('Content negotiation did not happen');
+  throw createError('Content negotiation did not happen',
+    errors.InvalidStateError);
 };
 
 module.exports = NegotiationAdapter;
 
-},{}],53:[function(require,module,exports){
+},{"./errors":44}],52:[function(require,module,exports){
 (function (process){
 /* jshint loopfunc: true */
 'use strict';
@@ -14019,11 +14261,14 @@ function applyTransforms(transforms, t, callback) {
 module.exports = applyTransforms;
 
 }).call(this,require('_process'))
-},{"_process":3,"minilog":38}],54:[function(require,module,exports){
+},{"_process":3,"minilog":36}],53:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
   , log = minilog('traverson')
+  , errorModule = require('../errors')
+  , errors = errorModule.errors
+  , createError = errorModule.createError
   , isContinuation = require('../is_continuation');
 
 module.exports = function checkHttpStatus(t) {
@@ -14059,9 +14304,8 @@ module.exports = function checkHttpStatus(t) {
 };
 
 function httpError(url, httpStatus, body) {
-  var error = new Error('HTTP GET for ' + url +
-      ' resulted in HTTP status code ' + httpStatus + '.');
-  error.name = 'HTTPError';
+  var error = createError('HTTP GET for ' + url +
+      ' resulted in HTTP status code ' + httpStatus + '.', errors.HTTPError);
   error.url = url;
   error.httpStatus = httpStatus;
   error.body = body;
@@ -14073,7 +14317,7 @@ function httpError(url, httpStatus, body) {
   return error;
 }
 
-},{"../is_continuation":47,"minilog":38}],55:[function(require,module,exports){
+},{"../errors":44,"../is_continuation":46,"minilog":36}],54:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -14095,7 +14339,7 @@ module.exports = function continuationToDoc(t) {
   return true;
 };
 
-},{"../is_continuation":47,"minilog":38}],56:[function(require,module,exports){
+},{"../is_continuation":46,"minilog":36}],55:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -14120,7 +14364,7 @@ module.exports = function continuationToResponse(t) {
   return true;
 };
 
-},{"../is_continuation":47,"./convert_embedded_doc_to_response":57,"minilog":38}],57:[function(require,module,exports){
+},{"../is_continuation":46,"./convert_embedded_doc_to_response":56,"minilog":36}],56:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -14140,13 +14384,16 @@ module.exports = function convertEmbeddedDocToResponse(t) {
   return true;
 };
 
-},{"minilog":38}],58:[function(require,module,exports){
+},{"minilog":36}],57:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
   , log = minilog('traverson');
 
-var mediaTypeRegistry = require('../media_type_registry');
+var mediaTypeRegistry = require('../media_type_registry')
+  , errorModule = require('../errors')
+  , errors = errorModule.errors
+  , createError = errorModule.createError;
 
 module.exports = function detectContentType(t, callback) {
   if (t.contentNegotiation &&
@@ -14156,8 +14403,9 @@ module.exports = function detectContentType(t, callback) {
     var contentType = t.step.response.headers['content-type'].split(/[; ]/)[0];
     var AdapterType = mediaTypeRegistry.get(contentType);
     if (!AdapterType) {
-      callback(new Error('Unknown content type for content ' +
-          'type detection: ' + contentType));
+      callback(createError('Unknown content type for content ' +
+          'type detection: ' + contentType,
+          errors.UnsupportedMediaType));
       return false;
     }
     // switch to new Adapter depending on Content-Type header of server
@@ -14166,7 +14414,7 @@ module.exports = function detectContentType(t, callback) {
   return true;
 };
 
-},{"../media_type_registry":49,"minilog":38}],59:[function(require,module,exports){
+},{"../errors":44,"../media_type_registry":48,"minilog":36}],58:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -14208,7 +14456,7 @@ executeLastHttpRequest.isAsync = true;
 
 module.exports = executeLastHttpRequest;
 
-},{"../abort_traversal":43,"../http_requests":46,"minilog":38}],60:[function(require,module,exports){
+},{"../abort_traversal":41,"../http_requests":45,"minilog":36}],59:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -14237,7 +14485,7 @@ executeLastHttpRequest.isAsync = true;
 
 module.exports = executeLastHttpRequest;
 
-},{"../abort_traversal":43,"../http_requests":46,"minilog":38}],61:[function(require,module,exports){
+},{"../abort_traversal":41,"../http_requests":45,"minilog":36}],60:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -14252,7 +14500,7 @@ module.exports = function extractDoc(t) {
   /*
   TODO Breaks a lot of tests although it seems to make perfect sense?!?
   if (!t.doc) {
-    t.callback(new Error('No document available'));
+    t.callback(createError('No document available', errors.InvalidStateError));
     return false;
   }
   */
@@ -14266,7 +14514,7 @@ module.exports = function extractDoc(t) {
   return false;
 };
 
-},{"minilog":38}],62:[function(require,module,exports){
+},{"minilog":36}],61:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -14282,7 +14530,7 @@ module.exports = function extractDoc(t) {
   /*
   TODO Breaks a lot of tests although it seems to make perfect sense?!?
   if (!t.response) {
-    t.callback(new Error('No response available'));
+    t.callback(createError('No response available', errors.InvalidStateError));
     return false;
   }
   */
@@ -14296,12 +14544,16 @@ module.exports = function extractDoc(t) {
   return false;
 };
 
-},{"minilog":38}],63:[function(require,module,exports){
+},{"minilog":36}],62:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
   , log = minilog('traverson')
   , url = require('url');
+
+var errorModule = require('../errors')
+  , errors = errorModule.errors
+  , createError = errorModule.createError;
 
 /*
  * This transform is meant to be run at the very end of a get/post/put/patch/
@@ -14320,13 +14572,13 @@ module.exports = function extractDoc(t) {
     return t.callback(
         null, url.resolve(t.startUrl, t.step.doc._links.self.href));
   } else {
-    return t.callback(new Error('You requested an URL but the last ' +
+    return t.callback(createError('You requested an URL but the last ' +
         'resource is an embedded resource and has no URL of its own ' +
-        '(that is, it has no link with rel=\"self\"'));
+        '(that is, it has no link with rel=\"self\"', errors.LinkError));
   }
 };
 
-},{"minilog":38,"url":42}],64:[function(require,module,exports){
+},{"../errors":44,"minilog":36,"url":40}],63:[function(require,module,exports){
 'use strict';
 
 // TODO Only difference to lib/transform/fetch_resource is the continuation
@@ -14364,7 +14616,7 @@ fetchLastResource.isAsync = true;
 
 module.exports = fetchLastResource;
 
-},{"../abort_traversal":43,"../http_requests":46,"minilog":38}],65:[function(require,module,exports){
+},{"../abort_traversal":41,"../http_requests":45,"minilog":36}],64:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -14422,7 +14674,7 @@ function fetchViaHttp(t, callback) {
 module.exports = fetchResource;
 
 }).call(this,require('_process'))
-},{"../abort_traversal":43,"../http_requests":46,"../is_continuation":47,"_process":3,"minilog":38}],66:[function(require,module,exports){
+},{"../abort_traversal":41,"../http_requests":45,"../is_continuation":46,"_process":3,"minilog":36}],65:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -14438,12 +14690,17 @@ module.exports = function getOptionsForStep(t) {
   return options;
 };
 
-},{"minilog":38,"util":39}],67:[function(require,module,exports){
+},{"minilog":36,"util":37}],66:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
-  , log = minilog('traverson')
+  , log = minilog('traverson');
+
+var errorModule = require('../errors')
+  , errors = errorModule.errors
+  , createError = errorModule.createError
   , isContinuation = require('../is_continuation');
+
 
 module.exports = function parse(t) {
   // TODO Duplicated in actions#afterGetResource etc.
@@ -14493,15 +14750,14 @@ function handleError(t, e) {
 }
 
 function jsonError(url, body) {
-  var error = new Error('The document at ' + url +
-      ' could not be parsed as JSON: ' + body);
-  error.name = 'JSONError';
+  var error = createError('The document at ' + url +
+      ' could not be parsed as JSON: ' + body, errors.JSONError, body);
   error.url = url;
   error.body = body;
   return error;
 }
 
-},{"../is_continuation":47,"minilog":38}],68:[function(require,module,exports){
+},{"../errors":44,"../is_continuation":46,"minilog":36}],67:[function(require,module,exports){
 'use strict';
 
 var isContinuation = require('../is_continuation');
@@ -14516,7 +14772,7 @@ module.exports = function resetLastStep(t) {
   return true;
 };
 
-},{"../is_continuation":47}],69:[function(require,module,exports){
+},{"../is_continuation":46}],68:[function(require,module,exports){
 'use strict';
 
 var isContinuation = require('../is_continuation');
@@ -14531,7 +14787,7 @@ module.exports = function resetLastStep(t) {
   return true;
 };
 
-},{"../is_continuation":47}],70:[function(require,module,exports){
+},{"../is_continuation":46}],69:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -14564,7 +14820,7 @@ module.exports = function resolveNextUrl(t) {
   return true;
 };
 
-},{"minilog":38,"underscore.string":41,"url":42}],71:[function(require,module,exports){
+},{"minilog":36,"underscore.string":39,"url":40}],70:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -14597,7 +14853,7 @@ module.exports = function resolveUriTemplate(t) {
 
 
 
-},{"minilog":38,"underscore.string":41,"url-template":79,"util":39}],72:[function(require,module,exports){
+},{"minilog":36,"underscore.string":39,"url-template":78,"util":37}],71:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -14636,7 +14892,7 @@ function findNextStep(t, link) {
   }
 }
 
-},{"minilog":38}],73:[function(require,module,exports){
+},{"minilog":36}],72:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -14713,7 +14969,7 @@ function isAborted(t) {
   return t.aborted;
 }
 
-},{"./abort_traversal":43,"./is_continuation":47,"./transforms/apply_transforms":53,"./transforms/check_http_status":54,"./transforms/fetch_resource":65,"./transforms/parse":67,"./transforms/reset_continuation":68,"./transforms/reset_last_step":69,"./transforms/resolve_next_url":70,"./transforms/resolve_uri_template":71,"./transforms/switch_to_next_step":72,"minilog":38}],74:[function(require,module,exports){
+},{"./abort_traversal":41,"./is_continuation":46,"./transforms/apply_transforms":52,"./transforms/check_http_status":53,"./transforms/fetch_resource":64,"./transforms/parse":66,"./transforms/reset_continuation":67,"./transforms/reset_last_step":68,"./transforms/resolve_next_url":69,"./transforms/resolve_uri_template":70,"./transforms/switch_to_next_step":71,"minilog":36}],73:[function(require,module,exports){
 /**
  * Root reference for iframes.
  */
@@ -15691,9 +15947,9 @@ request.put = function(url, data, fn){
   return req;
 };
 
-},{"./is-object":75,"./request":77,"./request-base":76,"emitter":13}],75:[function(require,module,exports){
+},{"./is-object":74,"./request":76,"./request-base":75,"emitter":13}],74:[function(require,module,exports){
 arguments[4][31][0].apply(exports,arguments)
-},{"dup":31}],76:[function(require,module,exports){
+},{"dup":31}],75:[function(require,module,exports){
 /**
  * Module of mixed-in functions shared between node and client code
  */
@@ -16067,7 +16323,7 @@ exports.send = function(data){
   return this;
 };
 
-},{"./is-object":75}],77:[function(require,module,exports){
+},{"./is-object":74}],76:[function(require,module,exports){
 // The node and browser modules expose versions of this with the
 // appropriate constructor function bound as first argument
 /**
@@ -16101,14 +16357,16 @@ function request(RequestConstructor, method, url) {
 
 module.exports = request;
 
-},{}],78:[function(require,module,exports){
+},{}],77:[function(require,module,exports){
 (function (process){
 'use strict';
 
 var minilog = require('minilog')
+  , errorModule = require('./lib/errors')
+  , errors = errorModule.errors
+  , createError = errorModule.createError
   , mediaTypes = require('./lib/media_types')
   , Builder = require('./lib/builder')
-  , mediaTypes = require('./lib/media_types')
   , mediaTypeRegistry = require('./lib/media_type_registry');
 
 // activate this line to enable logging
@@ -16155,10 +16413,12 @@ exports.json = {
 exports.jsonHal = {
   from: function(url) {
     if (!mediaTypeRegistry.get(mediaTypes.JSON_HAL)) {
-      throw new Error('JSON HAL adapter is not registered. From version ' +
+      throw createError('JSON HAL adapter is not registered. From version ' +
         '1.0.0 on, Traverson has no longer built-in support for ' +
         'application/hal+json. HAL support was moved to a separate, optional ' +
-        'plug-in. See https://github.com/basti1302/traverson-hal');
+        'plug-in. See https://github.com/basti1302/traverson-hal',
+        errors.UnsupportedMediaType
+      );
     }
     var builder = new Builder();
     builder.from(url);
@@ -16171,11 +16431,14 @@ exports.jsonHal = {
 // themselves
 exports.registerMediaType = mediaTypeRegistry.register;
 
-// export media type constants
+// re-export media type constants
 exports.mediaTypes = mediaTypes;
 
+// re-export error names
+exports.errors = errors;
+
 }).call(this,require('_process'))
-},{"./lib/builder":45,"./lib/media_type_registry":49,"./lib/media_types":50,"_process":3,"minilog":38}],79:[function(require,module,exports){
+},{"./lib/builder":43,"./lib/errors":44,"./lib/media_type_registry":48,"./lib/media_types":49,"_process":3,"minilog":36}],78:[function(require,module,exports){
 (function (root, factory) {
     if (typeof exports === 'object') {
         module.exports = factory();
