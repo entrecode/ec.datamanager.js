@@ -1348,7 +1348,7 @@ DataManager.DB_BROWSER = 'BROWSER';
 
 module.exports = DataManager;
 
-},{"./Asset":5,"./Entry":7,"./Model":8,"./Tag":9,"./User":10,"./util":11,"es6-promise":15,"halfred":16,"lokijs":24,"shiro-trie":28,"superagent":29,"traverson":77,"traverson-hal":35}],7:[function(require,module,exports){
+},{"./Asset":5,"./Entry":7,"./Model":8,"./Tag":9,"./User":10,"./util":11,"es6-promise":15,"halfred":16,"lokijs":24,"shiro-trie":28,"superagent":29,"traverson":78,"traverson-hal":36}],7:[function(require,module,exports){
 'use strict';
 
 var halfred = require('halfred');
@@ -1562,7 +1562,7 @@ Entry._makeNestedToResource = makeNestedToResource;
 
 module.exports = Entry;
 
-},{"./Asset":5,"./util":11,"halfred":16,"traverson":77,"traverson-hal":35}],8:[function(require,module,exports){
+},{"./Asset":5,"./util":11,"halfred":16,"traverson":78,"traverson-hal":36}],8:[function(require,module,exports){
 'use strict';
 
 var halfred = require('halfred');
@@ -2061,7 +2061,7 @@ Model.prototype._isReachable = function(dests) {
 
 module.exports = Model;
 
-},{"./Asset":5,"./Entry":7,"./util":11,"halfred":16,"is-reachable":20,"superagent":29,"traverson":77}],9:[function(require,module,exports){
+},{"./Asset":5,"./Entry":7,"./util":11,"halfred":16,"is-reachable":20,"superagent":29,"traverson":78}],9:[function(require,module,exports){
 'use strict';
 
 var halfred = require('halfred');
@@ -2160,7 +2160,7 @@ Tag.prototype._getTraversal = function() {
 
 module.exports = Tag;
 
-},{"./util":11,"halfred":16,"traverson":77}],10:[function(require,module,exports){
+},{"./util":11,"halfred":16,"traverson":78}],10:[function(require,module,exports){
 'use strict';
 
 var util = require('./util');
@@ -10788,6 +10788,7 @@ var RequestBase = require('./request-base');
 var isObject = require('./is-object');
 var isFunction = require('./is-function');
 var ResponseBase = require('./response-base');
+var shouldRetry = require('./should-retry');
 
 /**
  * Noop.
@@ -11062,8 +11063,7 @@ function isJSON(mime) {
  * @api private
  */
 
-function Response(req, options) {
-  options = options || {};
+function Response(req) {
   this.req = req;
   this.xhr = this.req.xhr;
   // responseText is accessible only if responseType is '' or 'text' and on older browsers
@@ -11299,18 +11299,18 @@ Request.prototype.auth = function(user, pass, options){
 };
 
 /**
-* Add query-string `val`.
-*
-* Examples:
-*
-*   request.get('/shoes')
-*     .query('size=10')
-*     .query({ color: 'blue' })
-*
-* @param {Object|String} val
-* @return {Request} for chaining
-* @api public
-*/
+ * Add query-string `val`.
+ *
+ * Examples:
+ *
+ *   request.get('/shoes')
+ *     .query('size=10')
+ *     .query({ color: 'blue' })
+ *
+ * @param {Object|String} val
+ * @return {Request} for chaining
+ * @api public
+ */
 
 Request.prototype.query = function(val){
   if ('string' != typeof val) val = serialize(val);
@@ -11361,10 +11361,16 @@ Request.prototype._getFormData = function(){
  */
 
 Request.prototype.callback = function(err, res){
+  // console.log(this._retries, this._maxRetries)
+  if (this._maxRetries && this._retries++ < this._maxRetries && shouldRetry(err, res)) {
+    return this._retry();
+  }
+
   var fn = this._callback;
   this.clearTimeout();
 
   if (err) {
+    if (this._maxRetries) err.retries = this._retries - 1;
     this.emit('error', err);
   }
 
@@ -11448,10 +11454,6 @@ Request.prototype._isHost = function _isHost(obj) {
  */
 
 Request.prototype.end = function(fn){
-  var self = this;
-  var xhr = this.xhr = request.getXHR();
-  var data = this._formData || this._data;
-
   if (this._endCalled) {
     console.warn("Warning: .end() was called twice. This is not supported in superagent");
   }
@@ -11459,6 +11461,19 @@ Request.prototype.end = function(fn){
 
   // store callback
   this._callback = fn || noop;
+
+  // querystring
+  this._appendQueryString();
+
+  return this._end();
+};
+
+Request.prototype._end = function() {
+  var self = this;
+  var xhr = this.xhr = request.getXHR();
+  var data = this._formData || this._data;
+
+  this._setTimeouts();
 
   // state change
   xhr.onreadystatechange = function(){
@@ -11503,16 +11518,16 @@ Request.prototype.end = function(fn){
     }
   }
 
-  // querystring
-  this._appendQueryString();
-
-  this._setTimeouts();
-
   // initiate request
-  if (this.username && this.password) {
-    xhr.open(this.method, this.url, true, this.username, this.password);
-  } else {
-    xhr.open(this.method, this.url, true);
+  try {
+    if (this.username && this.password) {
+      xhr.open(this.method, this.url, true, this.username, this.password);
+    } else {
+      xhr.open(this.method, this.url, true);
+    }
+  } catch (err) {
+    // see #1149
+    return this.callback(err);
   }
 
   // CORS
@@ -11603,16 +11618,19 @@ request.options = function(url, data, fn){
 };
 
 /**
- * DELETE `url` with optional callback `fn(res)`.
+ * DELETE `url` with optional `data` and callback `fn(res)`.
  *
  * @param {String} url
+ * @param {Mixed} [data]
  * @param {Function} [fn]
  * @return {Request}
  * @api public
  */
 
-function del(url, fn){
+function del(url, data, fn){
   var req = request('DELETE', url);
+  if ('function' == typeof data) fn = data, data = null;
+  if (data) req.send(data);
   if (fn) req.end(fn);
   return req;
 };
@@ -11674,7 +11692,7 @@ request.put = function(url, data, fn){
   return req;
 };
 
-},{"./is-function":30,"./is-object":31,"./request-base":32,"./response-base":33,"emitter":13}],30:[function(require,module,exports){
+},{"./is-function":30,"./is-object":31,"./request-base":32,"./response-base":33,"./should-retry":34,"emitter":13}],30:[function(require,module,exports){
 /**
  * Check if `fn` is a function.
  *
@@ -11751,10 +11769,10 @@ function mixin(obj) {
  */
 
 RequestBase.prototype.clearTimeout = function _clearTimeout(){
-  this._timeout = 0;
-  this._responseTimeout = 0;
   clearTimeout(this._timer);
   clearTimeout(this._responseTimeoutTimer);
+  delete this._timer;
+  delete this._responseTimeoutTimer;
   return this;
 };
 
@@ -11839,10 +11857,51 @@ RequestBase.prototype.timeout = function timeout(options){
 };
 
 /**
+ * Set number of retry attempts on error.
+ *
+ * Failed requests will be retried 'count' times if timeout or err.code >= 500.
+ *
+ * @param {Number} count
+ * @return {Request} for chaining
+ * @api public
+ */
+
+RequestBase.prototype.retry = function retry(count){
+  // Default to 1 if no count passed or true
+  if (arguments.length === 0 || count === true) count = 1;
+  if (count <= 0) count = 0;
+  this._maxRetries = count;
+  this._retries = 0;
+  return this;
+};
+
+/**
+ * Retry request
+ *
+ * @return {Request} for chaining
+ * @api private
+ */
+
+RequestBase.prototype._retry = function() {
+  this.clearTimeout();
+
+  // node
+  if (this.req) {
+    this.req = null;
+    this.req = this.request();
+  }
+
+  this._aborted = false;
+  this.timedout = false;
+
+  return this._end();
+};
+
+/**
  * Promise support
  *
  * @param {Function} resolve
- * @param {Function} reject
+ * @param {Function} [reject]
  * @return {Request}
  */
 
@@ -11997,6 +12056,10 @@ RequestBase.prototype.field = function(name, val) {
     throw new Error('.field(name, val) name can not be empty');
   }
 
+  if (this._data) {
+    console.error(".field() can't be used if .send() is used. Please use only .send() or only .field() & .attach()");
+  }
+
   if (isObject(name)) {
     for (var key in name) {
       this.field(key, name[key]);
@@ -12132,6 +12195,10 @@ RequestBase.prototype.toJSON = function(){
 RequestBase.prototype.send = function(data){
   var isObj = isObject(data);
   var type = this._header['content-type'];
+
+  if (this._formData) {
+    console.error(".send() can't be used if .attach() or .field() is used. Please use only .send() or only .field() & .attach()");
+  }
 
   if (isObj && !this._data) {
     if (Array.isArray(data)) {
@@ -12377,7 +12444,30 @@ ResponseBase.prototype._setStatusProperties = function(status){
     this.notFound = 404 == status;
 };
 
-},{"./utils":34}],34:[function(require,module,exports){
+},{"./utils":35}],34:[function(require,module,exports){
+var ERROR_CODES = [
+  'ECONNRESET',
+  'ETIMEDOUT',
+  'EADDRINFO',
+  'ESOCKETTIMEDOUT'
+];
+
+/**
+ * Determine if a request should be retried.
+ * (Borrowed from segmentio/superagent-retry)
+ *
+ * @param {Error} err
+ * @param {Response} [res]
+ * @returns {Boolean}
+ */
+module.exports = function shouldRetry(err, res) {
+  if (err && err.code && ~ERROR_CODES.indexOf(err.code)) return true;
+  if (res && res.status && res.status >= 500) return true;
+  // Superagent timeout
+  if (err && 'timeout' in err && err.code == 'ECONNABORTED') return true;
+  return false;
+};
+},{}],35:[function(require,module,exports){
 
 /**
  * Return the mime type for the given `str`.
@@ -12446,8 +12536,7 @@ exports.cleanHeader = function(header, shouldStripCookie){
   }
   return header;
 };
-
-},{}],35:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 'use strict';
 
 var halfred = require('halfred');
@@ -12807,7 +12896,7 @@ function createError(message, name, data) {
 
 module.exports = JsonHalAdapter;
 
-},{"halfred":16}],36:[function(require,module,exports){
+},{"halfred":16}],37:[function(require,module,exports){
 'use strict';
 
 // TODO Replace by a proper lightweight logging module, suited for the browser
@@ -12858,7 +12947,7 @@ minilog.enable = function() {
 
 module.exports = minilog;
 
-},{}],37:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -12870,7 +12959,7 @@ module.exports = {
   }
 };
 
-},{}],38:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 'use strict';
 
 var superagent = require('superagent');
@@ -12999,7 +13088,7 @@ function handleResponse(callback) {
 
 module.exports = new Request();
 
-},{"superagent":73}],39:[function(require,module,exports){
+},{"superagent":74}],40:[function(require,module,exports){
 'use strict';
 
 /*
@@ -13043,7 +13132,7 @@ var _s = {
 
 module.exports = _s;
 
-},{}],40:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 'use strict';
 
 var resolveUrl = require('resolve-url');
@@ -13052,7 +13141,7 @@ exports.resolve = function(from, to) {
   return resolveUrl(from, to);
 };
 
-},{"resolve-url":26}],41:[function(require,module,exports){
+},{"resolve-url":26}],42:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -13093,7 +13182,7 @@ exports.abortError = function abortError() {
   return error;
 };
 
-},{"./errors":44,"minilog":36}],42:[function(require,module,exports){
+},{"./errors":45,"minilog":37}],43:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -13229,7 +13318,7 @@ function createTraversalHandle(t) {
   };
 }
 
-},{"./abort_traversal":41,"./http_requests":45,"./is_continuation":46,"./transforms/apply_transforms":52,"./transforms/check_http_status":53,"./transforms/continuation_to_doc":54,"./transforms/continuation_to_response":55,"./transforms/convert_embedded_doc_to_response":56,"./transforms/execute_http_request":58,"./transforms/execute_last_http_request":59,"./transforms/extract_doc":60,"./transforms/extract_response":61,"./transforms/extract_url":62,"./transforms/fetch_last_resource":63,"./transforms/parse":66,"./walker":72,"minilog":36}],43:[function(require,module,exports){
+},{"./abort_traversal":42,"./http_requests":46,"./is_continuation":47,"./transforms/apply_transforms":53,"./transforms/check_http_status":54,"./transforms/continuation_to_doc":55,"./transforms/continuation_to_response":56,"./transforms/convert_embedded_doc_to_response":57,"./transforms/execute_http_request":59,"./transforms/execute_last_http_request":60,"./transforms/extract_doc":61,"./transforms/extract_response":62,"./transforms/extract_url":63,"./transforms/fetch_last_resource":64,"./transforms/parse":67,"./walker":73,"minilog":37}],44:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -13878,7 +13967,7 @@ function shallowCloneArray(array) {
 
 module.exports = Builder;
 
-},{"./abort_traversal":41,"./actions":42,"./errors":44,"./media_type_registry":48,"./media_types":49,"./merge_recursive":50,"minilog":36,"request":38,"util":37}],44:[function(require,module,exports){
+},{"./abort_traversal":42,"./actions":43,"./errors":45,"./media_type_registry":49,"./media_types":50,"./merge_recursive":51,"minilog":37,"request":39,"util":38}],45:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -13904,7 +13993,7 @@ module.exports = {
 
 };
 
-},{}],45:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 (function (process){
 'use strict';
 var minilog = require('minilog')
@@ -14015,14 +14104,14 @@ exports.executeHttpRequest = function(t, request, method, callback) {
 };
 
 }).call(this,require('_process'))
-},{"./abort_traversal":41,"./errors":44,"./transforms/detect_content_type":57,"./transforms/get_options_for_step":65,"_process":3,"minilog":36}],46:[function(require,module,exports){
+},{"./abort_traversal":42,"./errors":45,"./transforms/detect_content_type":58,"./transforms/get_options_for_step":66,"_process":3,"minilog":37}],47:[function(require,module,exports){
 'use strict';
 
 module.exports = function isContinuation(t) {
   return t.continuation && t.step && t.step.response;
 };
 
-},{}],47:[function(require,module,exports){
+},{}],48:[function(require,module,exports){
 'use strict';
 
 var jsonpath = require('jsonpath-plus')
@@ -14138,7 +14227,7 @@ JsonAdapter.prototype._handleHeader = function(httpResponse, link) {
 
 module.exports = JsonAdapter;
 
-},{"./errors":44,"jsonpath-plus":21,"minilog":36,"underscore.string":39}],48:[function(require,module,exports){
+},{"./errors":45,"jsonpath-plus":21,"minilog":37,"underscore.string":40}],49:[function(require,module,exports){
 'use strict';
 
 var mediaTypes = require('./media_types');
@@ -14157,7 +14246,7 @@ exports.register(mediaTypes.CONTENT_NEGOTIATION,
     require('./negotiation_adapter'));
 exports.register(mediaTypes.JSON, require('./json_adapter'));
 
-},{"./json_adapter":47,"./media_types":49,"./negotiation_adapter":51}],49:[function(require,module,exports){
+},{"./json_adapter":48,"./media_types":50,"./negotiation_adapter":52}],50:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -14166,7 +14255,7 @@ module.exports = {
   JSON_HAL: 'application/hal+json',
 };
 
-},{}],50:[function(require,module,exports){
+},{}],51:[function(require,module,exports){
 'use strict';
 
 // TODO Maybe replace with https://github.com/Raynos/xtend
@@ -14203,7 +14292,7 @@ function merge(obj1, obj2, key) {
 
 module.exports = mergeRecursive;
 
-},{}],51:[function(require,module,exports){
+},{}],52:[function(require,module,exports){
 'use strict';
 
 var errorModule = require('./errors')
@@ -14219,7 +14308,7 @@ NegotiationAdapter.prototype.findNextStep = function(doc, link) {
 
 module.exports = NegotiationAdapter;
 
-},{"./errors":44}],52:[function(require,module,exports){
+},{"./errors":45}],53:[function(require,module,exports){
 (function (process){
 /* jshint loopfunc: true */
 'use strict';
@@ -14261,7 +14350,7 @@ function applyTransforms(transforms, t, callback) {
 module.exports = applyTransforms;
 
 }).call(this,require('_process'))
-},{"_process":3,"minilog":36}],53:[function(require,module,exports){
+},{"_process":3,"minilog":37}],54:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -14317,7 +14406,7 @@ function httpError(url, httpStatus, body) {
   return error;
 }
 
-},{"../errors":44,"../is_continuation":46,"minilog":36}],54:[function(require,module,exports){
+},{"../errors":45,"../is_continuation":47,"minilog":37}],55:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -14339,7 +14428,7 @@ module.exports = function continuationToDoc(t) {
   return true;
 };
 
-},{"../is_continuation":46,"minilog":36}],55:[function(require,module,exports){
+},{"../is_continuation":47,"minilog":37}],56:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -14364,7 +14453,7 @@ module.exports = function continuationToResponse(t) {
   return true;
 };
 
-},{"../is_continuation":46,"./convert_embedded_doc_to_response":56,"minilog":36}],56:[function(require,module,exports){
+},{"../is_continuation":47,"./convert_embedded_doc_to_response":57,"minilog":37}],57:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -14384,7 +14473,7 @@ module.exports = function convertEmbeddedDocToResponse(t) {
   return true;
 };
 
-},{"minilog":36}],57:[function(require,module,exports){
+},{"minilog":37}],58:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -14414,7 +14503,7 @@ module.exports = function detectContentType(t, callback) {
   return true;
 };
 
-},{"../errors":44,"../media_type_registry":48,"minilog":36}],58:[function(require,module,exports){
+},{"../errors":45,"../media_type_registry":49,"minilog":37}],59:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -14456,7 +14545,7 @@ executeLastHttpRequest.isAsync = true;
 
 module.exports = executeLastHttpRequest;
 
-},{"../abort_traversal":41,"../http_requests":45,"minilog":36}],59:[function(require,module,exports){
+},{"../abort_traversal":42,"../http_requests":46,"minilog":37}],60:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -14485,7 +14574,7 @@ executeLastHttpRequest.isAsync = true;
 
 module.exports = executeLastHttpRequest;
 
-},{"../abort_traversal":41,"../http_requests":45,"minilog":36}],60:[function(require,module,exports){
+},{"../abort_traversal":42,"../http_requests":46,"minilog":37}],61:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -14514,7 +14603,7 @@ module.exports = function extractDoc(t) {
   return false;
 };
 
-},{"minilog":36}],61:[function(require,module,exports){
+},{"minilog":37}],62:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -14544,7 +14633,7 @@ module.exports = function extractDoc(t) {
   return false;
 };
 
-},{"minilog":36}],62:[function(require,module,exports){
+},{"minilog":37}],63:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -14578,7 +14667,7 @@ module.exports = function extractDoc(t) {
   }
 };
 
-},{"../errors":44,"minilog":36,"url":40}],63:[function(require,module,exports){
+},{"../errors":45,"minilog":37,"url":41}],64:[function(require,module,exports){
 'use strict';
 
 // TODO Only difference to lib/transform/fetch_resource is the continuation
@@ -14616,7 +14705,7 @@ fetchLastResource.isAsync = true;
 
 module.exports = fetchLastResource;
 
-},{"../abort_traversal":41,"../http_requests":45,"minilog":36}],64:[function(require,module,exports){
+},{"../abort_traversal":42,"../http_requests":46,"minilog":37}],65:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -14674,7 +14763,7 @@ function fetchViaHttp(t, callback) {
 module.exports = fetchResource;
 
 }).call(this,require('_process'))
-},{"../abort_traversal":41,"../http_requests":45,"../is_continuation":46,"_process":3,"minilog":36}],65:[function(require,module,exports){
+},{"../abort_traversal":42,"../http_requests":46,"../is_continuation":47,"_process":3,"minilog":37}],66:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -14690,7 +14779,7 @@ module.exports = function getOptionsForStep(t) {
   return options;
 };
 
-},{"minilog":36,"util":37}],66:[function(require,module,exports){
+},{"minilog":37,"util":38}],67:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -14757,7 +14846,7 @@ function jsonError(url, body) {
   return error;
 }
 
-},{"../errors":44,"../is_continuation":46,"minilog":36}],67:[function(require,module,exports){
+},{"../errors":45,"../is_continuation":47,"minilog":37}],68:[function(require,module,exports){
 'use strict';
 
 var isContinuation = require('../is_continuation');
@@ -14772,7 +14861,7 @@ module.exports = function resetLastStep(t) {
   return true;
 };
 
-},{"../is_continuation":46}],68:[function(require,module,exports){
+},{"../is_continuation":47}],69:[function(require,module,exports){
 'use strict';
 
 var isContinuation = require('../is_continuation');
@@ -14787,7 +14876,7 @@ module.exports = function resetLastStep(t) {
   return true;
 };
 
-},{"../is_continuation":46}],69:[function(require,module,exports){
+},{"../is_continuation":47}],70:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -14820,7 +14909,7 @@ module.exports = function resolveNextUrl(t) {
   return true;
 };
 
-},{"minilog":36,"underscore.string":39,"url":40}],70:[function(require,module,exports){
+},{"minilog":37,"underscore.string":40,"url":41}],71:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -14853,7 +14942,7 @@ module.exports = function resolveUriTemplate(t) {
 
 
 
-},{"minilog":36,"underscore.string":39,"url-template":78,"util":37}],71:[function(require,module,exports){
+},{"minilog":37,"underscore.string":40,"url-template":79,"util":38}],72:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -14892,7 +14981,7 @@ function findNextStep(t, link) {
   }
 }
 
-},{"minilog":36}],72:[function(require,module,exports){
+},{"minilog":37}],73:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -14969,7 +15058,7 @@ function isAborted(t) {
   return t.aborted;
 }
 
-},{"./abort_traversal":41,"./is_continuation":46,"./transforms/apply_transforms":52,"./transforms/check_http_status":53,"./transforms/fetch_resource":64,"./transforms/parse":66,"./transforms/reset_continuation":67,"./transforms/reset_last_step":68,"./transforms/resolve_next_url":69,"./transforms/resolve_uri_template":70,"./transforms/switch_to_next_step":71,"minilog":36}],73:[function(require,module,exports){
+},{"./abort_traversal":42,"./is_continuation":47,"./transforms/apply_transforms":53,"./transforms/check_http_status":54,"./transforms/fetch_resource":65,"./transforms/parse":67,"./transforms/reset_continuation":68,"./transforms/reset_last_step":69,"./transforms/resolve_next_url":70,"./transforms/resolve_uri_template":71,"./transforms/switch_to_next_step":72,"minilog":37}],74:[function(require,module,exports){
 /**
  * Root reference for iframes.
  */
@@ -15947,9 +16036,9 @@ request.put = function(url, data, fn){
   return req;
 };
 
-},{"./is-object":74,"./request":76,"./request-base":75,"emitter":13}],74:[function(require,module,exports){
+},{"./is-object":75,"./request":77,"./request-base":76,"emitter":13}],75:[function(require,module,exports){
 arguments[4][31][0].apply(exports,arguments)
-},{"dup":31}],75:[function(require,module,exports){
+},{"dup":31}],76:[function(require,module,exports){
 /**
  * Module of mixed-in functions shared between node and client code
  */
@@ -16323,7 +16412,7 @@ exports.send = function(data){
   return this;
 };
 
-},{"./is-object":74}],76:[function(require,module,exports){
+},{"./is-object":75}],77:[function(require,module,exports){
 // The node and browser modules expose versions of this with the
 // appropriate constructor function bound as first argument
 /**
@@ -16357,7 +16446,7 @@ function request(RequestConstructor, method, url) {
 
 module.exports = request;
 
-},{}],77:[function(require,module,exports){
+},{}],78:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -16438,7 +16527,7 @@ exports.mediaTypes = mediaTypes;
 exports.errors = errors;
 
 }).call(this,require('_process'))
-},{"./lib/builder":43,"./lib/errors":44,"./lib/media_type_registry":48,"./lib/media_types":49,"_process":3,"minilog":36}],78:[function(require,module,exports){
+},{"./lib/builder":44,"./lib/errors":45,"./lib/media_type_registry":49,"./lib/media_types":50,"_process":3,"minilog":37}],79:[function(require,module,exports){
 (function (root, factory) {
     if (typeof exports === 'object') {
         module.exports = factory();
