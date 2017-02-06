@@ -3,6 +3,7 @@
   "version": "0.11.2",
   "description": "JavaScript SDK for ec.datamanager. By entrecode.",
   "main": "index.js",
+  "typings": "typings.d.ts",
   "directories": {
     "example": "example",
     "test": "test"
