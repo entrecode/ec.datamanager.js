@@ -1,4 +1,8 @@
 # Changelog
+## 0.11.5
+- fix for typings
+- Promise polyfill only when Promise is undefined
+
 ## 0.11.3 - 0.11.4
 - typescript typings
 
