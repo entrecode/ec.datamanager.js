@@ -1,4 +1,7 @@
 # Changelog
+## 0.11.6
+- damn you browser build
+
 ## 0.11.5
 - fix for typings
 - Promise polyfill only when Promise is undefined
