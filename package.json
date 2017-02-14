@@ -34,7 +34,7 @@
   },
   "homepage": "https://github.com/entrecode/ec.datamanager.js",
   "devDependencies": {
-    "body-parser": "1.16.0",
+    "body-parser": "1.16.1",
     "browserify": "14.1.0",
     "chai": "3.5.0",
     "coveralls": "2.11.16",
@@ -58,7 +58,7 @@
     "lodash.isequal": "4.5.0",
     "mocha": "3.2.0",
     "mocha-bamboo-reporter": "1.1.1",
-    "nock": "9.0.4",
+    "nock": "9.0.6",
     "phantomjs-prebuilt": "2.1.14",
     "sinon": "1.17.7",
     "walk": "2.3.9"
