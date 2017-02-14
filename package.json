@@ -72,6 +72,6 @@
     "shiro-trie": "0.3.12",
     "superagent": "3.4.1",
     "traverson": "5.0.0",
-    "traverson-hal": "5.0.0"
+    "traverson-hal": "6.0.0"
   }
 }
