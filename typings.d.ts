@@ -1,5 +1,5 @@
-export declare namespace ec.datmanager {
-  export class DataManager {
+declare namespace DataManager {
+  export interface DataManager {
     constructor(options: dmOptions);
 
     getFileUrl(assetID: string, locale?: string): Promise<string>;
@@ -16,25 +16,25 @@ export declare namespace ec.datmanager {
 
     clearCache(): Promise<any>;
 
-    model(title: string, metadata: any): Model;
+    model(title: string, metadata: any): Model.Model;
 
-    assetList(options: any): AssetList;
+    assetList(options?: any): AssetList;
 
-    assets(options: any): Array<Asset>;
+    assets(options?: any): Array<Asset.Asset>;
 
-    asset(assetID: string): Asset;
+    asset(assetID: string): Asset.Asset;
 
-    createAsset(input: any): Array<Promise<Asset>>;
+    createAsset(input: any): Array<Promise<Asset.Asset>>;
 
-    tagList(options: any): TagList;
+    tagList(options?: any): TagList;
 
-    tags(options: any): Array<Tag>;
+    tags(options?: any): Array<Tag.Tag>;
 
-    tag(tag: string): Tag;
+    tag(tag: string): Tag.Tag;
 
-    registerAnonymous(validUntil: string): Promise<User>;
+    registerAnonymous(validUntil: string): Promise<User.User>;
 
-    account(): Promise<User>;
+    account(): Promise<User.User>;
 
     getAuthLink(relation: string, templateParameter: any): Promise<string>;
 
@@ -45,9 +45,35 @@ export declare namespace ec.datmanager {
     logout(): void;
   }
 
-  export class Asset {
-    constructor(asset: any, dm: DataManager);
+  export function getFileUrl(assetID: string, locale?: string): Promise<string>;
 
+  export function getImageUrl(assetID: string, size?: number, locale?: string): Promise<string>;
+
+  export function getImageThumbUrl(assetID: string, size?: number, locale?: string): Promise<string>;
+
+  export function cloneEntry(entry: Entry.Entry): Entry.Entry;
+
+  export function cloneEntries(entries: Array<Entry.Entry>): Array<Entry.Entry>;
+
+  export function cloneAsset(asset: Asset.Asset): Asset.Asset;
+
+  export function cloneAssets(assets: Array<Asset.Asset>): Array<Asset.Asset>;
+
+  export function cloneTag(tag: Tag.Tag): Tag.Tag;
+
+  export function cloneTags(tags: Array<Tag.Tag>): Array<Tag.Tag>;
+
+  export const DB_NODEJS: string;
+
+  export const DB_CORDOVA: string;
+
+  export const DB_BROWSER: string;
+}
+
+declare function DataManager(options: dmOptions): void;
+
+declare namespace Asset {
+  export interface Asset {
     save(): Promise<Asset>;
 
     delete(): Promise<boolean>;
@@ -58,12 +84,14 @@ export declare namespace ec.datmanager {
 
     getImageThumbUrl(size?: number, locale?: string): Promise<string>;
 
-    clone(): Entry;
+    clone(): Entry.Entry;
   }
+}
 
-  export class Entry {
-    constructor(entry: any, dm: DataManager, model: Model);
+declare function Asset(asset: any, dm: DataManager.DataManager): void;
 
+declare namespace Entry {
+  export interface Entry {
     save(): Promise<Entry>;
 
     delete(): Promise<boolean>;
@@ -72,10 +100,12 @@ export declare namespace ec.datmanager {
 
     getModelTitle(property: string): string;
   }
+}
 
-  export class Model {
-    constructor(title: string, metadata: any, dm: DataManager);
+declare function Entry(entry: any, dm: DataManager.DataManager, model: Model.Model): void;
 
+declare namespace Model {
+  export interface Model {
     enableCache(env: env, maxCacheAge?: number): Promise<any>;
 
     clearCache(): Promise<any>;
@@ -84,62 +114,52 @@ export declare namespace ec.datmanager {
 
     getSchema(): Promise<any>;
 
-    entryList(options: any): Promise<EntryList>;
+    entryList(options?: any): Promise<EntryList>;
 
-    entries(options: any): Promise<Array<Entry>>;
+    entries(options?: any): Promise<Array<Entry.Entry>>;
 
-    entry(id: any, levels: number): Promise<Entry>;
+    entry(id: any, levels: number): Promise<Entry.Entry>;
 
-    nestedEntry(id: any, levels: number): Promise<Entry>;
+    nestedEntry(id: any, levels: number): Promise<Entry.Entry>;
 
-    createEntry(entry: any): Promise<Entry>;
+    createEntry(entry: any): Promise<Entry.Entry>;
 
     deleteEntry(entryId: string): Promise<boolean>;
   }
+}
 
-  export class Tag {
-    constructor(tag: any, dm: DataManager, traversal: any);
+declare function Model(title: string, metadata: any, dm: DataManager.DataManager): void;
 
+declare namespace Tag {
+  export interface Tag {
     save(): Promise<Tag>;
 
     delete(): Promise<boolean>;
   }
+}
 
-  export class User {
-    constructor(isAnon: boolean, user: any, dm: DataManager);
+declare function Tag(tag: any, dm: DataManager.DataManager, traversal: any): void;
 
+declare namespace User {
+  export interface User {
     logout(): Promise<void>;
 
     isAnonymous(): boolean;
 
     isAnon(): boolean;
   }
-
-  export function getFileUrl(assetID: string, locale?: string): Promise<string>;
-
-  export function getImageUrl(assetID: string, size?: number, locale?: string): Promise<string>;
-
-  export function getImageThumbUrl(assetID: string, size?: number, locale?: string): Promise<string>;
-
-  export function cloneEntry(entry: Entry): Entry;
-
-  export function cloneEntries(entries: Array<Entry>): Array<Entry>;
-
-  export function cloneAsset(asset: Asset): Asset;
-
-  export function cloneAssets(assets: Array<Asset>): Array<Asset>;
-
-  export function cloneTag(tag: Tag): Tag;
-
-  export function cloneTags(tags: Array<Tag>): Array<Tag>;
-
-  type dmOptions = { url: string, id: string, accessToken: string, clientID: string, errorHandler: (error: Error) => {} };
-
-  type env = 'NODEJS'|'CORDOVA'|'BROWSER';
-
-  type AssetList = { assets: Array<Asset>, count: number, total: number }
-
-  type TagList = { tags: Array<Tag>, count: number, total: number }
-
-  type EntryList = { entries: Array<Entry>, count: number, total: number }
 }
+
+declare function User(isAnon: boolean, user: any, dm: DataManager.DataManager): void;
+
+export = DataManager;
+
+type dmOptions = { url?: string, id?: string, accessToken?: string, clientID?: string, errorHandler?: (error: Error) => {} };
+
+type env = 'NODEJS'|'CORDOVA'|'BROWSER';
+
+type AssetList = { assets: Array<Asset.Asset>, count: number, total: number }
+
+type TagList = { tags: Array<Tag.Tag>, count: number, total: number }
+
+type EntryList = { entries: Array<Entry.Entry>, count: number, total: number }
