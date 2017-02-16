@@ -543,7 +543,7 @@ dataManager.asset('46092f02-7441-4759-b6ff-8f3831d3da4b')
 #### Create Asset(s)
 
 ```js
-dataManager.createAsset(formData)
+dataManager.createAsset(formData, tags, title)
 .then(function(assets){
   console.log(assets); // array with Get Asset Promises
   return assets[0]; // this is a Promise!
@@ -790,7 +790,7 @@ returns available Assets as Promise.
 ##### `assetList()`
 returns available Assets as Promise. Promise will resolve a list object containing the properties `assets`, `count`, and `total`.
 
-##### `createAsset(formData|filePath|arrayOfFilePaths)`
+##### `createAsset(formData|filePath|arrayOfFilePaths, tags, title)`
 creates a new Asset. Returns an Array of Promsises to retrieve the created Assets.
 
 ##### `getFileURL(assetID, [locale])`
