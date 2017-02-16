@@ -2062,7 +2062,7 @@ describe('asset/assets', function() {
   
   if (isNode) {
     it('create asset, node', function() {
-      return dm.createAsset(__dirname + '/whynotboth.jpg').then(function(assets) {
+      return dm.createAsset(__dirname + '/whynotboth.jpg', '["tag"]', 'title').then(function(assets) {
         expect(assets).to.be.instanceOf(Array);
         expect(assets.length).to.be.equal(1);
         return assets[0].then(function(asset) {
