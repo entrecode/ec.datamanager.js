@@ -1,4 +1,7 @@
 # Changelog
+## 0.11.8
+- handle FormData properly on createAsset
+
 ## 0.11.7
 - tags and title property on createAsset
 
