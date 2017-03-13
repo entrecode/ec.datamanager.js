@@ -1,4 +1,7 @@
 # Changelog
+## 0.11.9
+- get original file from asset CMS-2684
+
 ## 0.11.8
 - handle FormData properly on createAsset
 
