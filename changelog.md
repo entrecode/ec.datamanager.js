@@ -1,4 +1,7 @@
 # Changelog
+## 0.11.10
+- got original file for all assets not only images
+
 ## 0.11.9
 - get original file from asset CMS-2684
 
