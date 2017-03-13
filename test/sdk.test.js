@@ -2187,6 +2187,9 @@ describe('asset best file helper', function() {
     it('get thumb url with size and locale', function() {
       expect(asset.getImageThumbUrl(100, 'de-DE')).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/qaRs3a9dFiiu_Mq7P0R7gG2e.gif');
     });
+    it('get original file', function() {
+      expect(asset.getOriginal()).to.have.property('url', 'https://cdn2.entrecode.de/files/58b9a1f5/qaRs3a9dFiiu_Mq7P0R7gG2e.gif');
+    });
   });
   
   describe('image', function() {
@@ -2236,6 +2239,9 @@ describe('asset best file helper', function() {
     });
     it('get thumb url with size and locale', function() {
       expect(asset.getImageThumbUrl(100, 'de-DE')).to.be.equal('https://cdn2.entrecode.de/files/58b9a1f5/b_in72f5iM6szybZ4Un4W1zr_100_thumb.jpg');
+    });
+    it('get original file', function() {
+      expect(asset.getOriginal()).to.have.property('url', 'https://cdn2.entrecode.de/files/58b9a1f5/b_in72f5iM6szybZ4Un4W1zr.jpg');
     });
   });
 

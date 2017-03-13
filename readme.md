@@ -636,6 +636,13 @@ var url = asset.getImageThumbUrl(100); // size 100 thumb files
 
 The returned image will be a square-cropped variant with (in this example) at least 100 pixels (pixel value can be set as with `getImageUrl`). Available sizes are 50, 100, 200 and 400 px. Other values will be mapped to next bigger one.
 
+#### Asset getOriginal Helper
+
+```js
+var file = asset.getOriginal();
+console.log(file.url); // the file url
+console.log(file.resolution); // the resolution { width, heigth }
+```
 
 ### Tags
 #### Get TagList
@@ -1076,6 +1083,9 @@ Example: The source image has a largest edge of 3000 pixels. `getImageURL(id, 10
 syncronously returns an image thumbnail (square cropped). `size` is required and states the size in pixels the thumbnail square edge should have at least.
 
 Note that the image may still be smaller if the original image is smaller than `size`. Optionally, a specific `locale` can be requested. The following sizes are being returned: 50, 100, 200, 400
+
+##### getOriginal
+syncronously returns the file object of the original file. Retruns undefined on non image assets.
 
 
 ### Tag Object
