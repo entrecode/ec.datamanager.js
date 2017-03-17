@@ -877,6 +877,7 @@ Valid keys are:
 - `size` – number of entries to get (default: 10)
 - `page` – which page of entries to get when there are more than `size` (default: 1)
 - `sort` – sort by a different than the default property. Syntax: `{direction}{property}[,…]` where `direction` defaults to `+` (ascending order) and can be set to `-` (descending order) and `property` is the property to sort after. Can even be multiple properties (Array).
+- `fields` - Array of field names to include in the response.
 - `filter` – for filtering after properties. Always an object with properties as key. The keys can have the following possible values:
     - `exact`: exact filter. Value is the value to match exactly
     - `search`: search filter. Value is the value to include
@@ -918,11 +919,11 @@ dataManager.model('myModel').entries({size: 100, sort: ['property' , '-date'])
 }
 ```
 
-##### `entry(id [, levels])`
-returns a Entry object as Promise. Levels property can be used to request nested entries.
+##### `entry(id [, levels, fields])`
+returns a Entry object as Promise. Levels property can be used to request nested entries. Fields may be used to only get selected fields in the response.
 
-##### `nestedEntry(id [, levels])`
-returns a Entry object as Promise. Levels property can be used to request nested entries. Resolved nested elementes are proper SDK objects with all functions like `save()` and `delete()`.
+##### `nestedEntry(id [, levels, fields])`
+returns a Entry object as Promise. Levels property can be used to request nested entries. Fields may be used to only get selected fields in the response. Resolved nested elementes are proper SDK objects with all functions like `save()` and `delete()`.
 
 ##### `createEntry(object)`
 create a new entry. Returns the Entry.
