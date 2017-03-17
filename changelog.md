@@ -1,4 +1,7 @@
 # Changelog
+## 0.11.11
+- support for new _fields querystring on entries api
+
 ## 0.11.10
 - got original file for all assets not only images
 
