@@ -725,14 +725,6 @@ if (isNode || !isPhantomJS) {
         expect(entries[0].value._id).to.be.equal('VkM8aPQnQe');
       });
     });
-    it('entries, _fields', function() { // TODO
-      return dm.model('to-do-item').entries({
-        fields: [],
-      })
-      .then(function(entries) {
-        expect(entries[0].value).to.not.have.property('title');
-      });
-    });
     it('entries, page', function() { // TODO
       return dm.model('to-do-item').entries({
         page: 1
@@ -1541,7 +1533,8 @@ describe('entry/entries', function() { // this is basically modelList
     });
   });
   it('get single entry, with _fields, with object', function() {
-    return dm.model('to-do-list').entry({ _id: '4JMjeO737e', fields: ['title'] }).then(function(entry) {
+    return dm.model('to-do-list').entry({ _id: '4JMjeO737e', fields: ['title'] })
+    .then(function(entry) {
       expect(entry).to.be.ok;
       expect(entry).to.be.instanceOf(Object);
       expect(entry).to.have.property('value');
@@ -1549,7 +1542,6 @@ describe('entry/entries', function() { // this is basically modelList
       expect(entry.value).to.not.have.property('list-items')
     });
   });
-
   it('get single entry, on list', function() {
     return dm.model('to-do-item').entry({
       filter: {
