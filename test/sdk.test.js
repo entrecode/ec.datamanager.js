@@ -1501,6 +1501,15 @@ describe('entry/entries', function() { // this is basically modelList
       expect(entry.value['list-items'][0]).to.have.property('_id', '4JGrCvm27e');
     });
   });
+  it('get single entry, with _fields', function() {
+    return dm.model('to-do-list').entry('4JMjeO737e', null, ['title']).then(function(entry) {
+      expect(entry).to.be.ok;
+      expect(entry).to.be.instanceOf(Object);
+      expect(entry).to.have.property('value');
+      expect(entry.value).to.have.property('_id', '4JMjeO737e');
+      expect(entry.value).to.not.have.property('list-items')
+    });
+  });
   it('get single entry, with levels, with object', function() {
     return dm.model('to-do-list').entry({ id: '4JMjeO737e', levels: 2 }).then(function(entry) {
       expect(entry).to.be.ok;
@@ -1521,6 +1530,16 @@ describe('entry/entries', function() { // this is basically modelList
       expect(entry.value).to.have.property('list-items')
       .that.is.instanceOf(Array);
       expect(entry.value['list-items'][0]).to.have.property('_id', '4JGrCvm27e');
+    });
+  });
+  it('get single entry, with _fields, with object', function() {
+    return dm.model('to-do-list').entry({ _id: '4JMjeO737e', fields: ['title'] })
+    .then(function(entry) {
+      expect(entry).to.be.ok;
+      expect(entry).to.be.instanceOf(Object);
+      expect(entry).to.have.property('value');
+      expect(entry.value).to.have.property('_id', '4JMjeO737e');
+      expect(entry.value).to.not.have.property('list-items')
     });
   });
   it('get single entry, on list', function() {

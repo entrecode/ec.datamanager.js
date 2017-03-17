@@ -1,0 +1,42 @@
+{
+  "qs": {
+    "_id": "4JMjeO737e",
+    "_fields": "title"
+  },
+  "req": {},
+  "res": {
+    "_id": "4JMjeO737e",
+    "_created": "2015-11-23T16:03:38.304Z",
+    "_creator": null,
+    "_modified": "2015-11-23T16:03:42.561Z",
+    "id": "4JMjeO737e",
+    "created": "2015-11-23T16:03:38.304Z",
+    "modified": "2015-11-23T16:03:42.561Z",
+    "private": false,
+    "title": "Shopping List",
+    "description": "",
+    "_modelTitleField": "title",
+    "_links": {
+      "collection": {
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-list"
+      },
+      "self": {
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-list?_id=4JMjeO737e"
+      },
+      "58b9a1f5:to-do-list/list-items": [
+        {
+          "title": "Bananas",
+          "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?_id=4JGrCvm27e"
+        },
+        {
+          "title": "Oranges",
+          "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?_id=V1G2TvQnXx"
+        },
+        {
+          "title": "Apples",
+          "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?_id=VkM8aPQnQe"
+        }
+      ]
+    }
+  }
+}
