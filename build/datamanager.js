@@ -1909,7 +1909,7 @@ Model.prototype.entries = function(options) {
   });
 };
 
-Model.prototype.entry = function(id, levels) {
+Model.prototype.entry = function(id, levels, fields) {
   var options = {};
   if (typeof id === 'string') {
     options.filter = {
@@ -1939,7 +1939,9 @@ Model.prototype.entry = function(id, levels) {
   if (levels) {
     options.levels = levels;
   }
-  
+  if (fields) {
+    options.fields = fields;
+  }
   return this.entries(options)
   .then(function(res) {
     if (!res.length) {
@@ -1949,8 +1951,8 @@ Model.prototype.entry = function(id, levels) {
   });
 };
 
-Model.prototype.nestedEntry = function(id, levels) {
-  return this.entry(id, levels)
+Model.prototype.nestedEntry = function(id, levels, fields) {
+  return this.entry(id, levels, fields)
   .then(function(entry) {
     Entry._makeNestedToResource(entry, this._dm);
     return Promise.resolve(entry);
@@ -2267,6 +2269,9 @@ util.optionsToQueryParameter = function(options) {
   }
   if (options && options.hasOwnProperty('levels')) {
     query._levels = options.levels;
+  }
+  if (options && options.hasOwnProperty('fields') && Array.isArray(options.fields)) {
+    query._fields = options.fields.join(',');
   }
   if (options && options.hasOwnProperty('filter')) {
     for (var key in options.filter) {
