@@ -37,7 +37,7 @@
     "body-parser": "1.17.0",
     "browserify": "14.1.0",
     "chai": "3.5.0",
-    "coveralls": "2.11.16",
+    "coveralls": "2.13.0",
     "etag": "1.8.0",
     "express": "4.15.0",
     "grunt": "1.0.1",
