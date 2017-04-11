@@ -69,7 +69,7 @@
     "is-reachable": "1.3.0",
     "locale": "0.1.0",
     "lokijs": "1.4.3",
-    "shiro-trie": "0.3.12",
+    "shiro-trie": "0.3.13",
     "superagent": "3.5.2",
     "traverson": "6.0.2",
     "traverson-hal": "6.0.0"
