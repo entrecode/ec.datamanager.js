@@ -1758,6 +1758,7 @@ Model.prototype.entryList = function(options) {
         options.cacheType = 'refresh';
         filtered.refreshedData = this.entryList(options);
       }
+      filtered.page = options && 'page' in options ? options.page : 1;
 
       var size;
       var page;
@@ -1827,6 +1828,7 @@ Model.prototype.entryList = function(options) {
       entries: e,
       count: body.count,
       total: body.total,
+      page: options && 'page' in options ? options.page : 1,
     };
 
     var optionsClone = options ? JSON.parse(JSON.stringify(options)) : {};
@@ -2291,11 +2293,11 @@ util.optionsToQueryParameter = function(options) {
           query[key + 'To'] = value.to;
         }
         /* istanbul ignore next */
-        if (value.hasOwnProperty('any') && Array.isArray(value.any)) {
+        if (value.hasOwnProperty('any') && Array.isArray(value.any) && value.any.length > 0) {
           query[key] = value.any.join(',');
         }
         /* istanbul ignore next */
-        if (value.hasOwnProperty('all') && Array.isArray(value.all)) {
+        if (value.hasOwnProperty('all') && Array.isArray(value.all) && value.all.length > 0) {
           query[key] = value.all.join('+');
         }
       }
@@ -2695,7 +2697,7 @@ module.exports = function (arr, next, cb) {
  * @copyright Copyright (c) 2014 Yehuda Katz, Tom Dale, Stefan Penner and contributors (Conversion to ES6 API by Jake Archibald)
  * @license   Licensed under MIT license
  *            See https://raw.githubusercontent.com/stefanpenner/es6-promise/master/LICENSE
- * @version   4.0.5
+ * @version   4.1.0
  */
 
 (function (global, factory) {
@@ -3003,6 +3005,7 @@ function handleMaybeThenable(promise, maybeThenable, then$$) {
   } else {
     if (then$$ === GET_THEN_ERROR) {
       _reject(promise, GET_THEN_ERROR.error);
+      GET_THEN_ERROR.error = null;
     } else if (then$$ === undefined) {
       fulfill(promise, maybeThenable);
     } else if (isFunction(then$$)) {
@@ -3123,7 +3126,7 @@ function invokeCallback(settled, promise, callback, detail) {
     if (value === TRY_CATCH_ERROR) {
       failed = true;
       error = value.error;
-      value = null;
+      value.error = null;
     } else {
       succeeded = true;
     }
@@ -3846,6 +3849,7 @@ Promise.Promise = Promise;
 return Promise;
 
 })));
+
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"_process":3}],16:[function(require,module,exports){
@@ -13220,7 +13224,9 @@ Request.prototype._end = function() {
   // set header fields
   for (var field in this.header) {
     if (null == this.header[field]) continue;
-    xhr.setRequestHeader(field, this.header[field]);
+
+    if (this.header.hasOwnProperty(field))
+      xhr.setRequestHeader(field, this.header[field]);
   }
 
   if (this._responseType) {
@@ -14146,8 +14152,10 @@ module.exports = function shouldRetry(err, res) {
   if (res && res.status && res.status >= 500) return true;
   // Superagent timeout
   if (err && 'timeout' in err && err.code == 'ECONNABORTED') return true;
+  if (err && 'crossDomain' in err) return true;
   return false;
 };
+
 },{}],35:[function(require,module,exports){
 
 /**
@@ -16620,7 +16628,7 @@ module.exports = function getOptionsForStep(t) {
 function addAutoHeaders(t, options) {
   var autoHeaderValue =
     // we accept a static mediaType property as well as an instance property
-    t.adapter.constructor.mediaType || 
+    t.adapter.constructor.mediaType ||
     t.adapter.mediaType;
 
   // The content negotiation adapter does not (and can not) provide a value
@@ -16677,7 +16685,7 @@ module.exports = function parse(t) {
     log.debug('continuing from last traversal process (transforms/parse)');
     // if last traversal did a parse at the end we do not need to parse again
     // (this condition will need to change with
-    // https://github.com/basti1302/traverson/issues/44)
+    // https://github.com/traverson/traverson/issues/44)
     if (t.continuation.action === 'getResource') {
       return true;
     }
@@ -17024,7 +17032,7 @@ exports.jsonHal = {
       throw createError('JSON HAL adapter is not registered. From version ' +
         '1.0.0 on, Traverson has no longer built-in support for ' +
         'application/hal+json. HAL support was moved to a separate, optional ' +
-        'plug-in. See https://github.com/basti1302/traverson-hal',
+        'plug-in. See https://github.com/traverson/traverson-hal',
         errors.UnsupportedMediaType
       );
     }
