@@ -1,6 +1,8 @@
 [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Coverage][coveralls-image]][coveralls-url] [![Dependency Status][daviddm-image]][daviddm-url]
 # ec.datamanager.js
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/entrecode/ec.datamanager.js.svg)](https://greenkeeper.io/)
+
 JavaScript SDK for [ec.datamanager](https://doc.entrecode.de/en/latest/data_manager/). By entrecode.
 
 Simply use the generated APIs of the ec.datamanager with JavaScript. Supports usage in frontend (web) and backend (Node.js).
