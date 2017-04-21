@@ -1,7 +1,5 @@
-[![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Coverage][coveralls-image]][coveralls-url] [![Dependency Status][daviddm-image]][daviddm-url]
+[![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Coverage][coveralls-image]][coveralls-url] [![Dependency Status][daviddm-image]][daviddm-url][![Greenkeeper badge][green-image]][green-url]
 # ec.datamanager.js
-
-[![Greenkeeper badge](https://badges.greenkeeper.io/entrecode/ec.datamanager.js.svg)](https://greenkeeper.io/)
 
 JavaScript SDK for [ec.datamanager](https://doc.entrecode.de/en/latest/data_manager/). By entrecode.
 
@@ -1187,3 +1185,5 @@ grunt build
 [coveralls-url]: https://coveralls.io/github/entrecode/ec.datamanager.js?branch=master
 [daviddm-image]: https://david-dm.org/entrecode/ec.datamanager.js.svg?theme=shields.io
 [daviddm-url]: https://david-dm.org/entrecode/ec.datamanager.js
+[green-image]: https://badges.greenkeeper.io/entrecode/ec.datamanager.js.svg
+[green-url]: https://greenkeeper.io/
