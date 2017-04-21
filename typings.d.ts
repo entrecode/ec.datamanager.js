@@ -154,7 +154,7 @@ declare function User(isAnon: boolean, user: any, dm: DataManager.DataManager): 
 
 export = DataManager;
 
-type dmOptions = { url?: string, id?: string, accessToken?: string, clientID?: string, errorHandler?: (error: Error) => {} };
+export type dmOptions = { url?: string, id?: string, accessToken?: string, clientID?: string, errorHandler?: (error: Error) => {} };
 
 type env = 'NODEJS'|'CORDOVA'|'BROWSER';
 
