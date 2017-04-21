@@ -1374,7 +1374,7 @@ if (isNode) { // only on node since we stub stuff
         'to-do-list'
       ], lokiEnv)
       .then(function() {
-        stub = sinon.stub(Model.prototype, '_isReachable', function(dests) {
+        stub = sinon.stub(Model.prototype, '_isReachable').callsFake(function (dests) {
           return Promise.reject(new Error('offline'));
         });
         done();
