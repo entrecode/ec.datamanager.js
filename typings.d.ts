@@ -72,6 +72,8 @@ export declare namespace DataManager {
 
 export declare function DataManager(options: dmOptions): void;
 
+export default DataManager;
+
 export declare namespace Asset {
   export interface Asset {
     save(): Promise<Asset>;

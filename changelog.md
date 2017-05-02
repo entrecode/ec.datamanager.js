@@ -1,4 +1,10 @@
 # Changelog
+## 0.12.2
+- typings update
+
+## 0.12.1
+- typings update
+
 ## 0.12.0
 - dependency updates
 - page indication in entryList
