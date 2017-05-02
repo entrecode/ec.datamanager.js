@@ -1,4 +1,4 @@
-declare namespace DataManager {
+export declare namespace DataManager {
   export interface DataManager {
     constructor(options: dmOptions);
 
@@ -12,7 +12,7 @@ declare namespace DataManager {
 
     modelList(): Promise<any>;
 
-    enableCache(models: string|Array<string>, env: env, maxCacheAge?: number): Promise<any>;
+    enableCache(models: string | Array<string>, env: env, maxCacheAge?: number): Promise<any>;
 
     clearCache(): Promise<any>;
 
@@ -70,9 +70,9 @@ declare namespace DataManager {
   export const DB_BROWSER: string;
 }
 
-declare function DataManager(options: dmOptions): void;
+export declare function DataManager(options: dmOptions): void;
 
-declare namespace Asset {
+export declare namespace Asset {
   export interface Asset {
     save(): Promise<Asset>;
 
@@ -88,9 +88,9 @@ declare namespace Asset {
   }
 }
 
-declare function Asset(asset: any, dm: DataManager.DataManager): void;
+export declare function Asset(asset: any, dm: DataManager.DataManager): void;
 
-declare namespace Entry {
+export declare namespace Entry {
   export interface Entry {
     save(): Promise<Entry>;
 
@@ -102,9 +102,9 @@ declare namespace Entry {
   }
 }
 
-declare function Entry(entry: any, dm: DataManager.DataManager, model: Model.Model): void;
+export declare function Entry(entry: any, dm: DataManager.DataManager, model: Model.Model): void;
 
-declare namespace Model {
+export declare namespace Model {
   export interface Model {
     enableCache(env: env, maxCacheAge?: number): Promise<any>;
 
@@ -128,9 +128,9 @@ declare namespace Model {
   }
 }
 
-declare function Model(title: string, metadata: any, dm: DataManager.DataManager): void;
+export declare function Model(title: string, metadata: any, dm: DataManager.DataManager): void;
 
-declare namespace Tag {
+export declare namespace Tag {
   export interface Tag {
     save(): Promise<Tag>;
 
@@ -138,9 +138,9 @@ declare namespace Tag {
   }
 }
 
-declare function Tag(tag: any, dm: DataManager.DataManager, traversal: any): void;
+export declare function Tag(tag: any, dm: DataManager.DataManager, traversal: any): void;
 
-declare namespace User {
+export declare namespace User {
   export interface User {
     logout(): Promise<void>;
 
@@ -150,16 +150,14 @@ declare namespace User {
   }
 }
 
-declare function User(isAnon: boolean, user: any, dm: DataManager.DataManager): void;
-
-export = DataManager;
+export declare function User(isAnon: boolean, user: any, dm: DataManager.DataManager): void;
 
 export type dmOptions = { url?: string, id?: string, accessToken?: string, clientID?: string, errorHandler?: (error: Error) => {} };
 
-type env = 'NODEJS'|'CORDOVA'|'BROWSER';
+export type env = 'NODEJS' | 'CORDOVA' | 'BROWSER';
 
-type AssetList = { assets: Array<Asset.Asset>, count: number, total: number }
+export type AssetList = { assets: Array<Asset.Asset>, count: number, total: number }
 
-type TagList = { tags: Array<Tag.Tag>, count: number, total: number }
+export type TagList = { tags: Array<Tag.Tag>, count: number, total: number }
 
-type EntryList = { entries: Array<Entry.Entry>, count: number, total: number }
+export type EntryList = { entries: Array<Entry.Entry>, count: number, total: number }
