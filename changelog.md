@@ -1,4 +1,10 @@
 # Changelog
+## 0.12.0
+- dependency updates
+- page indication in entryList
+- bugfix in filter optinons handling
+
+
 ## 0.11.11
 - support for new _fields querystring on entries api
 

@@ -25,19 +25,13 @@ With [npm](http://npmjs.org) (for backend or frontend usage):
 npm install ec.datamanager
 ```
 
-With [bower](http://bower.io/) (for frontend usage in the Browser):
-
-```sh
-bower install ec.datamanager
-```
-
-The bower module only includes the minified build (and no tests etc.).
-
 ## Usage
 Loading the module in node.js:
 
 ```js
 var DataManager = require('ec.datamanager');
+// or
+import { DataManager } from 'ec.datamanager';
 ```
 
 Loading the minified module in the Browser:

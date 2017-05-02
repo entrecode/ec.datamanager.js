@@ -1,6 +1,6 @@
 {
   "name": "ec.datamanager",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "description": "JavaScript SDK for ec.datamanager. By entrecode.",
   "main": "index.js",
   "typings": "typings.d.ts",
@@ -37,7 +37,7 @@
     "body-parser": "1.17.1",
     "browserify": "14.3.0",
     "chai": "3.5.0",
-    "coveralls": "2.13.0",
+    "coveralls": "2.13.1",
     "etag": "1.8.0",
     "express": "4.15.2",
     "grunt": "1.0.1",
@@ -56,11 +56,11 @@
     "karma-phantomjs-launcher": "1.0.4",
     "lodash.isempty": "4.4.0",
     "lodash.isequal": "4.5.0",
-    "mocha": "3.2.0",
+    "mocha": "3.3.0",
     "mocha-bamboo-reporter": "1.1.1",
     "nock": "9.0.13",
     "phantomjs-prebuilt": "2.1.14",
-    "sinon": "2.1.0",
+    "sinon": "2.2.0",
     "walk": "2.3.9"
   },
   "dependencies": {
