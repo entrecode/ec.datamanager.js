@@ -1,4 +1,4 @@
-export declare namespace DataManager {
+declare namespace DataManager {
   export interface DataManager {
     constructor(options: dmOptions);
 
@@ -16,25 +16,25 @@ export declare namespace DataManager {
 
     clearCache(): Promise<any>;
 
-    model(title: string, metadata: any): Model.Model;
+    model(title: string, metadata: any): Model;
 
     assetList(options?: any): AssetList;
 
-    assets(options?: any): Array<Asset.Asset>;
+    assets(options?: any): Array<Asset>;
 
-    asset(assetID: string): Asset.Asset;
+    asset(assetID: string): Asset;
 
-    createAsset(input: any): Array<Promise<Asset.Asset>>;
+    createAsset(input: any): Array<Promise<Asset>>;
 
     tagList(options?: any): TagList;
 
-    tags(options?: any): Array<Tag.Tag>;
+    tags(options?: any): Array<Tag>;
 
-    tag(tag: string): Tag.Tag;
+    tag(tag: string): Tag;
 
-    registerAnonymous(validUntil: string): Promise<User.User>;
+    registerAnonymous(validUntil: string): Promise<User>;
 
-    account(): Promise<User.User>;
+    account(): Promise<User>;
 
     getAuthLink(relation: string, templateParameter: any): Promise<string>;
 
@@ -51,30 +51,24 @@ export declare namespace DataManager {
 
   export function getImageThumbUrl(assetID: string, size?: number, locale?: string): Promise<string>;
 
-  export function cloneEntry(entry: Entry.Entry): Entry.Entry;
+  export function cloneEntry(entry: Entry): Entry;
 
-  export function cloneEntries(entries: Array<Entry.Entry>): Array<Entry.Entry>;
+  export function cloneEntries(entries: Array<Entry>): Array<Entry>;
 
-  export function cloneAsset(asset: Asset.Asset): Asset.Asset;
+  export function cloneAsset(asset: Asset): Asset;
 
-  export function cloneAssets(assets: Array<Asset.Asset>): Array<Asset.Asset>;
+  export function cloneAssets(assets: Array<Asset>): Array<Asset>;
 
-  export function cloneTag(tag: Tag.Tag): Tag.Tag;
+  export function cloneTag(tag: Tag): Tag;
 
-  export function cloneTags(tags: Array<Tag.Tag>): Array<Tag.Tag>;
+  export function cloneTags(tags: Array<Tag>): Array<Tag>;
 
   export const DB_NODEJS: string;
 
   export const DB_CORDOVA: string;
 
   export const DB_BROWSER: string;
-}
 
-export declare function DataManager(options: dmOptions): void;
-
-export default DataManager;
-
-export declare namespace Asset {
   export interface Asset {
     save(): Promise<Asset>;
 
@@ -86,13 +80,11 @@ export declare namespace Asset {
 
     getImageThumbUrl(size?: number, locale?: string): Promise<string>;
 
-    clone(): Entry.Entry;
+    clone(): Entry;
   }
-}
 
-export declare function Asset(asset: any, dm: DataManager.DataManager): void;
+  export function Asset(asset: any, dm: DataManager): void;
 
-export declare namespace Entry {
   export interface Entry {
     save(): Promise<Entry>;
 
@@ -102,11 +94,9 @@ export declare namespace Entry {
 
     getModelTitle(property: string): string;
   }
-}
 
-export declare function Entry(entry: any, dm: DataManager.DataManager, model: Model.Model): void;
+  export function Entry(entry: any, dm: DataManager, model: Model): void;
 
-export declare namespace Model {
   export interface Model {
     enableCache(env: env, maxCacheAge?: number): Promise<any>;
 
@@ -118,31 +108,27 @@ export declare namespace Model {
 
     entryList(options?: any): Promise<EntryList>;
 
-    entries(options?: any): Promise<Array<Entry.Entry>>;
+    entries(options?: any): Promise<Array<Entry>>;
 
-    entry(id: any, levels: number): Promise<Entry.Entry>;
+    entry(id: any, levels: number): Promise<Entry>;
 
-    nestedEntry(id: any, levels: number): Promise<Entry.Entry>;
+    nestedEntry(id: any, levels: number): Promise<Entry>;
 
-    createEntry(entry: any): Promise<Entry.Entry>;
+    createEntry(entry: any): Promise<Entry>;
 
     deleteEntry(entryId: string): Promise<boolean>;
   }
-}
 
-export declare function Model(title: string, metadata: any, dm: DataManager.DataManager): void;
+  export function Model(title: string, metadata: any, dm: DataManager): void;
 
-export declare namespace Tag {
   export interface Tag {
     save(): Promise<Tag>;
 
     delete(): Promise<boolean>;
   }
-}
 
-export declare function Tag(tag: any, dm: DataManager.DataManager, traversal: any): void;
+  export function Tag(tag: any, dm: DataManager, traversal: any): void;
 
-export declare namespace User {
   export interface User {
     logout(): Promise<void>;
 
@@ -150,16 +136,21 @@ export declare namespace User {
 
     isAnon(): boolean;
   }
+
+  export function User(isAnon: boolean, user: any, dm: DataManager): void;
+
+  export type dmOptions = { url?: string, id?: string, accessToken?: string, clientID?: string, errorHandler?: (error: Error) => {} };
+
+  export type env = 'NODEJS' | 'CORDOVA' | 'BROWSER';
+
+  export type AssetList = { assets: Array<Asset>, count: number, total: number }
+
+  export type TagList = { tags: Array<Tag>, count: number, total: number }
+
+  export type EntryList = { entries: Array<Entry>, count: number, total: number }
+
 }
 
-export declare function User(isAnon: boolean, user: any, dm: DataManager.DataManager): void;
+declare function DataManager(options: DataManager.dmOptions): void;
 
-export type dmOptions = { url?: string, id?: string, accessToken?: string, clientID?: string, errorHandler?: (error: Error) => {} };
-
-export type env = 'NODEJS' | 'CORDOVA' | 'BROWSER';
-
-export type AssetList = { assets: Array<Asset.Asset>, count: number, total: number }
-
-export type TagList = { tags: Array<Tag.Tag>, count: number, total: number }
-
-export type EntryList = { entries: Array<Entry.Entry>, count: number, total: number }
+export = DataManager;
