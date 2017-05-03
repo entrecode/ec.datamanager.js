@@ -1,4 +1,7 @@
 # Changelog
+## 0.12.3
+- export sub types in typings
+
 ## 0.12.2
 - typings update
 

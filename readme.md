@@ -31,7 +31,8 @@ Loading the module in node.js:
 ```js
 var DataManager = require('ec.datamanager');
 // or
-import DataManager from 'ec.datamanager';
+import * as DataManager from 'ec.datamanager';
+import { Entry } from 'ec.datamanager';
 ```
 
 Loading the minified module in the Browser:
