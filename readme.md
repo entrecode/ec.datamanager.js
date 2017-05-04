@@ -293,6 +293,7 @@ dataManager.model('myModel').entry('my7fmeXh')
 dataManager.model('myModel').entry('my7fmeXh', 2) // since 0.6.0 no longer object
 .then(function(entry) {
   console.log(entry); // success! an Entry
+  entry.getThumbImageUrl('logo', 200); // get thumb 200 url of embedded logo field
   var clonedEntry = entry.clone(); // clones entry object.
 }, errorHandler);
 ```
@@ -1023,6 +1024,24 @@ dataManager.model('myModel').entry('f328af3', '2')
 }, errorHandler);
 ```
 
+##### getFileUrl(field, locale)
+syncronously returns a file url. Optionally, a specific `locale` can be requested.
+
+##### getImageUrl(field, size, locale)
+syncronously returns an image file. `size` is optional and states the size in pixels the largest edge should have at least.
+
+Note that the image may still be smaller if the original image is smaller than `size`. If `size` is omitted, the largest size (i.e. the original image) is returned. Optionally, a specific `locale` can be requested. The following sizes are being returned: 256, 512, 1024, 2048, 4096.
+
+Example: The source image has a largest edge of 3000 pixels. `getImageURL(id, 1000)` will return the 1024px version. `getImageURL(id, 4096)` will return the original file with 3000 pixels.
+
+##### getImageThumbUrl(field, size, locale)
+syncronously returns an image thumbnail (square cropped). `size` is required and states the size in pixels the thumbnail square edge should have at least.
+
+Note that the image may still be smaller if the original image is smaller than `size`. Optionally, a specific `locale` can be requested. The following sizes are being returned: 50, 100, 200, 400
+
+##### getOriginal(field)
+syncronously returns the file object of the original file. Returns undefined on non image assets.
+
 ### Asset object
 #### Connecting an Asset
 ```js
@@ -1081,7 +1100,7 @@ syncronously returns an image thumbnail (square cropped). `size` is required and
 Note that the image may still be smaller if the original image is smaller than `size`. Optionally, a specific `locale` can be requested. The following sizes are being returned: 50, 100, 200, 400
 
 ##### getOriginal
-syncronously returns the file object of the original file. Retruns undefined on non image assets.
+syncronously returns the file object of the original file. Returns undefined on non image assets.
 
 
 ### Tag Object

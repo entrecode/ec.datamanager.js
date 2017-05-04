@@ -15,6 +15,75 @@
     "title": "Beef",
     "description": null,
     "_modelTitleField": "title",
+    "_embedded": {
+      "58b9a1f5:to-do-item/title/asset": {
+        "assetID": "10a97f4d-6691-499f-b774-6a38ab6a90c6",
+        "title": "Bildschirmfoto 2016-08-16 um 16.50.00",
+        "type": "image",
+        "created": "2016-08-16T14:50:17.952Z",
+        "deleted": null,
+        "files": [
+          {
+            "url": "https://ec-datamanager-default-bucket.s3.amazonaws.com/files/a13e8910/4KK1cZDflDB-JfnLj4AqSiw_.png",
+            "mimetype": "image/png",
+            "size": 8503,
+            "resolution": {
+              "width": 322,
+              "height": 84
+            },
+            "locale": null,
+            "created": "2016-08-16T16:50:17.702+02:00",
+            "modified": "2016-08-16T16:50:17.702+02:00",
+            "assetID": "10a97f4d-6691-499f-b774-6a38ab6a90c6"
+          },
+          {
+            "url": "https://ec-datamanager-default-bucket.s3.amazonaws.com/files/a13e8910/4KK1cZDflDB-JfnLj4AqSiw__50_thumb.png",
+            "mimetype": "image/png",
+            "size": 4166,
+            "resolution": {
+              "width": 50,
+              "height": 50
+            },
+            "locale": null,
+            "created": "2016-08-16T16:50:18.3+02:00",
+            "modified": "2016-08-16T16:50:18.3+02:00",
+            "assetID": "10a97f4d-6691-499f-b774-6a38ab6a90c6"
+          },
+          {
+            "url": "https://ec-datamanager-default-bucket.s3.amazonaws.com/files/a13e8910/4KK1cZDflDB-JfnLj4AqSiw__256.png",
+            "mimetype": "image/png",
+            "size": 9806,
+            "resolution": {
+              "width": 256,
+              "height": 67
+            },
+            "locale": null,
+            "created": "2016-08-16T16:50:18.311+02:00",
+            "modified": "2016-08-16T16:50:18.311+02:00",
+            "assetID": "10a97f4d-6691-499f-b774-6a38ab6a90c6"
+          }
+        ],
+        "_links": {
+          "self": {
+            "profile": "https://entrecode.de/schema/asset",
+            "href": "https://datamanager.buffalo.entrecode.de/asset?assetID=10a97f4d-6691-499f-b774-6a38ab6a90c6",
+            "title": "Bildschirmfoto 2016-08-16 um 16.50.00"
+          },
+          "collection": {
+            "profile": "https://entrecode.de/schema/assets",
+            "href": "https://datamanager.buffalo.entrecode.de/asset?dataManagerID=ba49c132-a5fc-4adb-869c-0ce138170e18"
+          },
+          "ec:asset/best-file": {
+            "href": "https://datamanager.buffalo.entrecode.de/files/10a97f4d-6691-499f-b774-6a38ab6a90c6{?size,thumb}",
+            "templated": true
+          },
+          "ec:datamanager": {
+            "profile": "https://entrecode.de/schema/datamanager",
+            "href": "https://datamanager.buffalo.entrecode.de/?dataManagerID=ba49c132-a5fc-4adb-869c-0ce138170e18"
+          }
+        }
+      }
+    },
     "_links": {
       "collection": {
         "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item"

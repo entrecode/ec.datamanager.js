@@ -1816,6 +1816,18 @@ describe('entry/entries', function() { // this is basically modelList
       });
     });
   });
+
+  it('file negotiation on embedded assets', function() {
+    return dm.model('to-do-item').entry('VkGhAPQ2Qe').then(function(entry) {
+      expect(entry).to.be.ok;
+      expect(entry).to.be.instanceOf(Object);
+      expect(entry).to.have.property('value');
+      expect(entry.value).to.have.property('_id', 'VkGhAPQ2Qe');
+      expect(entry.getFileUrl('title')).to.be.equal('https://ec-datamanager-default-bucket.s3.amazonaws.com/files/a13e8910/4KK1cZDflDB-JfnLj4AqSiw_.png');
+      expect(entry.getImageUrl('title', 200)).to.be.equal('https://ec-datamanager-default-bucket.s3.amazonaws.com/files/a13e8910/4KK1cZDflDB-JfnLj4AqSiw__256.png');
+      expect(entry.getImageThumbUrl('title', 100)).to.be.equal('https://ec-datamanager-default-bucket.s3.amazonaws.com/files/a13e8910/4KK1cZDflDB-JfnLj4AqSiw__50_thumb.png');
+    });
+  });
 });
 
 describe('nested Entry', function() { // this is basically modelList

@@ -1,4 +1,7 @@
 # Changelog
+## 0.12.4
+- best file functions in Entry
+
 ## 0.12.3
 - export sub types in typings
 
