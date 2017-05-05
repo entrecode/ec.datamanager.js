@@ -13,9 +13,7 @@
     "modified": "2015-12-08T09:55:15.171Z",
     "private": false,
     "title": "Single Item List",
-    "list-items": [
-      "N1GJuenPEl"
-    ],
+    "list-item": "N1GJuenPEl",
     "description": "",
     "_modelTitleField": "title",
     "_links": {
@@ -25,7 +23,7 @@
       "self": {
         "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-list?_id=V1EXdcJHl"
       },
-      "58b9a1f5:to-do-list/list-items": {
+      "58b9a1f5:to-do-list/list-item": {
         "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?_id=N1GJuenPEl",
         "name": "to-do-item",
         "title": "NewItem"

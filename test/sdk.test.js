@@ -1748,7 +1748,7 @@ describe('entry/entries', function() { // this is basically modelList
   });
   it('get link title single link', function() {
     return dm.model('to-do-list').entry('V1EXdcJHl').then(function(entry) {
-      var title = entry.getTitle('list-items');
+      var title = entry.getTitle('list-item');
       expect(title).to.be.equal('NewItem');
     });
   });
@@ -1760,7 +1760,7 @@ describe('entry/entries', function() { // this is basically modelList
   });
   it('get model title single link', function() {
     return dm.model('to-do-list').entry('V1EXdcJHl').then(function(entry) {
-      var title = entry.getModelTitle('list-items');
+      var title = entry.getModelTitle('list-item');
       expect(title).to.be.equal('to-do-item');
     });
   });
