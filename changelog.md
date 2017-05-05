@@ -1,4 +1,7 @@
 # Changelog
+## 0.12.5
+- fix: always return array in getTitle on lineked types
+
 ## 0.12.4
 - best file functions in Entry
 

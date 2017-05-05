@@ -1507,7 +1507,7 @@ Entry.prototype.getTitle = function(property) {
   if (!links) {
     return undefined;
   }
-  if (links.length === 1) {
+  if (!Array.isArray(this.value[property])) {
     return links[0].title;
   }
   var out = [];
