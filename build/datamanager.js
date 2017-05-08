@@ -1658,7 +1658,10 @@ Entry.prototype.getImageThumbUrl = function (field, size, locale) {
 Entry.prototype._negotiate = function (field, image, thumb, size, requestedLocale) {
   var original = this.value.embeddedArray(this._dm.id + ':' + this._model.title + '/' + field + '/asset');
   if (!original) {
-    throw new Error('ec.datamanager.js cannot find embedded asset for field ' + field);
+    if (Array.isArray(this.value[field])) {
+      return [];
+    }
+    return undefined;
   }
 
   var assets = JSON.parse(JSON.stringify(original));
