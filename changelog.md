@@ -1,4 +1,7 @@
 # Changelog
+## 0.12.6
+- fix: return undefiend/array when linked asset not defiend
+
 ## 0.12.5
 - fix: always return array in getTitle on lineked types
 
