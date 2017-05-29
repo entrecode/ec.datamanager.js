@@ -35,7 +35,7 @@
   "homepage": "https://github.com/entrecode/ec.datamanager.js",
   "devDependencies": {
     "body-parser": "1.17.2",
-    "browserify": "14.3.0",
+    "browserify": "14.4.0",
     "chai": "3.5.0",
     "coveralls": "2.13.1",
     "etag": "1.8.0",
