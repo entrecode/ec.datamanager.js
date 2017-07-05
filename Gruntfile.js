@@ -31,28 +31,9 @@ module.exports = function(grunt) {
       },
       browserify: {
         exec: 'browserify -r ./index.js:ec.datamanager.js -s DataManager -o ./build/datamanager.js'
-      }
-    },
-    uglify: {
-      datamanagerjs: {
-        files: {
-          './build/datamanager.min.js': ['./build/datamanager.js']
-        }
-      }
-    },
-    browserify: {
-      datamanagerjs: {
-        files: {
-          './build/datamanager.js': ['./index.js']
-        },
-        options: {
-          alias: {
-            'ec.datamanager.js': './index.js'
-          },
-          browserifyOptions: {
-            standalone: 'DataManager'
-          }
-        }
+      },
+      uglify: {
+        exec: 'uglifyjs -o ./build/datamanager.min.js ./build/datamanager.js'
       }
     },
     mochaTest: {
@@ -75,7 +56,7 @@ module.exports = function(grunt) {
   grunt.registerTask('mockserver-stop', ['express:test:stop']);
   grunt.registerTask('test-backend', 'mochaTest');
   grunt.registerTask('test-frontend', ['build', 'mockserver', 'karma:test', 'mockserver-stop']);
-  grunt.registerTask('build', ['run:browserify', 'uglify']);
+  grunt.registerTask('build', ['run:browserify', 'run:uglify']);
   grunt.registerTask('test', ['test-backend', 'test-frontend']);
   grunt.registerTask('coverage', ['coverage-bamboo', 'run:openCoverage']);
   grunt.registerTask('coverage-bamboo', ['run:coverage']);
