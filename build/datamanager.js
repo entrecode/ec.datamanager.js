@@ -1,339 +1,4 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.DataManager = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-
-},{}],2:[function(require,module,exports){
-
-var indexOf = [].indexOf;
-
-module.exports = function(arr, obj){
-  if (indexOf) return arr.indexOf(obj);
-  for (var i = 0; i < arr.length; ++i) {
-    if (arr[i] === obj) return i;
-  }
-  return -1;
-};
-},{}],3:[function(require,module,exports){
-// shim for using process in browser
-var process = module.exports = {};
-
-// cached from whatever global is present so that test runners that stub it
-// don't break things.  But we need to wrap it in a try catch in case it is
-// wrapped in strict mode code which doesn't define any globals.  It's inside a
-// function because try/catches deoptimize in certain engines.
-
-var cachedSetTimeout;
-var cachedClearTimeout;
-
-function defaultSetTimout() {
-    throw new Error('setTimeout has not been defined');
-}
-function defaultClearTimeout () {
-    throw new Error('clearTimeout has not been defined');
-}
-(function () {
-    try {
-        if (typeof setTimeout === 'function') {
-            cachedSetTimeout = setTimeout;
-        } else {
-            cachedSetTimeout = defaultSetTimout;
-        }
-    } catch (e) {
-        cachedSetTimeout = defaultSetTimout;
-    }
-    try {
-        if (typeof clearTimeout === 'function') {
-            cachedClearTimeout = clearTimeout;
-        } else {
-            cachedClearTimeout = defaultClearTimeout;
-        }
-    } catch (e) {
-        cachedClearTimeout = defaultClearTimeout;
-    }
-} ())
-function runTimeout(fun) {
-    if (cachedSetTimeout === setTimeout) {
-        //normal enviroments in sane situations
-        return setTimeout(fun, 0);
-    }
-    // if setTimeout wasn't available but was latter defined
-    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
-        cachedSetTimeout = setTimeout;
-        return setTimeout(fun, 0);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedSetTimeout(fun, 0);
-    } catch(e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
-            return cachedSetTimeout.call(null, fun, 0);
-        } catch(e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
-            return cachedSetTimeout.call(this, fun, 0);
-        }
-    }
-
-
-}
-function runClearTimeout(marker) {
-    if (cachedClearTimeout === clearTimeout) {
-        //normal enviroments in sane situations
-        return clearTimeout(marker);
-    }
-    // if clearTimeout wasn't available but was latter defined
-    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
-        cachedClearTimeout = clearTimeout;
-        return clearTimeout(marker);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedClearTimeout(marker);
-    } catch (e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
-            return cachedClearTimeout.call(null, marker);
-        } catch (e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
-            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
-            return cachedClearTimeout.call(this, marker);
-        }
-    }
-
-
-
-}
-var queue = [];
-var draining = false;
-var currentQueue;
-var queueIndex = -1;
-
-function cleanUpNextTick() {
-    if (!draining || !currentQueue) {
-        return;
-    }
-    draining = false;
-    if (currentQueue.length) {
-        queue = currentQueue.concat(queue);
-    } else {
-        queueIndex = -1;
-    }
-    if (queue.length) {
-        drainQueue();
-    }
-}
-
-function drainQueue() {
-    if (draining) {
-        return;
-    }
-    var timeout = runTimeout(cleanUpNextTick);
-    draining = true;
-
-    var len = queue.length;
-    while(len) {
-        currentQueue = queue;
-        queue = [];
-        while (++queueIndex < len) {
-            if (currentQueue) {
-                currentQueue[queueIndex].run();
-            }
-        }
-        queueIndex = -1;
-        len = queue.length;
-    }
-    currentQueue = null;
-    draining = false;
-    runClearTimeout(timeout);
-}
-
-process.nextTick = function (fun) {
-    var args = new Array(arguments.length - 1);
-    if (arguments.length > 1) {
-        for (var i = 1; i < arguments.length; i++) {
-            args[i - 1] = arguments[i];
-        }
-    }
-    queue.push(new Item(fun, args));
-    if (queue.length === 1 && !draining) {
-        runTimeout(drainQueue);
-    }
-};
-
-// v8 likes predictible objects
-function Item(fun, array) {
-    this.fun = fun;
-    this.array = array;
-}
-Item.prototype.run = function () {
-    this.fun.apply(null, this.array);
-};
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-process.version = ''; // empty string to avoid regexp issues
-process.versions = {};
-
-function noop() {}
-
-process.on = noop;
-process.addListener = noop;
-process.once = noop;
-process.off = noop;
-process.removeListener = noop;
-process.removeAllListeners = noop;
-process.emit = noop;
-
-process.binding = function (name) {
-    throw new Error('process.binding is not supported');
-};
-
-process.cwd = function () { return '/' };
-process.chdir = function (dir) {
-    throw new Error('process.chdir is not supported');
-};
-process.umask = function() { return 0; };
-
-},{}],4:[function(require,module,exports){
-var indexOf = require('indexof');
-
-var Object_keys = function (obj) {
-    if (Object.keys) return Object.keys(obj)
-    else {
-        var res = [];
-        for (var key in obj) res.push(key)
-        return res;
-    }
-};
-
-var forEach = function (xs, fn) {
-    if (xs.forEach) return xs.forEach(fn)
-    else for (var i = 0; i < xs.length; i++) {
-        fn(xs[i], i, xs);
-    }
-};
-
-var defineProp = (function() {
-    try {
-        Object.defineProperty({}, '_', {});
-        return function(obj, name, value) {
-            Object.defineProperty(obj, name, {
-                writable: true,
-                enumerable: false,
-                configurable: true,
-                value: value
-            })
-        };
-    } catch(e) {
-        return function(obj, name, value) {
-            obj[name] = value;
-        };
-    }
-}());
-
-var globals = ['Array', 'Boolean', 'Date', 'Error', 'EvalError', 'Function',
-'Infinity', 'JSON', 'Math', 'NaN', 'Number', 'Object', 'RangeError',
-'ReferenceError', 'RegExp', 'String', 'SyntaxError', 'TypeError', 'URIError',
-'decodeURI', 'decodeURIComponent', 'encodeURI', 'encodeURIComponent', 'escape',
-'eval', 'isFinite', 'isNaN', 'parseFloat', 'parseInt', 'undefined', 'unescape'];
-
-function Context() {}
-Context.prototype = {};
-
-var Script = exports.Script = function NodeScript (code) {
-    if (!(this instanceof Script)) return new Script(code);
-    this.code = code;
-};
-
-Script.prototype.runInContext = function (context) {
-    if (!(context instanceof Context)) {
-        throw new TypeError("needs a 'context' argument.");
-    }
-    
-    var iframe = document.createElement('iframe');
-    if (!iframe.style) iframe.style = {};
-    iframe.style.display = 'none';
-    
-    document.body.appendChild(iframe);
-    
-    var win = iframe.contentWindow;
-    var wEval = win.eval, wExecScript = win.execScript;
-
-    if (!wEval && wExecScript) {
-        // win.eval() magically appears when this is called in IE:
-        wExecScript.call(win, 'null');
-        wEval = win.eval;
-    }
-    
-    forEach(Object_keys(context), function (key) {
-        win[key] = context[key];
-    });
-    forEach(globals, function (key) {
-        if (context[key]) {
-            win[key] = context[key];
-        }
-    });
-    
-    var winKeys = Object_keys(win);
-
-    var res = wEval.call(win, this.code);
-    
-    forEach(Object_keys(win), function (key) {
-        // Avoid copying circular objects like `top` and `window` by only
-        // updating existing context properties or new properties in the `win`
-        // that was only introduced after the eval.
-        if (key in context || indexOf(winKeys, key) === -1) {
-            context[key] = win[key];
-        }
-    });
-
-    forEach(globals, function (key) {
-        if (!(key in context)) {
-            defineProp(context, key, win[key]);
-        }
-    });
-    
-    document.body.removeChild(iframe);
-    
-    return res;
-};
-
-Script.prototype.runInThisContext = function () {
-    return eval(this.code); // maybe...
-};
-
-Script.prototype.runInNewContext = function (context) {
-    var ctx = Script.createContext(context);
-    var res = this.runInContext(ctx);
-
-    forEach(Object_keys(ctx), function (key) {
-        context[key] = ctx[key];
-    });
-
-    return res;
-};
-
-forEach(Object_keys(Script.prototype), function (name) {
-    exports[name] = Script[name] = function (code) {
-        var s = Script(code);
-        return s[name].apply(s, [].slice.call(arguments, 1));
-    };
-});
-
-exports.createScript = function (code) {
-    return exports.Script(code);
-};
-
-exports.createContext = Script.createContext = function (context) {
-    var copy = new Context();
-    if(typeof context === 'object') {
-        forEach(Object_keys(context), function (key) {
-            copy[key] = context[key];
-        });
-    }
-    return copy;
-};
-
-},{"indexof":2}],5:[function(require,module,exports){
 'use strict';
 
 var halfred = require('halfred');
@@ -549,7 +214,7 @@ function remove(arr, func) {
 
 module.exports = Asset;
 
-},{"./util":11,"halfred":16,"locale":22}],6:[function(require,module,exports){
+},{"./util":7,"halfred":13,"locale":20}],2:[function(require,module,exports){
 'use strict';
 
 var halfred = require('halfred');
@@ -1400,7 +1065,7 @@ DataManager.DB_BROWSER = 'BROWSER';
 
 module.exports = DataManager;
 
-},{"./Asset":5,"./Entry":7,"./Model":8,"./Tag":9,"./User":10,"./util":11,"es6-promise":15,"halfred":16,"lokijs":24,"shiro-trie":28,"superagent":29,"traverson":76,"traverson-hal":36}],7:[function(require,module,exports){
+},{"./Asset":1,"./Entry":3,"./Model":4,"./Tag":5,"./User":6,"./util":7,"es6-promise":12,"halfred":13,"lokijs":22,"shiro-trie":27,"superagent":28,"traverson":75,"traverson-hal":35}],3:[function(require,module,exports){
 'use strict';
 
 var halfred = require('halfred');
@@ -1777,7 +1442,7 @@ Entry.prototype.getOriginal = function (field) {
 
 module.exports = Entry;
 
-},{"./Asset":5,"./util":11,"halfred":16,"locale":22,"traverson":76,"traverson-hal":36}],8:[function(require,module,exports){
+},{"./Asset":1,"./util":7,"halfred":13,"locale":20,"traverson":75,"traverson-hal":35}],4:[function(require,module,exports){
 'use strict';
 
 var halfred = require('halfred');
@@ -2280,7 +1945,7 @@ Model.prototype._isReachable = function(dests) {
 
 module.exports = Model;
 
-},{"./Asset":5,"./Entry":7,"./util":11,"halfred":16,"is-reachable":20,"superagent":29,"traverson":76}],9:[function(require,module,exports){
+},{"./Asset":1,"./Entry":3,"./util":7,"halfred":13,"is-reachable":18,"superagent":28,"traverson":75}],5:[function(require,module,exports){
 'use strict';
 
 var halfred = require('halfred');
@@ -2379,7 +2044,7 @@ Tag.prototype._getTraversal = function() {
 
 module.exports = Tag;
 
-},{"./util":11,"halfred":16,"traverson":76}],10:[function(require,module,exports){
+},{"./util":7,"halfred":13,"traverson":75}],6:[function(require,module,exports){
 'use strict';
 
 var util = require('./util');
@@ -2415,7 +2080,7 @@ User.prototype.isAnon = User.prototype.isAnonymous;
 
 module.exports = User;
 
-},{"./util":11}],11:[function(require,module,exports){
+},{"./util":7}],7:[function(require,module,exports){
 'use strict';
 
 var util = {};
@@ -2630,7 +2295,7 @@ util.errorHandler = function(err) {
 
 module.exports = util;
 
-},{}],12:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 'use strict';
 module.exports = function (val) {
 	if (val === null || val === undefined) {
@@ -2640,7 +2305,9 @@ module.exports = function (val) {
 	return Array.isArray(val) ? val : [val];
 };
 
-},{}],13:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
+
+},{}],10:[function(require,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -2805,7 +2472,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],14:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 'use strict';
 var onetime = require('onetime');
 var setImmediateShim = require('set-immediate-shim');
@@ -2853,24 +2520,25 @@ module.exports = function (arr, next, cb) {
 	}
 };
 
-},{"onetime":25,"set-immediate-shim":27}],15:[function(require,module,exports){
+},{"onetime":23,"set-immediate-shim":26}],12:[function(require,module,exports){
 (function (process,global){
 /*!
  * @overview es6-promise - a tiny implementation of Promises/A+.
  * @copyright Copyright (c) 2014 Yehuda Katz, Tom Dale, Stefan Penner and contributors (Conversion to ES6 API by Jake Archibald)
  * @license   Licensed under MIT license
  *            See https://raw.githubusercontent.com/stefanpenner/es6-promise/master/LICENSE
- * @version   4.1.0
+ * @version   4.1.1
  */
 
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-    typeof define === 'function' && define.amd ? define(factory) :
-    (global.ES6Promise = factory());
+	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+	typeof define === 'function' && define.amd ? define(factory) :
+	(global.ES6Promise = factory());
 }(this, (function () { 'use strict';
 
 function objectOrFunction(x) {
-  return typeof x === 'function' || typeof x === 'object' && x !== null;
+  var type = typeof x;
+  return x !== null && (type === 'object' || type === 'function');
 }
 
 function isFunction(x) {
@@ -2878,12 +2546,12 @@ function isFunction(x) {
 }
 
 var _isArray = undefined;
-if (!Array.isArray) {
+if (Array.isArray) {
+  _isArray = Array.isArray;
+} else {
   _isArray = function (x) {
     return Object.prototype.toString.call(x) === '[object Array]';
   };
-} else {
-  _isArray = Array.isArray;
 }
 
 var isArray = _isArray;
@@ -3071,7 +2739,7 @@ function then(onFulfillment, onRejection) {
   @return {Promise} a promise that will become fulfilled with the given
   `value`
 */
-function resolve(object) {
+function resolve$1(object) {
   /*jshint validthis:true */
   var Constructor = this;
 
@@ -3080,7 +2748,7 @@ function resolve(object) {
   }
 
   var promise = new Constructor(noop);
-  _resolve(promise, object);
+  resolve(promise, object);
   return promise;
 }
 
@@ -3111,24 +2779,24 @@ function getThen(promise) {
   }
 }
 
-function tryThen(then, value, fulfillmentHandler, rejectionHandler) {
+function tryThen(then$$1, value, fulfillmentHandler, rejectionHandler) {
   try {
-    then.call(value, fulfillmentHandler, rejectionHandler);
+    then$$1.call(value, fulfillmentHandler, rejectionHandler);
   } catch (e) {
     return e;
   }
 }
 
-function handleForeignThenable(promise, thenable, then) {
+function handleForeignThenable(promise, thenable, then$$1) {
   asap(function (promise) {
     var sealed = false;
-    var error = tryThen(then, thenable, function (value) {
+    var error = tryThen(then$$1, thenable, function (value) {
       if (sealed) {
         return;
       }
       sealed = true;
       if (thenable !== value) {
-        _resolve(promise, value);
+        resolve(promise, value);
       } else {
         fulfill(promise, value);
       }
@@ -3138,12 +2806,12 @@ function handleForeignThenable(promise, thenable, then) {
       }
       sealed = true;
 
-      _reject(promise, reason);
+      reject(promise, reason);
     }, 'Settle: ' + (promise._label || ' unknown promise'));
 
     if (!sealed && error) {
       sealed = true;
-      _reject(promise, error);
+      reject(promise, error);
     }
   }, promise);
 }
@@ -3152,36 +2820,36 @@ function handleOwnThenable(promise, thenable) {
   if (thenable._state === FULFILLED) {
     fulfill(promise, thenable._result);
   } else if (thenable._state === REJECTED) {
-    _reject(promise, thenable._result);
+    reject(promise, thenable._result);
   } else {
     subscribe(thenable, undefined, function (value) {
-      return _resolve(promise, value);
+      return resolve(promise, value);
     }, function (reason) {
-      return _reject(promise, reason);
+      return reject(promise, reason);
     });
   }
 }
 
-function handleMaybeThenable(promise, maybeThenable, then$$) {
-  if (maybeThenable.constructor === promise.constructor && then$$ === then && maybeThenable.constructor.resolve === resolve) {
+function handleMaybeThenable(promise, maybeThenable, then$$1) {
+  if (maybeThenable.constructor === promise.constructor && then$$1 === then && maybeThenable.constructor.resolve === resolve$1) {
     handleOwnThenable(promise, maybeThenable);
   } else {
-    if (then$$ === GET_THEN_ERROR) {
-      _reject(promise, GET_THEN_ERROR.error);
+    if (then$$1 === GET_THEN_ERROR) {
+      reject(promise, GET_THEN_ERROR.error);
       GET_THEN_ERROR.error = null;
-    } else if (then$$ === undefined) {
+    } else if (then$$1 === undefined) {
       fulfill(promise, maybeThenable);
-    } else if (isFunction(then$$)) {
-      handleForeignThenable(promise, maybeThenable, then$$);
+    } else if (isFunction(then$$1)) {
+      handleForeignThenable(promise, maybeThenable, then$$1);
     } else {
       fulfill(promise, maybeThenable);
     }
   }
 }
 
-function _resolve(promise, value) {
+function resolve(promise, value) {
   if (promise === value) {
-    _reject(promise, selfFulfillment());
+    reject(promise, selfFulfillment());
   } else if (objectOrFunction(value)) {
     handleMaybeThenable(promise, value, getThen(value));
   } else {
@@ -3210,7 +2878,7 @@ function fulfill(promise, value) {
   }
 }
 
-function _reject(promise, reason) {
+function reject(promise, reason) {
   if (promise._state !== PENDING) {
     return;
   }
@@ -3295,7 +2963,7 @@ function invokeCallback(settled, promise, callback, detail) {
     }
 
     if (promise === value) {
-      _reject(promise, cannotReturnOwn());
+      reject(promise, cannotReturnOwn());
       return;
     }
   } else {
@@ -3306,25 +2974,25 @@ function invokeCallback(settled, promise, callback, detail) {
   if (promise._state !== PENDING) {
     // noop
   } else if (hasCallback && succeeded) {
-      _resolve(promise, value);
+      resolve(promise, value);
     } else if (failed) {
-      _reject(promise, error);
+      reject(promise, error);
     } else if (settled === FULFILLED) {
       fulfill(promise, value);
     } else if (settled === REJECTED) {
-      _reject(promise, value);
+      reject(promise, value);
     }
 }
 
 function initializePromise(promise, resolver) {
   try {
     resolver(function resolvePromise(value) {
-      _resolve(promise, value);
+      resolve(promise, value);
     }, function rejectPromise(reason) {
-      _reject(promise, reason);
+      reject(promise, reason);
     });
   } catch (e) {
-    _reject(promise, e);
+    reject(promise, e);
   }
 }
 
@@ -3340,7 +3008,7 @@ function makePromise(promise) {
   promise._subscribers = [];
 }
 
-function Enumerator(Constructor, input) {
+function Enumerator$1(Constructor, input) {
   this._instanceConstructor = Constructor;
   this.promise = new Constructor(noop);
 
@@ -3349,7 +3017,6 @@ function Enumerator(Constructor, input) {
   }
 
   if (isArray(input)) {
-    this._input = input;
     this.length = input.length;
     this._remaining = input.length;
 
@@ -3359,34 +3026,31 @@ function Enumerator(Constructor, input) {
       fulfill(this.promise, this._result);
     } else {
       this.length = this.length || 0;
-      this._enumerate();
+      this._enumerate(input);
       if (this._remaining === 0) {
         fulfill(this.promise, this._result);
       }
     }
   } else {
-    _reject(this.promise, validationError());
+    reject(this.promise, validationError());
   }
 }
 
 function validationError() {
   return new Error('Array Methods must be provided an Array');
-};
+}
 
-Enumerator.prototype._enumerate = function () {
-  var length = this.length;
-  var _input = this._input;
-
-  for (var i = 0; this._state === PENDING && i < length; i++) {
-    this._eachEntry(_input[i], i);
+Enumerator$1.prototype._enumerate = function (input) {
+  for (var i = 0; this._state === PENDING && i < input.length; i++) {
+    this._eachEntry(input[i], i);
   }
 };
 
-Enumerator.prototype._eachEntry = function (entry, i) {
+Enumerator$1.prototype._eachEntry = function (entry, i) {
   var c = this._instanceConstructor;
-  var resolve$$ = c.resolve;
+  var resolve$$1 = c.resolve;
 
-  if (resolve$$ === resolve) {
+  if (resolve$$1 === resolve$1) {
     var _then = getThen(entry);
 
     if (_then === then && entry._state !== PENDING) {
@@ -3394,28 +3058,28 @@ Enumerator.prototype._eachEntry = function (entry, i) {
     } else if (typeof _then !== 'function') {
       this._remaining--;
       this._result[i] = entry;
-    } else if (c === Promise) {
+    } else if (c === Promise$2) {
       var promise = new c(noop);
       handleMaybeThenable(promise, entry, _then);
       this._willSettleAt(promise, i);
     } else {
-      this._willSettleAt(new c(function (resolve$$) {
-        return resolve$$(entry);
+      this._willSettleAt(new c(function (resolve$$1) {
+        return resolve$$1(entry);
       }), i);
     }
   } else {
-    this._willSettleAt(resolve$$(entry), i);
+    this._willSettleAt(resolve$$1(entry), i);
   }
 };
 
-Enumerator.prototype._settledAt = function (state, i, value) {
+Enumerator$1.prototype._settledAt = function (state, i, value) {
   var promise = this.promise;
 
   if (promise._state === PENDING) {
     this._remaining--;
 
     if (state === REJECTED) {
-      _reject(promise, value);
+      reject(promise, value);
     } else {
       this._result[i] = value;
     }
@@ -3426,7 +3090,7 @@ Enumerator.prototype._settledAt = function (state, i, value) {
   }
 };
 
-Enumerator.prototype._willSettleAt = function (promise, i) {
+Enumerator$1.prototype._willSettleAt = function (promise, i) {
   var enumerator = this;
 
   subscribe(promise, undefined, function (value) {
@@ -3483,8 +3147,8 @@ Enumerator.prototype._willSettleAt = function (promise, i) {
   fulfilled, or rejected if any of them become rejected.
   @static
 */
-function all(entries) {
-  return new Enumerator(this, entries).promise;
+function all$1(entries) {
+  return new Enumerator$1(this, entries).promise;
 }
 
 /**
@@ -3552,7 +3216,7 @@ function all(entries) {
   @return {Promise} a promise which settles in the same way as the first passed
   promise to settle.
 */
-function race(entries) {
+function race$1(entries) {
   /*jshint validthis:true */
   var Constructor = this;
 
@@ -3604,11 +3268,11 @@ function race(entries) {
   Useful for tooling.
   @return {Promise} a promise rejected with the given `reason`.
 */
-function reject(reason) {
+function reject$1(reason) {
   /*jshint validthis:true */
   var Constructor = this;
   var promise = new Constructor(noop);
-  _reject(promise, reason);
+  reject(promise, reason);
   return promise;
 }
 
@@ -3723,27 +3387,27 @@ function needsNew() {
   Useful for tooling.
   @constructor
 */
-function Promise(resolver) {
+function Promise$2(resolver) {
   this[PROMISE_ID] = nextId();
   this._result = this._state = undefined;
   this._subscribers = [];
 
   if (noop !== resolver) {
     typeof resolver !== 'function' && needsResolver();
-    this instanceof Promise ? initializePromise(this, resolver) : needsNew();
+    this instanceof Promise$2 ? initializePromise(this, resolver) : needsNew();
   }
 }
 
-Promise.all = all;
-Promise.race = race;
-Promise.resolve = resolve;
-Promise.reject = reject;
-Promise._setScheduler = setScheduler;
-Promise._setAsap = setAsap;
-Promise._asap = asap;
+Promise$2.all = all$1;
+Promise$2.race = race$1;
+Promise$2.resolve = resolve$1;
+Promise$2.reject = reject$1;
+Promise$2._setScheduler = setScheduler;
+Promise$2._setAsap = setAsap;
+Promise$2._asap = asap;
 
-Promise.prototype = {
-  constructor: Promise,
+Promise$2.prototype = {
+  constructor: Promise$2,
 
   /**
     The primary way of interacting with a promise is through its `then` method,
@@ -3972,7 +3636,8 @@ Promise.prototype = {
   }
 };
 
-function polyfill() {
+/*global self*/
+function polyfill$1() {
     var local = undefined;
 
     if (typeof global !== 'undefined') {
@@ -4002,20 +3667,21 @@ function polyfill() {
         }
     }
 
-    local.Promise = Promise;
+    local.Promise = Promise$2;
 }
 
 // Strange compat..
-Promise.polyfill = polyfill;
-Promise.Promise = Promise;
+Promise$2.polyfill = polyfill$1;
+Promise$2.Promise = Promise$2;
 
-return Promise;
+return Promise$2;
 
 })));
 
 
+
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":3}],16:[function(require,module,exports){
+},{"_process":24}],13:[function(require,module,exports){
 var Parser = require('./lib/parser')
   , Resource = require('./lib/resource')
   , validationFlag = false;
@@ -4038,7 +3704,7 @@ module.exports = {
 
 };
 
-},{"./lib/parser":18,"./lib/resource":19}],17:[function(require,module,exports){
+},{"./lib/parser":15,"./lib/resource":16}],14:[function(require,module,exports){
 'use strict';
 
 /*
@@ -4083,7 +3749,7 @@ ImmutableStack.prototype.peek = function() {
 
 module.exports = ImmutableStack;
 
-},{}],18:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 'use strict';
 
 var Resource = require('./resource')
@@ -4293,7 +3959,7 @@ function pathToString(path) {
 
 module.exports = Parser;
 
-},{"./immutable_stack":17,"./resource":19}],19:[function(require,module,exports){
+},{"./immutable_stack":14,"./resource":16}],16:[function(require,module,exports){
 'use strict';
 
 function Resource(links, curies, embedded, validationIssues) {
@@ -4422,7 +4088,18 @@ Resource.prototype.validation = Resource.prototype.validationIssues;
 
 module.exports = Resource;
 
-},{}],20:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
+
+var indexOf = [].indexOf;
+
+module.exports = function(arr, obj){
+  if (indexOf) return arr.indexOf(obj);
+  for (var i = 0; i < arr.length; ++i) {
+    if (arr[i] === obj) return i;
+  }
+  return -1;
+};
+},{}],18:[function(require,module,exports){
 /* eslint-env browser */
 'use strict';
 var eachAsync = require('each-async');
@@ -4452,7 +4129,7 @@ module.exports = function (hosts, cb) {
 	});
 };
 
-},{"arrify":12,"each-async":14,"onetime":25}],21:[function(require,module,exports){
+},{"arrify":8,"each-async":11,"onetime":23}],19:[function(require,module,exports){
 /*global exports, require*/
 /* eslint-disable no-eval */
 /* JSONPath 0.8.0 - XPath for JSON
@@ -4986,7 +4663,7 @@ else {
 }
 }(this || self, typeof require === 'undefined' ? null : require));
 
-},{"vm":4}],22:[function(require,module,exports){
+},{"vm":77}],20:[function(require,module,exports){
 (function (process){
 // Generated by CoffeeScript 1.6.3
 (function() {
@@ -5151,7 +4828,7 @@ else {
 }).call(this);
 
 }).call(this,require('_process'))
-},{"_process":3}],23:[function(require,module,exports){
+},{"_process":24}],21:[function(require,module,exports){
 /*
   Loki IndexedDb Adapter (need to include this script to use it)
 
@@ -5772,7 +5449,7 @@ else {
   }());
 }));
 
-},{}],24:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 (function (global){
 /**
  * LokiJS
@@ -5848,119 +5525,205 @@ else {
       }
     };
 
+    /** Helper function for determining 'loki' abstract equality which is a little more abstract than ==
+     *     aeqHelper(5, '5') === true
+     *     aeqHelper(5.0, '5') === true
+     *     aeqHelper(new Date("1/1/2011"), new Date("1/1/2011")) === true
+     *     aeqHelper({a:1}, {z:4}) === true (all objects sorted equally)
+     *     aeqHelper([1, 2, 3], [1, 3]) === false
+     *     aeqHelper([1, 2, 3], [1, 2, 3]) === true
+     *     aeqHelper(undefined, null) === true
+     */
+    function aeqHelper(prop1, prop2) {
+      var cv1, cv2, t1, t2;
+
+      if (prop1 === prop2) return true;
+
+      // 'falsy' and Boolean handling
+      if (!prop1 || !prop2 || prop1 === true || prop2 === true || prop1 !== prop1 || prop2 !== prop2) {
+        // dates and NaN conditions (typed dates before serialization)
+        switch (prop1) {
+          case undefined: t1 = 1; break;
+          case null: t1 = 1; break;
+          case false: t1 = 3; break;
+          case true: t1 = 4; break;
+          case "": t1 = 5; break;
+          default: t1 = (prop1 === prop1)?9:0; break;
+        }
+
+        switch (prop2) {
+          case undefined: t2 = 1; break;
+          case null: t2 = 1; break;
+          case false: t2 = 3; break;
+          case true: t2 = 4; break;
+          case "": t2 = 5; break;
+          default: t2 = (prop2 === prop2)?9:0; break;
+        }
+
+        // one or both is edge case
+        if (t1 !== 9 || t2 !== 9) {
+          return (t1===t2);
+        }
+      }
+
+      // Handle 'Number-like' comparisons
+      cv1 = Number(prop1);
+      cv2 = Number(prop2);
+
+      // if one or both are 'number-like'...
+      if (cv1 === cv1 || cv2 === cv2) {
+        return (cv1 === cv2);
+      }
+
+      // not strict equal nor less than nor gt so must be mixed types, convert to string and use that to compare
+      cv1 = prop1.toString();
+      cv2 = prop2.toString();
+
+      return (cv1 == cv2);
+    }
+
     /** Helper function for determining 'less-than' conditions for ops, sorting, and binary indices.
      *     In the future we might want $lt and $gt ops to use their own functionality/helper.
      *     Since binary indices on a property might need to index [12, NaN, new Date(), Infinity], we
      *     need this function (as well as gtHelper) to always ensure one value is LT, GT, or EQ to another.
      */
     function ltHelper(prop1, prop2, equal) {
-      var cv1, cv2;
+      var cv1, cv2, t1, t2;
 
-      // 'falsy' and Boolean handling
-      if (!prop1 || !prop2 || prop1 === true || prop2 === true) {
-        if ((prop1 === true || prop1 === false) && (prop2 === true || prop2 === false)) {
-          if (equal) {
-            return prop1 === prop2;
-          } else {
-            if (prop1) {
-              return false;
-            } else {
-              return prop2;
-            }
-          }
+      // if one of the params is falsy or strictly true or not equal to itself
+      // 0, 0.0, "", NaN, null, undefined, not defined, false, true
+      if (!prop1 || !prop2 || prop1 === true || prop2 === true || prop1 !== prop1 || prop2 !== prop2) {
+        switch (prop1) {
+          case undefined: t1 = 1; break;
+          case null: t1 = 1; break;
+          case false: t1 = 3; break;
+          case true: t1 = 4; break;
+          case "": t1 = 5; break;
+          // if strict equal probably 0 so sort higher, otherwise probably NaN so sort lower than even null
+          default: t1 = (prop1 === prop1)?9:0; break;
         }
 
-        if (prop2 === undefined || prop2 === null || prop1 === true || prop2 === false) {
-          return equal;
+        switch (prop2) {
+          case undefined: t2 = 1; break;
+          case null: t2 = 1; break;
+          case false: t2 = 3; break;
+          case true: t2 = 4; break;
+          case "": t2 = 5; break;
+          default: t2 = (prop2 === prop2)?9:0; break;
         }
-        if (prop1 === undefined || prop1 === null || prop1 === false || prop2 === true) {
-          return true;
+
+        // one or both is edge case
+        if (t1 !== 9 || t2 !== 9) {
+          return (t1===t2)?equal:(t1<t2);
         }
       }
 
-      if (prop1 === prop2) {
+      // if both are numbers (string encoded or not), compare as numbers
+      cv1 = Number(prop1);
+      cv2 = Number(prop2);
+      
+      if (cv1 === cv1 && cv2 === cv2) {
+        if (cv1 < cv2) return true;
+        if (cv1 > cv2) return false;
         return equal;
       }
 
-      if (prop1 < prop2) {
+      if (cv1 === cv1 && cv2 !== cv2) {
         return true;
       }
-
-      if (prop1 > prop2) {
+      
+      if (cv2 === cv2 && cv1 !== cv1) {
         return false;
       }
+      
+      if (prop1 < prop2) return true;
+      if (prop1 > prop2) return false;
+      if (prop1 == prop2) return equal;
 
       // not strict equal nor less than nor gt so must be mixed types, convert to string and use that to compare
       cv1 = prop1.toString();
       cv2 = prop2.toString();
 
-      if (cv1 == cv2) {
-        return equal;
-      }
-
       if (cv1 < cv2) {
         return true;
+      }
+
+      if (cv1 == cv2) {
+        return equal;
       }
 
       return false;
     }
 
     function gtHelper(prop1, prop2, equal) {
-      var cv1, cv2;
+      var cv1, cv2, t1, t2;
 
       // 'falsy' and Boolean handling
-      if (!prop1 || !prop2 || prop1 === true || prop2 === true) {
-        if ((prop1 === true || prop1 === false) && (prop2 === true || prop2 === false)) {
-          if (equal) {
-            return prop1 === prop2;
-          } else {
-            if (prop1) {
-              return !prop2;
-            } else {
-              return false;
-            }
-          }
+      if (!prop1 || !prop2 || prop1 === true || prop2 === true || prop1 !== prop1 || prop2 !== prop2) {
+        switch (prop1) {
+          case undefined: t1 = 1; break;
+          case null: t1 = 1; break;
+          case false: t1 = 3; break;
+          case true: t1 = 4; break;
+          case "": t1 = 5; break;
+          // NaN 0
+          default: t1 = (prop1 === prop1)?9:0; break;
         }
 
-        if (prop1 === undefined || prop1 === null || prop1 === false || prop2 === true) {
-          return equal;
+        switch (prop2) {
+          case undefined: t2 = 1; break;
+          case null: t2 = 1; break;
+          case false: t2 = 3; break;
+          case true: t2 = 4; break;
+          case "": t2 = 5; break;
+          default: t2 = (prop2 === prop2)?9:0; break;
         }
-        if (prop2 === undefined || prop2 === null || prop1 === true || prop2 === false) {
-          return true;
+
+        // one or both is edge case
+        if (t1 !== 9 || t2 !== 9) {
+          return (t1===t2)?equal:(t1>t2);
         }
       }
 
-      if (prop1 === prop2) {
+      // if both are numbers (string encoded or not), compare as numbers
+      cv1 = Number(prop1);
+      cv2 = Number(prop2);
+      if (cv1 === cv1 && cv2 === cv2) {
+        if (cv1 > cv2) return true;
+        if (cv1 < cv2) return false;
         return equal;
       }
-
-      if (prop1 > prop2) {
+      
+      if (cv1 === cv1 && cv2 !== cv2) {
+        return false;
+      }
+      
+      if (cv2 === cv2 && cv1 !== cv1) {
         return true;
       }
 
-      if (prop1 < prop2) {
-        return false;
-      }
+      if (prop1 > prop2) return true;
+      if (prop1 < prop2) return false;
+      if (prop1 == prop2) return equal;
 
-      // not strict equal nor less than nor gt so must be mixed types, convert to string and use that to compare
+      // not strict equal nor less than nor gt so must be dates or mixed types
+      // convert to string and use that to compare
       cv1 = prop1.toString();
       cv2 = prop2.toString();
 
-      if (cv1 == cv2) {
-        return equal;
-      }
-
       if (cv1 > cv2) {
         return true;
+      }
+
+      if (cv1 == cv2) {
+        return equal;
       }
 
       return false;
     }
 
     function sortHelper(prop1, prop2, desc) {
-      if (prop1 === prop2) {
-        return 0;
-      }
+      if (aeqHelper(prop1, prop2)) return 0;
 
       if (ltHelper(prop1, prop2, false)) {
         return (desc) ? (1) : (-1);
@@ -6076,12 +5839,9 @@ else {
 
         return a !== b;
       },
-
+      // date equality / loki abstract equality test
       $dteq: function (a, b) {
-        if (ltHelper(a, b, false)) {
-          return false;
-        }
-        return !gtHelper(a, b, false);
+        return aeqHelper(a, b);
       },
 
       $gt: function (a, b) {
@@ -6170,6 +5930,10 @@ else {
         return (typeof b !== 'object') ? (type === b) : doQueryOp(type, b);
       },
 
+      $finite: function(a, b) {
+        return (b === isFinite(a));
+      },
+
       $size: function (a, b) {
         if (Array.isArray(a)) {
           return (typeof b !== 'object') ? (a.length === b) : doQueryOp(a.length, b);
@@ -6215,8 +5979,20 @@ else {
       }
     };
 
-    // making indexing opt-in... our range function knows how to deal with these ops :
-    var indexedOpsList = ['$eq', '$aeq', '$dteq', '$gt', '$gte', '$lt', '$lte', '$in', '$between'];
+    // if an op is registered in this object, our 'calculateRange' can use it with our binary indices.
+    // if the op is registered to a function, we will run that function/op as a 2nd pass filter on results.
+    // those 2nd pass filter functions should be similar to LokiOps functions, accepting 2 vals to compare.
+    var indexedOps = {
+      $eq: LokiOps.$eq,
+      $aeq: true,
+      $dteq: true,
+      $gt: true,
+      $gte: true,
+      $lt: true,
+      $lte: true,
+      $in: true,
+      $between: true
+    };
 
     function clone(data, method) {
       if (data === null || data === undefined) {
@@ -6234,10 +6010,16 @@ else {
         cloned = jQuery.extend(true, {}, data);
         break;
       case "shallow":
-        cloned = Object.create(data.prototype || null);
+        // more compatible method for older browsers
+        cloned = data.prototype?Object.create(data.prototype):{};
         Object.keys(data).map(function (i) {
           cloned[i] = data[i];
         });
+        break;
+      case "shallow-assign":
+        // should be supported by newer environments/browsers
+        cloned = data.prototype?Object.create(data.prototype):{};
+        Object.assign(cloned, data);
         break;
       default:
         break;
@@ -6387,16 +6169,16 @@ else {
      * @param {string} filename - name of the file to be saved to
      * @param {object=} options - (Optional) config options object
      * @param {string} options.env - override environment detection as 'NODEJS', 'BROWSER', 'CORDOVA'
-     * @param {boolean} options.verbose - enable console output (default is 'false')
-     * @param {boolean} options.autosave - enables autosave
-     * @param {int} options.autosaveInterval - time interval (in milliseconds) between saves (if dirty)
-     * @param {boolean} options.autoload - enables autoload on loki instantiation
+     * @param {boolean} [options.verbose=false] - enable console output
+     * @param {boolean} [options.autosave=false] - enables autosave
+     * @param {int} [options.autosaveInterval=5000] - time interval (in milliseconds) between saves (if dirty)
+     * @param {boolean} [options.autoload=false] - enables autoload on loki instantiation
      * @param {function} options.autoloadCallback - user callback called after database load
      * @param {adapter} options.adapter - an instance of a loki persistence adapter
-     * @param {string} options.serializationMethod - ['normal', 'pretty', 'destructured']
+     * @param {string} [options.serializationMethod='normal'] - ['normal', 'pretty', 'destructured']
      * @param {string} options.destructureDelimiter - string delimiter used for destructured serialization
-     * @param {boolean} options.throttledSaves - if true, it batches multiple calls to to saveDatabase reducing number of disk I/O operations
-                                                and guaranteeing proper serialization of the calls. Default value is true.
+     * @param {boolean} [options.throttledSaves=true] - debounces multiple calls to to saveDatabase reducing number of disk I/O operations
+                                                and guaranteeing proper serialization of the calls.
      */
     function Loki(filename, options) {
       this.filename = filename || 'loki.db';
@@ -6404,8 +6186,8 @@ else {
 
       // persist version of code which created the database to the database.
       // could use for upgrade scenarios
-      this.databaseVersion = 1.1;
-      this.engineVersion = 1.1;
+      this.databaseVersion = 1.5;
+      this.engineVersion = 1.5;
 
       // autosave support (disabled by default)
       // pass autosave: true, autosaveInterval: 6000 in options to set 6 second autosave
@@ -6445,14 +6227,14 @@ else {
       };
 
       var getENV = function () {
-        // if (typeof global !== 'undefined' && (global.android || global.NSObject)) {
-        //   //If no adapter is set use the default nativescript adapter
-        //   if (!options.adapter) {
-        //     var LokiNativescriptAdapter = require('./loki-nativescript-adapter');
-        //     options.adapter=new LokiNativescriptAdapter();
-        //   }
-        //   return 'NATIVESCRIPT'; //nativescript
-        // }
+        if (typeof global !== 'undefined' && (global.android || global.NSObject)) {
+           // If no adapter is set use the default nativescript adapter
+           if (!options.adapter) {
+             //var LokiNativescriptAdapter = require('./loki-nativescript-adapter');
+             //options.adapter=new LokiNativescriptAdapter();
+           }
+           return 'NATIVESCRIPT'; //nativescript
+        }
 
         if (typeof window === 'undefined') {
           return 'NODEJS';
@@ -6531,11 +6313,13 @@ else {
       var defaultPersistence = {
           'NODEJS': 'fs',
           'BROWSER': 'localStorage',
-          'CORDOVA': 'localStorage'
+          'CORDOVA': 'localStorage',
+          'MEMORY': 'memory'
         },
         persistenceMethods = {
           'fs': LokiFsAdapter,
-          'localStorage': LokiLocalStorageAdapter
+          'localStorage': LokiLocalStorageAdapter,
+          'memory': LokiMemoryAdapter
         };
 
       this.options = {};
@@ -6624,7 +6408,8 @@ else {
      * @memberof Loki
      */
     Loki.prototype.copy = function(options) {
-      var databaseCopy = new Loki(this.filename);
+      // in case running in an environment without accurate environment detection, pass 'NA'
+      var databaseCopy = new Loki(this.filename, { env: "NA" });
       var clen, idx;
 
       options = options || {};
@@ -6648,39 +6433,17 @@ else {
     };
 
     /**
-     * Shorthand method for quickly creating and populating an anonymous collection.
-     *    This collection is not referenced internally so upon losing scope it will be garbage collected.
-     *
-     * @example
-     * var results = new loki().anonym(myDocArray).find({'age': {'$gt': 30} });
-     *
-     * @param {Array} docs - document array to initialize the anonymous collection with
-     * @param {object} options - configuration object, see {@link Loki#addCollection} options
-     * @returns {Collection} New collection which you can query or chain
-     * @memberof Loki
-     */
-    Loki.prototype.anonym = function (docs, options) {
-      var collection = new Collection('anonym', options);
-      collection.insert(docs);
-
-      if (this.verbose)
-        collection.console = console;
-
-      return collection;
-    };
-
-    /**
      * Adds a collection to the database.
      * @param {string} name - name of collection to add
      * @param {object=} options - (optional) options to configure collection with.
-     * @param {array} options.unique - array of property names to define unique constraints for
-     * @param {array} options.exact - array of property names to define exact constraints for
-     * @param {array} options.indices - array property names to define binary indexes for
-     * @param {boolean} options.asyncListeners - default is false
-     * @param {boolean} options.disableChangesApi - default is true
-     * @param {boolean} options.autoupdate - use Object.observe to update objects automatically (default: false)
-     * @param {boolean} options.clone - specify whether inserts and queries clone to/from user
-     * @param {string} options.cloneMethod - 'parse-stringify' (default), 'jquery-extend-deep', 'shallow'
+     * @param {array=} [options.unique=[]] - array of property names to define unique constraints for
+     * @param {array=} [options.exact=[]] - array of property names to define exact constraints for
+     * @param {array=} [options.indices=[]] - array property names to define binary indexes for
+     * @param {boolean} [options.asyncListeners=false] - whether listeners are called asynchronously
+     * @param {boolean} [options.disableChangesApi=true] - set to false to enable Changes Api
+     * @param {boolean} [options.autoupdate=false] - use Object.observe to update objects automatically
+     * @param {boolean} [options.clone=false] - specify whether inserts and queries clone to/from user
+     * @param {string} [options.cloneMethod='parse-stringify'] - 'parse-stringify', 'jquery-extend-deep', 'shallow, 'shallow-assign'
      * @param {int} options.ttlInterval - time interval for clearing out 'aged' documents; not set by default.
      * @returns {Collection} a reference to the collection which was just added
      * @memberof Loki
@@ -6810,7 +6573,7 @@ else {
     Loki.prototype.toJson = Loki.prototype.serialize;
 
     /**
-     * Destructured JSON serialization routine to allow alternate serialization methods.
+     * Database level destructured JSON serialization routine to allow alternate serialization methods.
      * Internally, Loki supports destructuring via loki "serializationMethod' option and 
      * the optional LokiPartitioningAdapter class. It is also available if you wish to do 
      * your own structured persistence or data exchange.
@@ -6947,11 +6710,11 @@ else {
     };
 
     /**
-     * Utility method to serialize a collection in a 'destructured' format
+     * Collection level utility method to serialize a collection in a 'destructured' format
      *
-     * @param {object} options - used to determine output of method
-     * @param {int=} options.delimited - whether to return single delimited string or an array
-     * @param {string=} options.delimiter - (optional) if delimited, this is delimiter to use
+     * @param {object=} options - used to determine output of method
+     * @param {int} options.delimited - whether to return single delimited string or an array
+     * @param {string} options.delimiter - (optional) if delimited, this is delimiter to use
      * @param {int} options.collectionIndex -  specify which collection to serialize data for
      *
      * @returns {string|array} A custom, restructured aggregation of independent serializations for a single collection.
@@ -6994,16 +6757,16 @@ else {
     };
 
     /**
-     * Destructured JSON deserialization routine to minimize memory overhead.
+     * Database level destructured JSON deserialization routine to minimize memory overhead.
      * Internally, Loki supports destructuring via loki "serializationMethod' option and 
      * the optional LokiPartitioningAdapter class. It is also available if you wish to do 
      * your own structured persistence or data exchange.
      *
      * @param {string|array} destructuredSource - destructured json or array to deserialize from
      * @param {object=} options - source format options
-     * @param {bool=} options.partitioned - (default: false) whether db and each collection are separate
+     * @param {bool=} [options.partitioned=false] - whether db and each collection are separate
      * @param {int=} options.partition - can be used to deserialize only a single partition
-     * @param {bool=} options.delimited - (default: true) whether subitems are delimited or subarrays
+     * @param {bool=} [options.delimited=true] - whether subitems are delimited or subarrays
      * @param {string=} options.delimiter - override default delimiter
      *
      * @returns {object|array} An object representation of the deserialized database, not yet applied to 'this' db or document array
@@ -7105,12 +6868,12 @@ else {
     };
 
     /**
-     * Deserializes a destructured collection.
+     * Collection level utility function to deserializes a destructured collection.
      *
      * @param {string|array} destructuredSource - destructured representation of collection to inflate
-     * @param {object} options - used to describe format of destructuredSource input
-     * @param {int} options.delimited - whether source is delimited string or an array
-     * @param {string} options.delimiter - (optional) if delimited, this is delimiter to use
+     * @param {object=} options - used to describe format of destructuredSource input
+     * @param {int=} [options.delimited=false] - whether source is delimited string or an array
+     * @param {string=} options.delimiter - if delimited, this is delimiter to use (if other than default)
      *
      * @returns {array} an array of documents to attach to collection.data.
      * @memberof Loki
@@ -7153,7 +6916,8 @@ else {
      * Inflates a loki database from a serialized JSON string
      *
      * @param {string} serializedDb - a serialized loki database string
-     * @param {object} options - apply or override collection level settings
+     * @param {object=} options - apply or override collection level settings
+     * @param {bool} options.retainDirtyFlags - whether collection dirty flags will be preserved
      * @memberof Loki
      */
     Loki.prototype.loadJSON = function (serializedDb, options) {
@@ -7177,8 +6941,8 @@ else {
      * Inflates a loki database from a JS object
      *
      * @param {object} dbObject - a serialized loki database string
-     * @param {object} options - apply or override collection level settings
-     * @param {bool?} options.retainDirtyFlags - whether collection dirty flags will be preserved
+     * @param {object=} options - apply or override collection level settings
+     * @param {bool} options.retainDirtyFlags - whether collection dirty flags will be preserved
      * @memberof Loki
      */
     Loki.prototype.loadJSONObject = function (dbObject, options) {
@@ -7194,10 +6958,10 @@ else {
       this.name = dbObject.name;
 
       // restore database version
-      this.databaseVersion = 1.0;
-      if (dbObject.hasOwnProperty('databaseVersion')) {
-        this.databaseVersion = dbObject.databaseVersion;
-      }
+      //this.databaseVersion = 1.0;
+      //if (dbObject.hasOwnProperty('databaseVersion')) {
+      //  this.databaseVersion = dbObject.databaseVersion;
+      //}
 
       // restore save throttled boolean only if not defined in options
       if (dbObject.hasOwnProperty('throttledSaves') && options && !options.hasOwnProperty('throttledSaves')) {
@@ -7281,7 +7045,7 @@ else {
             copyColl.ensureUniqueIndex(copyColl.uniqueNames[j]);
           }
         }
-
+        
         // in case they are loading a database created before we added dynamic views, handle undefined
         if (typeof (coll.DynamicViews) === 'undefined') continue;
 
@@ -7299,12 +7063,18 @@ else {
 
           dv.sortDirty = colldv.sortDirty;
           dv.resultset.filteredrows = colldv.resultset.filteredrows;
-          dv.resultset.searchIsChained = colldv.resultset.searchIsChained;
           dv.resultset.filterInitialized = colldv.resultset.filterInitialized;
 
           dv.rematerialize({
             removeWhereFilters: true
           });
+        }
+
+        // Upgrade Logic for binary index refactoring at version 1.5
+        if (dbObject.databaseVersion < 1.5) {
+            // rebuild all indices
+            copyColl.ensureAllIndexes(true);
+            copyColl.dirty = true;
         }
       }
     };
@@ -7403,8 +7173,8 @@ else {
      * This simple 'key/value' adapter is intended for unit testing and diagnostics.
      *
      * @param {object=} options - memory adapter options
-     * @param {boolean} options.asyncResponses - whether callbacks are invoked asynchronously (default: false)
-     * @param {int} options.asyncTimeout - timeout in ms to queue callbacks (default: 50)
+     * @param {boolean} [options.asyncResponses=false] - whether callbacks are invoked asynchronously
+     * @param {int} [options.asyncTimeout=50] - timeout in ms to queue callbacks
      * @constructor LokiMemoryAdapter
      */
     function LokiMemoryAdapter(options) {
@@ -8073,10 +7843,12 @@ else {
     };
 
     /**
-     * Handles loading from file system, local storage, or adapter (indexeddb)
+     * Handles manually loading from file system, local storage, or adapter (such as indexeddb)
      *    This method utilizes loki configuration options (if provided) to determine which
      *    persistence method to use, or environment detection (if configuration was not provided).
      *    To avoid contention with any throttledSaves, we will drain the save queue first.
+     *
+     * If you are configured with autosave, you do not need to call this method yourself.
      *
      * @param {object} options - if throttling saves and loads, this controls how we drain save queue before loading
      * @param {boolean} options.recursiveWait - (default: true) wait recursively until no saves are queued 
@@ -8084,6 +7856,15 @@ else {
      * @param {int} options.recursiveWaitLimitDelay - (default: 2000) cutoff in ms to stop recursively re-draining
      * @param {function=} callback - (Optional) user supplied async callback / error handler
      * @memberof Loki
+     * @example
+     * db.loadDatabase({}, function(err) {
+     *   if (err) {
+     *     console.log("error : " + err);
+     *   }
+     *   else {
+     *     console.log("database loaded.");
+     *   }
+     * });
      */
     Loki.prototype.loadDatabase = function (options, callback) {
       var self=this;
@@ -8159,12 +7940,23 @@ else {
     };
 
     /**
-     * Handles saving to file system, local storage, or adapter (indexeddb)
+     * Handles manually saving to file system, local storage, or adapter (such as indexeddb)
      *    This method utilizes loki configuration options (if provided) to determine which
      *    persistence method to use, or environment detection (if configuration was not provided).
      *
+     * If you are configured with autosave, you do not need to call this method yourself.
+     *
      * @param {function=} callback - (Optional) user supplied async callback / error handler
      * @memberof Loki
+     * @example
+     * db.saveDatabase(function(err) {
+     *   if (err) {
+     *     console.log("error : " + err);
+     *   }
+     *   else {
+     *     console.log("database saved.");
+     *   }
+     * });
      */
     Loki.prototype.saveDatabase = function (callback) {
       if (!this.throttledSaves) {
@@ -8210,7 +8002,6 @@ else {
      *    This method utilizes loki configuration options (if provided) to determine which
      *    persistence method to use, or environment detection (if configuration was not provided).
      *
-     * @param {object} options - not currently used (remove or allow overrides?)
      * @param {function=} callback - (Optional) user supplied async callback / error handler
      * @memberof Loki
      */
@@ -8220,6 +8011,12 @@ else {
           throw err;
         }
       };
+      
+      // we aren't even using options, so we will support syntax where
+      // callback is passed as first and only argument
+      if (typeof options === 'function' && !callback) {
+        cFun = options;
+      }
 
       // the persistenceAdapter should be present if all is ok, but check to be sure.
       if (this.persistenceAdapter !== null) {
@@ -8308,35 +8105,15 @@ else {
      *
      * @constructor Resultset
      * @param {Collection} collection - The collection which this Resultset will query against.
-     * @param {Object=} options - Object containing one or more options.
-     * @param {string} options.queryObj - Optional mongo-style query object to initialize resultset with.
-     * @param {function} options.queryFunc - Optional javascript filter function to initialize resultset with.
-     * @param {bool} options.firstOnly - Optional boolean used by collection.findOne().
      */
     function Resultset(collection, options) {
       options = options || {};
 
-      options.queryObj = options.queryObj || null;
-      options.queryFunc = options.queryFunc || null;
-      options.firstOnly = options.firstOnly || false;
-
       // retain reference to collection we are querying against
       this.collection = collection;
-
-      // if chain() instantiates with null queryObj and queryFunc, so we will keep flag for later
-      this.searchIsChained = (!options.queryObj && !options.queryFunc);
       this.filteredrows = [];
       this.filterInitialized = false;
 
-      // if user supplied initial queryObj or queryFunc, apply it
-      if (typeof (options.queryObj) !== "undefined" && options.queryObj !== null) {
-        return this.find(options.queryObj, options.firstOnly);
-      }
-      if (typeof (options.queryFunc) !== "undefined" && options.queryFunc !== null) {
-        return this.where(options.queryFunc);
-      }
-
-      // otherwise return unfiltered Resultset for future filtering
       return this;
     }
 
@@ -8372,8 +8149,8 @@ else {
      * @memberof Resultset
      */
     Resultset.prototype.limit = function (qty) {
-      // if this is chained resultset with no filters applied, we need to populate filteredrows first
-      if (this.searchIsChained && !this.filterInitialized && this.filteredrows.length === 0) {
+      // if this has no filters applied, we need to populate filteredrows first
+      if (!this.filterInitialized && this.filteredrows.length === 0) {
         this.filteredrows = this.collection.prepareFullDocIndex();
       }
 
@@ -8391,8 +8168,8 @@ else {
      * @memberof Resultset
      */
     Resultset.prototype.offset = function (pos) {
-      // if this is chained resultset with no filters applied, we need to populate filteredrows first
-      if (this.searchIsChained && !this.filterInitialized && this.filteredrows.length === 0) {
+      // if this has no filters applied, we need to populate filteredrows first
+      if (!this.filterInitialized && this.filteredrows.length === 0) {
         this.filteredrows = this.collection.prepareFullDocIndex();
       }
 
@@ -8505,39 +8282,6 @@ else {
     };
 
     /**
-     * Instances a new anonymous collection with the documents contained in the current resultset.
-     *
-     * @param {object} collectionOptions - Options to pass to new anonymous collection construction.
-     * @returns {Collection} A reference to an anonymous collection initialized with resultset data().
-     * @memberof Resultset
-     */
-    Resultset.prototype.instance = function(collectionOptions) {
-      var docs = this.data();
-      var idx,
-        doc;
-
-      collectionOptions = collectionOptions || {};
-
-      var instanceCollection = new Collection(collectionOptions);
-
-      for(idx=0; idx<docs.length; idx++) {
-        if (this.collection.cloneObjects) {
-          doc = docs[idx];
-        }
-        else {
-          doc = clone(docs[idx], this.collection.cloneMethod);
-        }
-
-        delete doc.$loki;
-        delete doc.meta;
-
-        instanceCollection.insert(doc);
-      }
-
-      return instanceCollection;
-    };
-
-    /**
      * User supplied compare function is provided two documents to compare. (chainable)
      * @example
      *    rslt.sort(function(obj1, obj2) {
@@ -8551,8 +8295,8 @@ else {
      * @memberof Resultset
      */
     Resultset.prototype.sort = function (comparefun) {
-      // if this is chained resultset with no filters applied, just we need to populate filteredrows first
-      if (this.searchIsChained && !this.filterInitialized && this.filteredrows.length === 0) {
+      // if this has no filters applied, just we need to populate filteredrows first
+      if (!this.filterInitialized && this.filteredrows.length === 0) {
         this.filteredrows = this.collection.prepareFullDocIndex();
       }
 
@@ -8578,14 +8322,23 @@ else {
      * @memberof Resultset
      */
     Resultset.prototype.simplesort = function (propname, isdesc) {
-      // if this is chained resultset with no filters applied, just we need to populate filteredrows first
-      if (this.searchIsChained && !this.filterInitialized && this.filteredrows.length === 0) {
+      if (typeof (isdesc) === 'undefined') {
+        isdesc = false;
+      }
+
+      // if this has no filters applied, just we need to populate filteredrows first
+      if (!this.filterInitialized && this.filteredrows.length === 0) {
         // if we have a binary index and no other filters applied, we can use that instead of sorting (again)
         if (this.collection.binaryIndices.hasOwnProperty(propname)) {
           // make sure index is up-to-date
           this.collection.ensureIndex(propname);
           // copy index values into filteredrows
           this.filteredrows = this.collection.binaryIndices[propname].values.slice(0);
+
+          if (isdesc) {
+            this.filteredrows.reverse();
+          }
+
           // we are done, return this (resultset) for further chain ops
           return this;
         }
@@ -8593,10 +8346,6 @@ else {
         else {
           this.filteredrows = this.collection.prepareFullDocIndex();
         }
-      }
-
-      if (typeof (isdesc) === 'undefined') {
-        isdesc = false;
       }
 
       var wrappedComparer =
@@ -8645,8 +8394,8 @@ else {
         }
       }
 
-      // if this is chained resultset with no filters applied, just we need to populate filteredrows first
-      if (this.searchIsChained && !this.filterInitialized && this.filteredrows.length === 0) {
+      // if this has no filters applied, just we need to populate filteredrows first
+      if (!this.filterInitialized && this.filteredrows.length === 0) {
         this.filteredrows = this.collection.prepareFullDocIndex();
       }
 
@@ -8740,74 +8489,65 @@ else {
      */
     Resultset.prototype.find = function (query, firstOnly) {
       if (this.collection.data.length === 0) {
-        if (this.searchIsChained) {
-          this.filteredrows = [];
-          this.filterInitialized = true;
-          return this;
-        }
-        return [];
+        this.filteredrows = [];
+        this.filterInitialized = true;
+        return this;
       }
 
       var queryObject = query || 'getAll',
         p,
         property,
         queryObjectOp,
+        obj,
         operator,
         value,
         key,
         searchByIndex = false,
         result = [],
+        filters = [],
         index = null;
 
-      // if this was note invoked via findOne()
+      // flag if this was invoked via findOne()
       firstOnly = firstOnly || false;
 
       if (typeof queryObject === 'object') {
         for (p in queryObject) {
+          obj = {};
+          obj[p] = queryObject[p];
+          filters.push(obj);
+
           if (hasOwnProperty.call(queryObject, p)) {
             property = p;
             queryObjectOp = queryObject[p];
-            break;
           }
+        }
+        // if more than one expression in single query object, 
+        // convert implicit $and to explicit $and
+        if (filters.length > 1) {
+          return this.find({ '$and': filters }, firstOnly);
         }
       }
 
       // apply no filters if they want all
       if (!property || queryObject === 'getAll') {
-        // coll.find(), coll.findOne(), coll.chain().find().data() all path here
-
         if (firstOnly) {
-          return (this.collection.data.length > 0)?this.collection.data[0]: null;
+          this.filteredrows = (this.collection.data.length > 0)?[0]: [];
+          this.filterInitialized = true;
         }
 
-        return (this.searchIsChained) ? (this) : (this.collection.data.slice());
+        return this;
       }
 
       // injecting $and and $or expression tree evaluation here.
       if (property === '$and' || property === '$or') {
-        if (this.searchIsChained) {
-          this[property](queryObjectOp);
+        this[property](queryObjectOp);
 
-          // for chained find with firstonly,
-          if (firstOnly && this.filteredrows.length > 1) {
-            this.filteredrows = this.filteredrows.slice(0, 1);
-          }
-
-          return this;
-        } else {
-          // our $and operation internally chains filters
-          result = this.collection.chain()[property](queryObjectOp).data();
-
-          // if this was coll.findOne() return first object or empty array if null
-          // since this is invoked from a constructor we can't return null, so we will
-          // make null in coll.findOne();
-          if (firstOnly) {
-            return (result.length === 0) ? ([]) : (result[0]);
-          }
-
-          // not first only return all results
-          return result;
+        // for chained find with firstonly,
+        if (firstOnly && this.filteredrows.length > 1) {
+          this.filteredrows = this.filteredrows.slice(0, 1);
         }
+
+        return this;
       }
 
       // see if query object is in shorthand mode (assuming eq operator)
@@ -8839,13 +8579,10 @@ else {
       var usingDotNotation = (property.indexOf('.') !== -1);
 
       // if an index exists for the property being queried against, use it
-      // for now only enabling for non-chained query (who's set of docs matches index)
-      // or chained queries where it is the first filter applied and prop is indexed
-      var doIndexCheck = !usingDotNotation &&
-        (!this.searchIsChained || !this.filterInitialized);
+      // for now only enabling where it is the first filter applied and prop is indexed
+      var doIndexCheck = !usingDotNotation && !this.filterInitialized;
 
-      if (doIndexCheck && this.collection.binaryIndices[property] &&
-        indexedOpsList.indexOf(operator) !== -1) {
+      if (doIndexCheck && this.collection.binaryIndices[property] && indexedOps[operator]) {
         // this is where our lazy index rebuilding will take place
         // basically we will leave all indexes dirty until we need them
         // so here we will rebuild only the index tied to this property
@@ -8868,83 +8605,10 @@ else {
         len = 0;
 
       // Query executed differently depending on :
-      //    - whether it is chained or not
       //    - whether the property being queried has an index defined
       //    - if chained, we handle first pass differently for initial filteredrows[] population
       //
       // For performance reasons, each case has its own if block to minimize in-loop calculations
-
-      // If not a chained query, bypass filteredrows and work directly against data
-      if (!this.searchIsChained) {
-        if (!searchByIndex) {
-          i = t.length;
-
-          if (firstOnly) {
-            if (usingDotNotation) {
-              property = property.split('.');
-              while (i--) {
-                if (dotSubScan(t[i], property, fun, value)) {
-                  return (t[i]);
-                }
-              }
-            } else {
-              while (i--) {
-                if (fun(t[i][property], value)) {
-                  return (t[i]);
-                }
-              }
-            }
-
-            return [];
-          }
-
-          // if using dot notation then treat property as keypath such as 'name.first'.
-          // currently supporting dot notation for non-indexed conditions only
-          if (usingDotNotation) {
-            property = property.split('.');
-            while (i--) {
-              if (dotSubScan(t[i], property, fun, value)) {
-                result.push(t[i]);
-              }
-            }
-          } else {
-            while (i--) {
-              if (fun(t[i][property], value)) {
-                result.push(t[i]);
-              }
-            }
-          }
-        } else {
-          // searching by binary index via calculateRange() utility method
-          var seg = this.collection.calculateRange(operator, property, value);
-
-          // not chained so this 'find' was designated in Resultset constructor
-          // so return object itself
-          if (firstOnly) {
-            if (seg[1] !== -1) {
-              return t[index.values[seg[0]]];
-            }
-            return [];
-          }
-
-          if (operator !== '$in') {
-            for (i = seg[0]; i <= seg[1]; i++) {
-              result.push(t[index.values[i]]);
-            }
-          } else {
-            for (i = 0, len = seg.length; i < len; i++) {
-              result.push(t[index.values[seg[i]]]);
-            }
-          }
-        }
-
-        // not a chained query so return result as data[]
-        return result;
-      }
-
-
-      // Otherwise this is a chained query
-      // Chained queries now preserve results ordering at expense on slightly reduced unindexed performance
 
       var filter, rowIdx = 0;
 
@@ -8982,12 +8646,22 @@ else {
             for(i=0; i<len; i++) {
               if (dotSubScan(t[i], property, fun, value)) {
                 result.push(i);
+                if (firstOnly) {
+                  this.filteredrows = result;
+                  this.filterInitialized = true;
+                  return this;
+                }
               }
             }
           } else {
             for(i=0; i<len; i++) {
               if (fun(t[i][property], value)) {
                 result.push(i);
+                if (firstOnly) {
+                  this.filteredrows = result;
+                  this.filterInitialized = true;
+                  return this;
+                }
               }
             }
           }
@@ -8997,19 +8671,42 @@ else {
 
           if (operator !== '$in') {
             for (i = segm[0]; i <= segm[1]; i++) {
-              result.push(index.values[i]);
+              if (indexedOps[operator] !== true) {
+                // must be a function, implying 2nd phase filtering of results from calculateRange
+                if (indexedOps[operator](t[index.values[i]][property], value)) {
+                  result.push(index.values[i]);
+                  if (firstOnly) {
+                    this.filteredrows = result;
+                    this.filterInitialized = true;
+                    return this;
+                  }
+                }
+              }
+              else {
+                  result.push(index.values[i]);
+                  if (firstOnly) {
+                    this.filteredrows = result;
+                    this.filterInitialized = true;
+                    return this;
+                  }
+              }
             }
           } else {
             for (i = 0, len = segm.length; i < len; i++) {
               result.push(index.values[segm[i]]);
+              if (firstOnly) {
+                this.filteredrows = result;
+                this.filterInitialized = true;
+                return this;
+              }
             }
           }
         }
 
-        this.filterInitialized = true; // next time work against filteredrows[]
       }
 
       this.filteredrows = result;
+      this.filterInitialized = true; // next time work against filteredrows[]
       return this;
     };
 
@@ -9031,50 +8728,34 @@ else {
         throw new TypeError('Argument is not a stored view or a function');
       }
       try {
-        // if not a chained query then run directly against data[] and return object []
-        if (!this.searchIsChained) {
-          var i = this.collection.data.length;
+        // If the filteredrows[] is already initialized, use it
+        if (this.filterInitialized) {
+          var j = this.filteredrows.length;
 
-          while (i--) {
-            if (viewFunction(this.collection.data[i]) === true) {
-              result.push(this.collection.data[i]);
+          while (j--) {
+            if (viewFunction(this.collection.data[this.filteredrows[j]]) === true) {
+              result.push(this.filteredrows[j]);
             }
           }
 
-          // not a chained query so returning result as data[]
-          return result;
+          this.filteredrows = result;
+
+          return this;
         }
-        // else chained query, so run against filteredrows
+        // otherwise this is initial chained op, work against data, push into filteredrows[]
         else {
-          // If the filteredrows[] is already initialized, use it
-          if (this.filterInitialized) {
-            var j = this.filteredrows.length;
+          var k = this.collection.data.length;
 
-            while (j--) {
-              if (viewFunction(this.collection.data[this.filteredrows[j]]) === true) {
-                result.push(this.filteredrows[j]);
-              }
+          while (k--) {
+            if (viewFunction(this.collection.data[k]) === true) {
+              result.push(k);
             }
-
-            this.filteredrows = result;
-
-            return this;
           }
-          // otherwise this is initial chained op, work against data, push into filteredrows[]
-          else {
-            var k = this.collection.data.length;
 
-            while (k--) {
-              if (viewFunction(this.collection.data[k]) === true) {
-                result.push(k);
-              }
-            }
+          this.filteredrows = result;
+          this.filterInitialized = true;
 
-            this.filteredrows = result;
-            this.filterInitialized = true;
-
-            return this;
-          }
+          return this;
         }
       } catch (err) {
         throw err;
@@ -9088,7 +8769,7 @@ else {
      * @memberof Resultset
      */
     Resultset.prototype.count = function () {
-      if (this.searchIsChained && this.filterInitialized) {
+      if (this.filterInitialized) {
         return this.filteredrows.length;
       }
       return this.collection.count();
@@ -9101,7 +8782,8 @@ else {
      * @param {boolean} options.forceClones - Allows forcing the return of cloned objects even when
      *        the collection is not configured for clone object.
      * @param {string} options.forceCloneMethod - Allows overriding the default or collection specified cloning method.
-     *        Possible values include 'parse-stringify', 'jquery-extend-deep', and 'shallow'
+     *        Possible values include 'parse-stringify', 'jquery-extend-deep', 'shallow', 'shallow-assign'
+     * @param {bool} options.removeMeta - Will force clones and strip $loki and meta properties from documents
      *
      * @returns {array} Array of documents in the resultset
      * @memberof Resultset
@@ -9109,14 +8791,21 @@ else {
     Resultset.prototype.data = function (options) {
       var result = [],
         data = this.collection.data,
+        obj,
         len,
         i,
         method;
 
       options = options || {};
 
-      // if this is chained resultset with no filters applied, just return collection.data
-      if (this.searchIsChained && !this.filterInitialized) {
+      // if user opts to strip meta, then force clones and use 'shallow' if 'force' options are not present
+      if (options.removeMeta && !options.forceClones) {
+        options.forceClones = true;
+        options.forceCloneMethod = options.forceCloneMethod || 'shallow';
+      }
+
+      // if this has no filters applied, just return collection.data
+      if (!this.filterInitialized) {
         if (this.filteredrows.length === 0) {
           // determine whether we need to clone objects or not
           if (this.collection.cloneObjects || options.forceClones) {
@@ -9124,7 +8813,12 @@ else {
             method = options.forceCloneMethod || this.collection.cloneMethod;
 
             for (i = 0; i < len; i++) {
-              result.push(clone(data[i], method));
+              obj = clone(data[i], method);
+              if (options.removeMeta) {
+                delete obj.$loki;
+                delete obj.meta;
+              }
+              result.push(obj);
             }
             return result;
           }
@@ -9144,7 +8838,12 @@ else {
       if (this.collection.cloneObjects || options.forceClones) {
         method = options.forceCloneMethod || this.collection.cloneMethod;
         for (i = 0; i < len; i++) {
-          result.push(clone(data[fr[i]], method));
+          obj = clone(data[fr[i]], method);
+          if (options.removeMeta) {
+            delete obj.$loki;
+            delete obj.meta;
+          }
+          result.push(obj);
         }
       } else {
         for (i = 0; i < len; i++) {
@@ -9167,8 +8866,8 @@ else {
         throw new TypeError('Argument is not a function');
       }
 
-      // if this is chained resultset with no filters applied, we need to populate filteredrows first
-      if (this.searchIsChained && !this.filterInitialized && this.filteredrows.length === 0) {
+      // if this has no filters applied, we need to populate filteredrows first
+      if (!this.filterInitialized && this.filteredrows.length === 0) {
         this.filteredrows = this.collection.prepareFullDocIndex();
       }
 
@@ -9194,8 +8893,8 @@ else {
      */
     Resultset.prototype.remove = function () {
 
-      // if this is chained resultset with no filters applied, we need to populate filteredrows first
-      if (this.searchIsChained && !this.filterInitialized && this.filteredrows.length === 0) {
+      // if this has no filters applied, we need to populate filteredrows first
+      if (!this.filterInitialized && this.filteredrows.length === 0) {
         this.filteredrows = this.collection.prepareFullDocIndex();
       }
 
@@ -9316,8 +9015,8 @@ else {
      * @param {Collection} collection - A reference to the collection to work against
      * @param {string} name - The name of this dynamic view
      * @param {object=} options - (Optional) Pass in object with 'persistent' and/or 'sortPriority' options.
-     * @param {boolean} options.persistent - indicates if view is to main internal results array in 'resultdata'
-     * @param {string} options.sortPriority - 'passive' (sorts performed on call to data) or 'active' (after updates)
+     * @param {boolean} [options.persistent=false] - indicates if view is to main internal results array in 'resultdata'
+     * @param {string} [options.sortPriority='passive'] - 'passive' (sorts performed on call to data) or 'active' (after updates)
      * @param {number} options.minRebuildInterval - minimum rebuild interval (need clarification to docs here)
      * @see {@link Collection#addDynamicView} to construct instances of DynamicView
      */
@@ -9369,7 +9068,7 @@ else {
 
 
     /**
-     * rematerialize() - intended for use immediately after deserialization (loading)
+     * rematerialize() - internally used immediately after deserialization (loading)
      *    This will clear out and reapply filterPipeline ops, recreating the view.
      *    Since where filters do not persist correctly, this method allows
      *    restoring the view to state where user can re-apply those where filters.
@@ -9772,17 +9471,23 @@ else {
     /**
      * data() - resolves and pending filtering and sorting, then returns document array as result.
      *
+     * @param {object=} options - optional parameters to pass to resultset.data() if non-persistent
+     * @param {boolean} options.forceClones - Allows forcing the return of cloned objects even when
+     *        the collection is not configured for clone object.
+     * @param {string} options.forceCloneMethod - Allows overriding the default or collection specified cloning method.
+     *        Possible values include 'parse-stringify', 'jquery-extend-deep', 'shallow', 'shallow-assign'
+     * @param {bool} options.removeMeta - Will force clones and strip $loki and meta properties from documents
      * @returns {array} An array of documents representing the current DynamicView contents.
      * @memberof DynamicView
      */
-    DynamicView.prototype.data = function () {
+    DynamicView.prototype.data = function (options) {
       // using final sort phase as 'catch all' for a few use cases which require full rebuild
       if (this.sortDirty || this.resultsdirty) {
         this.performSortPhase({
           suppressRebuildEvent: true
         });
       }
-      return (this.options.persistent) ? (this.resultdata) : (this.resultset.data());
+      return (this.options.persistent) ? (this.resultdata) : (this.resultset.data(options));
     };
 
     /**
@@ -10052,15 +9757,16 @@ else {
      * @implements LokiEventEmitter
      * @param {string} name - collection name
      * @param {(array|object)=} options - (optional) array of property names to be indicized OR a configuration object
-     * @param {array} options.unique - array of property names to define unique constraints for
-     * @param {array} options.exact - array of property names to define exact constraints for
-     * @param {array} options.indices - array property names to define binary indexes for
-     * @param {boolean} options.adaptiveBinaryIndices - collection indices will be actively rebuilt rather than lazily (default: true)
-     * @param {boolean} options.asyncListeners - default is false
-     * @param {boolean} options.disableChangesApi - default is true
-     * @param {boolean} options.autoupdate - use Object.observe to update objects automatically (default: false)
-     * @param {boolean} options.clone - specify whether inserts and queries clone to/from user
-     * @param {string} options.cloneMethod - 'parse-stringify' (default), 'jquery-extend-deep', 'shallow'
+     * @param {array=} [options.unique=[]] - array of property names to define unique constraints for
+     * @param {array=} [options.exact=[]] - array of property names to define exact constraints for
+     * @param {array=} [options.indices=[]] - array property names to define binary indexes for
+     * @param {boolean} [options.adaptiveBinaryIndices=true] - collection indices will be actively rebuilt rather than lazily
+     * @param {boolean} [options.asyncListeners=false] - whether listeners are invoked asynchronously
+     * @param {boolean} [options.disableChangesApi=true] - set to false to enable Changes API
+     * @param {boolean} [options.autoupdate=false] - use Object.observe to update objects automatically
+     * @param {boolean} [options.clone=false] - specify whether inserts and queries clone to/from user
+     * @param {boolean} [options.serializableIndices=true[]] - converts date values on binary indexed properties to epoch time
+     * @param {string} [options.cloneMethod='parse-stringify' - 'parse-stringify', 'jquery-extend-deep', 'shallow', 'shallow-assign'
      * @param {int} options.ttlInterval - time interval for clearing out 'aged' documents; not set by default.
      * @see {@link Loki#addCollection} for normal creation of collections
      */
@@ -10141,6 +9847,11 @@ else {
       // option to observe objects and update them automatically, ignored if Object.observe is not supported
       this.autoupdate = options.hasOwnProperty('autoupdate') ? options.autoupdate : false;
 
+      // by default, if you insert a document into a collection with binary indices, if those indexed properties contain
+      // a DateTime we will convert to epoch time format so that (across serializations) its value position will be the 
+      // same 'after' serialization as it was 'before'.
+      this.serializableIndices = options.hasOwnProperty('serializableIndices') ? options.serializableIndices : true;
+      
       //option to activate a cleaner daemon - clears "aged" documents at set intervals.
       this.ttl = {
         age: null,
@@ -10364,6 +10075,17 @@ else {
      * @param {string} name - name to associate with transform
      * @param {array} transform - an array of transformation 'step' objects to save into the collection
      * @memberof Collection
+     * @example
+     * users.addTransform('progeny', [
+     *   {
+     *     type: 'find',
+     *     value: {
+     *       'age': {'$lte': 40}
+     *     }
+     *   }
+     * ]);
+     * 
+     * var results = users.chain('progeny').data();
      */
     Collection.prototype.addTransform = function (name, transform) {
       if (this.transforms.hasOwnProperty(name)) {
@@ -10371,6 +10093,15 @@ else {
       }
 
       this.transforms[name] = transform;
+    };
+
+    /**
+     * Retrieves a named transform from the collection.
+     * @param {string} name - name of the transform to lookup.
+     * @memberof Collection
+     */
+    Collection.prototype.getTransform = function (name) {
+      return this.transforms[name];
     };
 
     /**
@@ -10621,12 +10352,18 @@ else {
     /**
      * Add a dynamic view to the collection
      * @param {string} name - name of dynamic view to add
-     * @param {object=} options - (optional) options to configure dynamic view with
-     * @param {boolean} options.persistent - indicates if view is to main internal results array in 'resultdata'
-     * @param {string} options.sortPriority - 'passive' (sorts performed on call to data) or 'active' (after updates)
+     * @param {object=} options - options to configure dynamic view with
+     * @param {boolean} [options.persistent=false] - indicates if view is to main internal results array in 'resultdata'
+     * @param {string} [options.sortPriority='passive'] - 'passive' (sorts performed on call to data) or 'active' (after updates)
      * @param {number} options.minRebuildInterval - minimum rebuild interval (need clarification to docs here)
      * @returns {DynamicView} reference to the dynamic view added
      * @memberof Collection
+     * @example
+     * var pview = users.addDynamicView('progeny');
+     * pview.applyFind({'age': {'$lte': 40}});
+     * pview.applySimpleSort('name');
+     *
+     * var results = pview.data();
      **/
 
     Collection.prototype.addDynamicView = function (name, options) {
@@ -10697,6 +10434,15 @@ else {
      * @param {(object|array)} doc - the document (or array of documents) to be inserted
      * @returns {(object|array)} document or documents inserted
      * @memberof Collection
+     * @example
+     * users.insert({
+     *     name: 'Odin',
+     *     age: 50,
+     *     address: 'Asgard'
+     * });
+     * 
+     * // alternatively, insert array of documents
+     * users.insert([{ name: 'Thor', age: 35}, { name: 'Loki', age: 30}]);
      */
     Collection.prototype.insert = function (doc) {
       if (!Array.isArray(doc)) {
@@ -10715,7 +10461,12 @@ else {
         }
         results.push(obj);
       }
+      // at the 'batch' level, if clone option is true then emitted docs are clones
       this.emit('insert', results);
+
+      // if clone option is set, clone return values
+      results = this.cloneObjects ? clone(results, this.cloneMethod) : results;
+
       return results.length === 1 ? results[0] : results;
     };
 
@@ -10724,7 +10475,6 @@ else {
      * @param {object} doc - the document to be inserted
      * @param {boolean} bulkInsert - quiet pre-insert and insert event emits
      * @returns {object} document or 'undefined' if there was a problem inserting it
-     * @memberof Collection
      */
     Collection.prototype.insertOne = function (doc, bulkInsert) {
       var err = null;
@@ -10751,7 +10501,8 @@ else {
         };
       }
 
-      // allow pre-insert to modify actual collection reference even if cloning
+      // both 'pre-insert' and 'insert' events are passed internal data reference even when cloning
+      // insert needs internal reference because that is where loki itself listens to add meta
       if (!bulkInsert) {
         this.emit('pre-insert', obj);
       }
@@ -10759,13 +10510,13 @@ else {
         return undefined;
       }
 
-      // if cloning, give user back clone of 'cloned' object with $loki and meta
-      returnObj = this.cloneObjects ? clone(obj, this.cloneMethod) : obj;
+      returnObj = obj;
+      if (!bulkInsert) {
+        this.emit('insert', obj);
+        returnObj = this.cloneObjects ? clone(obj, this.cloneMethod) : obj;
+      }
 
       this.addAutoUpdateObserver(returnObj);
-      if (!bulkInsert) {
-        this.emit('insert', returnObj);
-      }
       return returnObj;
     };
 
@@ -11185,8 +10936,14 @@ else {
     Collection.prototype.adaptiveBinaryIndexInsert = function(dataPosition, binaryIndexName) {
       var index = this.binaryIndices[binaryIndexName].values;
       var val = this.data[dataPosition][binaryIndexName];
-      //var rs = new Resultset(this, null, null);
-      var idxPos = this.calculateRangeStart(binaryIndexName, val);
+
+      // If you are inserting a javascript Date value into a binary index, convert to epoch time
+      if (this.serializableIndices === true && val instanceof Date) {
+        this.data[dataPosition][binaryIndexName] = val.getTime();
+        val = this.data[dataPosition][binaryIndexName];
+      }
+
+      var idxPos = (index.length === 0)?0:this.calculateRangeStart(binaryIndexName, val, true);
 
       // insert new data index into our binary index at the proper sorted location for relevant property calculated by idxPos.
       // doing this after adjusting dataPositions so no clash with previous item at that position.
@@ -11252,18 +11009,28 @@ else {
     };
 
     /**
-     * Internal method used for index maintenance.  Given a prop (index name), and a value
-     * (which may or may not yet exist) this will find the proper location where it can be added.
+     * Internal method used for index maintenance and indexed searching.  
+     * Calculates the beginning of an index range for a given value.
+     * For index maintainance (adaptive:true), we will return a valid index position to insert to.
+     * For querying (adaptive:false/undefined), we will :
+     *    return lower bound/index of range of that value (if found)
+     *    return next lower index position if not found (hole)
+     * If index is empty it is assumed to be handled at higher level, so
+     * this method assumes there is at least 1 document in index. 
+     *
+     * @param {string} prop - name of property which has binary index
+     * @param {any} val - value to find within index
+     * @param {bool?} adaptive - if true, we will return insert position
      */
-    Collection.prototype.calculateRangeStart = function (prop, val) {
+    Collection.prototype.calculateRangeStart = function (prop, val, adaptive) {
       var rcd = this.data;
       var index = this.binaryIndices[prop].values;
       var min = 0;
       var max = index.length - 1;
       var mid = 0;
-
+      
       if (index.length === 0) {
-        return 0;
+        return -1;
       }
 
       var minVal = rcd[index[min]][prop];
@@ -11282,12 +11049,18 @@ else {
 
       var lbound = min;
 
-      if (ltHelper(rcd[index[lbound]][prop], val, false)) {
-        return lbound+1;
-      }
-      else {
+      // found it... return it
+      if (aeqHelper(val, rcd[index[lbound]][prop])) {
         return lbound;
       }
+
+      // if not in index and our value is less than the found one
+      if (ltHelper(val, rcd[index[lbound]][prop], false)) {
+        return adaptive?lbound:lbound-1;
+      }
+
+      // not in index and our value is greater than the found one
+      return adaptive?lbound+1:lbound;
     };
 
     /**
@@ -11302,7 +11075,7 @@ else {
       var mid = 0;
 
       if (index.length === 0) {
-        return 0;
+        return -1;
       }
 
       var minVal = rcd[index[min]][prop];
@@ -11321,12 +11094,23 @@ else {
 
       var ubound = max;
 
-      if (gtHelper(rcd[index[ubound]][prop], val, false)) {
-        return ubound-1;
-      }
-      else {
+      // only eq if last element in array is our val
+      if (aeqHelper(val, rcd[index[ubound]][prop])) {
         return ubound;
       }
+      
+       // if not in index and our value is less than the found one
+      if (gtHelper(val, rcd[index[ubound]][prop], false)) {
+        return ubound+1;
+      }
+      
+      // either hole or first nonmatch
+      if (aeqHelper(val, rcd[index[ubound-1]][prop])) {
+        return ubound-1;
+      }
+
+      // hole, so ubound if nearest gt than the val we were looking for
+      return ubound;
     };
 
     /**
@@ -11345,6 +11129,8 @@ else {
       var min = 0;
       var max = index.length - 1;
       var mid = 0;
+      var lbound, lval;
+      var ubound, uval;
 
       // when no documents are in collection, return empty range condition
       if (rcd.length === 0) {
@@ -11368,33 +11154,67 @@ else {
         }
         break;
       case '$gt':
+        // none are within range
         if (gtHelper(val, maxVal, true)) {
           return [0, -1];
         }
+        // all are within range
+        if (gtHelper(minVal, val, false)) {
+          return [min, max];
+        }
         break;
       case '$gte':
+        // none are within range
         if (gtHelper(val, maxVal, false)) {
           return [0, -1];
         }
+        // all are within range
+        if (gtHelper(minVal, val, true)) {
+            return [min, max];
+        }
         break;
       case '$lt':
+        // none are within range
         if (ltHelper(val, minVal, true)) {
           return [0, -1];
         }
+        // all are within range
         if (ltHelper(maxVal, val, false)) {
-          return [0, rcd.length - 1];
+          return [min, max];
         }
         break;
       case '$lte':
+        // none are within range
         if (ltHelper(val, minVal, false)) {
           return [0, -1];
         }
+        // all are within range
         if (ltHelper(maxVal, val, true)) {
-          return [0, rcd.length - 1];
+          return [min, max];
         }
         break;
       case '$between':
-        return ([this.calculateRangeStart(prop, val[0]), this.calculateRangeEnd(prop, val[1])]);
+        // none are within range (low range is greater)
+        if (gtHelper(val[0], maxVal, false)) {
+          return [0, -1];
+        }
+        // none are within range (high range lower)
+        if (ltHelper(val[1], minVal, false)) {
+          return [0, -1];
+        }
+        
+        lbound = this.calculateRangeStart(prop, val[0]);
+        ubound = this.calculateRangeEnd(prop, val[1]);
+
+        if (lbound < 0) lbound++;
+        if (ubound > max) ubound--;
+        
+        if (!gtHelper(rcd[index[lbound]][prop], val[0], true)) lbound++;
+        if (!ltHelper(rcd[index[ubound]][prop], val[1], true)) ubound--;
+        
+        if (ubound < lbound) return [0, -1];
+        
+        return ([lbound, ubound]);
       case '$in':
         var idxset = [],
           segResult = [];
@@ -11412,88 +11232,91 @@ else {
         return segResult;
       }
 
-      // hone in on start position of value
-      while (min < max) {
-        mid = (min + max) >> 1;
-
-        if (ltHelper(rcd[index[mid]][prop], val, false)) {
-          min = mid + 1;
-        } else {
-          max = mid;
-        }
+      // determine lbound where needed
+      switch (op) {
+        case '$eq':
+        case '$aeq':
+        case '$dteq':
+        case '$gte':
+        case '$lt': 
+          lbound = this.calculateRangeStart(prop, val);
+          lval = rcd[index[lbound]][prop];
+          break;
+        default: break;
       }
 
-      var lbound = min;
-
-      // do not reset min, as the upper bound cannot be prior to the found low bound
-      max = index.length - 1;
-
-      // hone in on end position of value
-      while (min < max) {
-        mid = (min + max) >> 1;
-
-        if (ltHelper(val, rcd[index[mid]][prop], false)) {
-          max = mid;
-        } else {
-          min = mid + 1;
-        }
+      // determine ubound where needed
+      switch (op) {
+        case '$eq':
+        case '$aeq':
+        case '$dteq':
+        case '$lte':
+        case '$gt':
+          ubound = this.calculateRangeEnd(prop, val);
+          uval = rcd[index[ubound]][prop];
+          break;
+        default: break;
       }
-
-      var ubound = max;
-
-      var lval = rcd[index[lbound]][prop];
-      var uval = rcd[index[ubound]][prop];
-
+      
+      
       switch (op) {
       case '$eq':
-        if (lval !== val) {
-          return [0, -1];
-        }
-        if (uval !== val) {
-          ubound--;
-        }
-
-        return [lbound, ubound];
+      case '$aeq':
       case '$dteq':
-        if (lval > val || lval < val) {
+        // if hole (not found)
+        //if (ltHelper(lval, val, false) || gtHelper(lval, val, false)) {
+        //  return [0, -1];
+        //}
+        if (!aeqHelper(lval, val)) {
           return [0, -1];
         }
-        if (uval > val || uval < val) {
-          ubound--;
-        }
-
+        
         return [lbound, ubound];
 
+      //case '$dteq':
+        // if hole (not found)
+      //  if (lval > val || lval < val) {
+      //    return [0, -1];
+      //  }
+        
+      //  return [lbound, ubound];
 
       case '$gt':
-        if (ltHelper(uval, val, true)) {
-          return [0, -1];
+        // (an eqHelper would probably be better test)
+        // if hole (not found) ub position is already greater
+        if (!aeqHelper(rcd[index[ubound]][prop], val)) {
+        //if (gtHelper(rcd[index[ubound]][prop], val, false)) {
+          return [ubound, max];
         }
-
-        return [ubound, rcd.length - 1];
+        // otherwise (found) so ubound is still equal, get next
+        return [ubound+1, max];
 
       case '$gte':
-        if (ltHelper(lval, val, false)) {
-          return [0, -1];
+        // if hole (not found) lb position marks left outside of range
+        if (!aeqHelper(rcd[index[lbound]][prop], val)) {
+        //if (ltHelper(rcd[index[lbound]][prop], val, false)) {
+          return [lbound+1, max];
         }
-
-        return [lbound, rcd.length - 1];
+        // otherwise (found) so lb is first position where its equal
+        return [lbound, max];
 
       case '$lt':
-        if (lbound === 0 && ltHelper(lval, val, false)) {
-          return [0, 0];
+        // if hole (not found) position already is less than
+        if (!aeqHelper(rcd[index[lbound]][prop], val)) {
+        //if (ltHelper(rcd[index[lbound]][prop], val, false)) {
+          return [min, lbound];
         }
-        return [0, lbound - 1];
+        // otherwise (found) so lb marks left inside of eq range, get previous
+        return [min, lbound-1];
 
       case '$lte':
-        if (uval !== val) {
-          ubound--;
+        // if hole (not found) ub position marks right outside so get previous
+        if (!aeqHelper(rcd[index[ubound]][prop], val)) {
+        //if (gtHelper(rcd[index[ubound]][prop], val, false)) {
+          return [min, ubound-1];
         }
-
-        if (ubound === 0 && ltHelper(uval, val, false)) {
-          return [0, 0];
-        }
-        return [0, ubound];
+        // otherwise (found) so ub is last position where its still equal
+        return [min, ubound];
 
       default:
         return [0, rcd.length - 1];
@@ -11534,18 +11357,15 @@ else {
       query = query || {};
 
       // Instantiate Resultset and exec find op passing firstOnly = true param
-      var result = new Resultset(this, {
-        queryObj: query,
-        firstOnly: true
-      });
+      var result = this.chain().find(query,true).data();
 
       if (Array.isArray(result) && result.length === 0) {
         return null;
       } else {
         if (!this.cloneObjects) {
-          return result;
+          return result[0];
         } else {
-          return clone(result, this.cloneMethod);
+          return clone(result[0], this.cloneMethod);
         }
       }
     };
@@ -11554,8 +11374,8 @@ else {
      * Chain method, used for beginning a series of chained find() and/or view() operations
      * on a collection.
      *
-     * @param {array} transform - Ordered array of transform step objects similar to chain
-     * @param {object} parameters - Object containing properties representing parameters to substitute
+     * @param {array=} transform - Ordered array of transform step objects similar to chain
+     * @param {object=} parameters - Object containing properties representing parameters to substitute
      * @returns {Resultset} (this) resultset, or data array if any map or join functions where called
      * @memberof Collection
      */
@@ -11578,18 +11398,7 @@ else {
      * @memberof Collection
      */
     Collection.prototype.find = function (query) {
-      if (typeof (query) === 'undefined') {
-        query = 'getAll';
-      }
-
-      var results = new Resultset(this, {
-        queryObj: query
-      });
-      if (!this.cloneObjects) {
-        return results;
-      } else {
-        return cloneObjectArray(results, this.cloneMethod);
-      }
+      return this.chain().find(query).data();
     };
 
     /**
@@ -11680,14 +11489,7 @@ else {
      * @memberof Collection
      */
     Collection.prototype.where = function (fun) {
-      var results = new Resultset(this, {
-        queryFunc: fun
-      });
-      if (!this.cloneObjects) {
-        return results;
-      } else {
-        return cloneObjectArray(results, this.cloneMethod);
-      }
+      return this.chain().where(fun).data();
     };
 
     /**
@@ -12247,13 +12049,16 @@ else {
       fs: LokiFsAdapter,
       localStorage: LokiLocalStorageAdapter
     };
+    Loki.aeq = aeqHelper;
+    Loki.lt = ltHelper;
+    Loki.gt = gtHelper;
     return Loki;
   }());
 
 }));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./loki-indexed-adapter.js":23,"fs":1}],25:[function(require,module,exports){
+},{"./loki-indexed-adapter.js":21,"fs":9}],23:[function(require,module,exports){
 'use strict';
 module.exports = function (fn, errMsg) {
 	if (typeof fn !== 'function') {
@@ -12286,7 +12091,193 @@ module.exports = function (fn, errMsg) {
 	return onetime;
 };
 
-},{}],26:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
+// shim for using process in browser
+var process = module.exports = {};
+
+// cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
+
+var cachedSetTimeout;
+var cachedClearTimeout;
+
+function defaultSetTimout() {
+    throw new Error('setTimeout has not been defined');
+}
+function defaultClearTimeout () {
+    throw new Error('clearTimeout has not been defined');
+}
+(function () {
+    try {
+        if (typeof setTimeout === 'function') {
+            cachedSetTimeout = setTimeout;
+        } else {
+            cachedSetTimeout = defaultSetTimout;
+        }
+    } catch (e) {
+        cachedSetTimeout = defaultSetTimout;
+    }
+    try {
+        if (typeof clearTimeout === 'function') {
+            cachedClearTimeout = clearTimeout;
+        } else {
+            cachedClearTimeout = defaultClearTimeout;
+        }
+    } catch (e) {
+        cachedClearTimeout = defaultClearTimeout;
+    }
+} ())
+function runTimeout(fun) {
+    if (cachedSetTimeout === setTimeout) {
+        //normal enviroments in sane situations
+        return setTimeout(fun, 0);
+    }
+    // if setTimeout wasn't available but was latter defined
+    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+        cachedSetTimeout = setTimeout;
+        return setTimeout(fun, 0);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedSetTimeout(fun, 0);
+    } catch(e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+            return cachedSetTimeout.call(null, fun, 0);
+        } catch(e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+            return cachedSetTimeout.call(this, fun, 0);
+        }
+    }
+
+
+}
+function runClearTimeout(marker) {
+    if (cachedClearTimeout === clearTimeout) {
+        //normal enviroments in sane situations
+        return clearTimeout(marker);
+    }
+    // if clearTimeout wasn't available but was latter defined
+    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+        cachedClearTimeout = clearTimeout;
+        return clearTimeout(marker);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedClearTimeout(marker);
+    } catch (e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+            return cachedClearTimeout.call(null, marker);
+        } catch (e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+            return cachedClearTimeout.call(this, marker);
+        }
+    }
+
+
+
+}
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    if (!draining || !currentQueue) {
+        return;
+    }
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    var timeout = runTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
+        }
+        queueIndex = -1;
+        len = queue.length;
+    }
+    currentQueue = null;
+    draining = false;
+    runClearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        runTimeout(drainQueue);
+    }
+};
+
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+process.prependListener = noop;
+process.prependOnceListener = noop;
+
+process.listeners = function (name) { return [] }
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function() { return 0; };
+
+},{}],25:[function(require,module,exports){
 // Copyright 2014 Simon Lydell
 // X11 (“MIT”) Licensed. (See LICENSE.)
 
@@ -12335,7 +12326,7 @@ void (function(root, factory) {
 
 }));
 
-},{}],27:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 'use strict';
 module.exports = typeof setImmediate === 'function' ? setImmediate :
 	function setImmediate() {
@@ -12344,7 +12335,7 @@ module.exports = typeof setImmediate === 'function' ? setImmediate :
 		setTimeout.apply(null, args);
 	};
 
-},{}],28:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 'use strict';
 
 function uniq(arr) {
@@ -12599,7 +12590,7 @@ module.exports = {
   _expand: _expand,
 };
 
-},{}],29:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 /**
  * Root reference for iframes.
  */
@@ -13534,7 +13525,7 @@ request.put = function(url, data, fn){
   return req;
 };
 
-},{"./is-function":30,"./is-object":31,"./request-base":32,"./response-base":33,"./should-retry":34,"component-emitter":13}],30:[function(require,module,exports){
+},{"./is-function":29,"./is-object":30,"./request-base":31,"./response-base":32,"./should-retry":33,"component-emitter":10}],29:[function(require,module,exports){
 /**
  * Check if `fn` is a function.
  *
@@ -13551,7 +13542,7 @@ function isFunction(fn) {
 
 module.exports = isFunction;
 
-},{"./is-object":31}],31:[function(require,module,exports){
+},{"./is-object":30}],30:[function(require,module,exports){
 /**
  * Check if `obj` is an object.
  *
@@ -13566,7 +13557,7 @@ function isObject(obj) {
 
 module.exports = isObject;
 
-},{}],32:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 /**
  * Module of mixed-in functions shared between node and client code
  */
@@ -14159,7 +14150,7 @@ RequestBase.prototype._setTimeouts = function() {
   }
 }
 
-},{"./is-object":31}],33:[function(require,module,exports){
+},{"./is-object":30}],32:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -14294,7 +14285,7 @@ ResponseBase.prototype._setStatusProperties = function(status){
     this.notFound = 404 == status;
 };
 
-},{"./utils":35}],34:[function(require,module,exports){
+},{"./utils":34}],33:[function(require,module,exports){
 var ERROR_CODES = [
   'ECONNRESET',
   'ETIMEDOUT',
@@ -14319,7 +14310,7 @@ module.exports = function shouldRetry(err, res) {
   return false;
 };
 
-},{}],35:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 
 /**
  * Return the mime type for the given `str`.
@@ -14388,7 +14379,7 @@ exports.cleanHeader = function(header, shouldStripCookie){
   }
   return header;
 };
-},{}],36:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 'use strict';
 
 var halfred = require('halfred');
@@ -14748,7 +14739,7 @@ function createError(message, name, data) {
 
 module.exports = JsonHalAdapter;
 
-},{"halfred":16}],37:[function(require,module,exports){
+},{"halfred":13}],36:[function(require,module,exports){
 'use strict';
 
 // TODO Replace by a proper lightweight logging module, suited for the browser
@@ -14799,7 +14790,7 @@ minilog.enable = function() {
 
 module.exports = minilog;
 
-},{}],38:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -14811,7 +14802,7 @@ module.exports = {
   }
 };
 
-},{}],39:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 'use strict';
 
 var superagent = require('superagent');
@@ -14940,7 +14931,7 @@ function handleResponse(callback) {
 
 module.exports = new Request();
 
-},{"superagent":29}],40:[function(require,module,exports){
+},{"superagent":28}],39:[function(require,module,exports){
 'use strict';
 
 /*
@@ -14984,7 +14975,7 @@ var _s = {
 
 module.exports = _s;
 
-},{}],41:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 'use strict';
 
 var resolveUrl = require('resolve-url');
@@ -14993,7 +14984,7 @@ exports.resolve = function(from, to) {
   return resolveUrl(from, to);
 };
 
-},{"resolve-url":26}],42:[function(require,module,exports){
+},{"resolve-url":25}],41:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -15034,7 +15025,7 @@ exports.abortError = function abortError() {
   return error;
 };
 
-},{"./errors":45,"minilog":37}],43:[function(require,module,exports){
+},{"./errors":44,"minilog":36}],42:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -15173,7 +15164,7 @@ function createTraversalHandle(t) {
   };
 }
 
-},{"./abort_traversal":42,"./http_requests":46,"./is_continuation":47,"./transforms/apply_transforms":54,"./transforms/check_http_status":55,"./transforms/continuation_to_doc":56,"./transforms/continuation_to_response":57,"./transforms/convert_embedded_doc_to_response":58,"./transforms/execute_http_request":60,"./transforms/execute_last_http_request":61,"./transforms/extract_doc":62,"./transforms/extract_response":63,"./transforms/extract_url":64,"./transforms/fetch_last_resource":65,"./transforms/parse":68,"./transforms/parse_link_header":69,"./walker":75,"minilog":37}],44:[function(require,module,exports){
+},{"./abort_traversal":41,"./http_requests":45,"./is_continuation":46,"./transforms/apply_transforms":53,"./transforms/check_http_status":54,"./transforms/continuation_to_doc":55,"./transforms/continuation_to_response":56,"./transforms/convert_embedded_doc_to_response":57,"./transforms/execute_http_request":59,"./transforms/execute_last_http_request":60,"./transforms/extract_doc":61,"./transforms/extract_response":62,"./transforms/extract_url":63,"./transforms/fetch_last_resource":64,"./transforms/parse":67,"./transforms/parse_link_header":68,"./walker":74,"minilog":36}],43:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -15903,7 +15894,7 @@ function shallowCloneArray(array) {
 
 module.exports = Builder;
 
-},{"./abort_traversal":42,"./actions":43,"./errors":45,"./media_type_registry":49,"./media_types":50,"./merge_recursive":51,"minilog":37,"request":39,"util":38}],45:[function(require,module,exports){
+},{"./abort_traversal":41,"./actions":42,"./errors":44,"./media_type_registry":48,"./media_types":49,"./merge_recursive":50,"minilog":36,"request":38,"util":37}],44:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -15929,7 +15920,7 @@ module.exports = {
 
 };
 
-},{}],46:[function(require,module,exports){
+},{}],45:[function(require,module,exports){
 (function (process){
 'use strict';
 var minilog = require('minilog')
@@ -16040,14 +16031,14 @@ exports.executeHttpRequest = function(t, request, method, callback) {
 };
 
 }).call(this,require('_process'))
-},{"./abort_traversal":42,"./errors":45,"./transforms/detect_content_type":59,"./transforms/get_options_for_step":67,"_process":3,"minilog":37}],47:[function(require,module,exports){
+},{"./abort_traversal":41,"./errors":44,"./transforms/detect_content_type":58,"./transforms/get_options_for_step":66,"_process":24,"minilog":36}],46:[function(require,module,exports){
 'use strict';
 
 module.exports = function isContinuation(t) {
   return t.continuation && t.step && t.step.response;
 };
 
-},{}],48:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 'use strict';
 
 var jsonpath = require('jsonpath-plus')
@@ -16183,7 +16174,7 @@ JsonAdapter.prototype._handleLinkHeader = function(httpResponse, link) {
 
 module.exports = JsonAdapter;
 
-},{"./errors":45,"./parse_link_header_value":53,"jsonpath-plus":21,"minilog":37,"underscore.string":40}],49:[function(require,module,exports){
+},{"./errors":44,"./parse_link_header_value":52,"jsonpath-plus":19,"minilog":36,"underscore.string":39}],48:[function(require,module,exports){
 'use strict';
 
 var mediaTypes = require('./media_types');
@@ -16202,7 +16193,7 @@ exports.register(mediaTypes.CONTENT_NEGOTIATION,
     require('./negotiation_adapter'));
 exports.register(mediaTypes.JSON, require('./json_adapter'));
 
-},{"./json_adapter":48,"./media_types":50,"./negotiation_adapter":52}],50:[function(require,module,exports){
+},{"./json_adapter":47,"./media_types":49,"./negotiation_adapter":51}],49:[function(require,module,exports){
 'use strict';
 
 var JsonAdapter = require('./json_adapter');
@@ -16213,7 +16204,7 @@ module.exports = {
   JSON_HAL: 'application/hal+json',
 };
 
-},{"./json_adapter":48}],51:[function(require,module,exports){
+},{"./json_adapter":47}],50:[function(require,module,exports){
 'use strict';
 
 // TODO Maybe replace with https://github.com/Raynos/xtend
@@ -16250,7 +16241,7 @@ function merge(obj1, obj2, key) {
 
 module.exports = mergeRecursive;
 
-},{}],52:[function(require,module,exports){
+},{}],51:[function(require,module,exports){
 'use strict';
 
 var errorModule = require('./errors')
@@ -16266,7 +16257,7 @@ NegotiationAdapter.prototype.findNextStep = function(doc, link) {
 
 module.exports = NegotiationAdapter;
 
-},{"./errors":45}],53:[function(require,module,exports){
+},{"./errors":44}],52:[function(require,module,exports){
 var mergeRecursive = require('./merge_recursive');
 
 module.exports = function parseLinkHeaderValue(linkHeader) {
@@ -16312,7 +16303,7 @@ function intoRels(acc, linkHeaderValuePart) {
   return acc;
 }
 
-},{"./merge_recursive":51}],54:[function(require,module,exports){
+},{"./merge_recursive":50}],53:[function(require,module,exports){
 (function (process){
 /* jshint loopfunc: true */
 'use strict';
@@ -16354,7 +16345,7 @@ function applyTransforms(transforms, t, callback) {
 module.exports = applyTransforms;
 
 }).call(this,require('_process'))
-},{"_process":3,"minilog":37}],55:[function(require,module,exports){
+},{"_process":24,"minilog":36}],54:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -16410,7 +16401,7 @@ function httpError(url, httpStatus, body) {
   return error;
 }
 
-},{"../errors":45,"../is_continuation":47,"minilog":37}],56:[function(require,module,exports){
+},{"../errors":44,"../is_continuation":46,"minilog":36}],55:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -16432,7 +16423,7 @@ module.exports = function continuationToDoc(t) {
   return true;
 };
 
-},{"../is_continuation":47,"minilog":37}],57:[function(require,module,exports){
+},{"../is_continuation":46,"minilog":36}],56:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -16457,7 +16448,7 @@ module.exports = function continuationToResponse(t) {
   return true;
 };
 
-},{"../is_continuation":47,"./convert_embedded_doc_to_response":58,"minilog":37}],58:[function(require,module,exports){
+},{"../is_continuation":46,"./convert_embedded_doc_to_response":57,"minilog":36}],57:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -16477,7 +16468,7 @@ module.exports = function convertEmbeddedDocToResponse(t) {
   return true;
 };
 
-},{"minilog":37}],59:[function(require,module,exports){
+},{"minilog":36}],58:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -16510,7 +16501,7 @@ module.exports = function detectContentType(t, callback) {
   return true;
 };
 
-},{"../errors":45,"../media_type_registry":49,"minilog":37}],60:[function(require,module,exports){
+},{"../errors":44,"../media_type_registry":48,"minilog":36}],59:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -16553,7 +16544,7 @@ executeLastHttpRequest.isAsync = true;
 
 module.exports = executeLastHttpRequest;
 
-},{"../abort_traversal":42,"../http_requests":46,"minilog":37}],61:[function(require,module,exports){
+},{"../abort_traversal":41,"../http_requests":45,"minilog":36}],60:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -16582,7 +16573,7 @@ executeLastHttpRequest.isAsync = true;
 
 module.exports = executeLastHttpRequest;
 
-},{"../abort_traversal":42,"../http_requests":46,"minilog":37}],62:[function(require,module,exports){
+},{"../abort_traversal":41,"../http_requests":45,"minilog":36}],61:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -16611,7 +16602,7 @@ module.exports = function extractDoc(t) {
   return false;
 };
 
-},{"minilog":37}],63:[function(require,module,exports){
+},{"minilog":36}],62:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -16641,7 +16632,7 @@ module.exports = function extractDoc(t) {
   return false;
 };
 
-},{"minilog":37}],64:[function(require,module,exports){
+},{"minilog":36}],63:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -16675,7 +16666,7 @@ module.exports = function extractDoc(t) {
   }
 };
 
-},{"../errors":45,"minilog":37,"url":41}],65:[function(require,module,exports){
+},{"../errors":44,"minilog":36,"url":40}],64:[function(require,module,exports){
 'use strict';
 
 // TODO Only difference to lib/transform/fetch_resource is the continuation
@@ -16713,7 +16704,7 @@ fetchLastResource.isAsync = true;
 
 module.exports = fetchLastResource;
 
-},{"../abort_traversal":42,"../http_requests":46,"minilog":37}],66:[function(require,module,exports){
+},{"../abort_traversal":41,"../http_requests":45,"minilog":36}],65:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -16771,7 +16762,7 @@ function fetchViaHttp(t, callback) {
 module.exports = fetchResource;
 
 }).call(this,require('_process'))
-},{"../abort_traversal":42,"../http_requests":46,"../is_continuation":47,"_process":3,"minilog":37}],67:[function(require,module,exports){
+},{"../abort_traversal":41,"../http_requests":45,"../is_continuation":46,"_process":24,"minilog":36}],66:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -16832,7 +16823,7 @@ function createAutoHeaders(options, autoHeaderValue) {
   }
 }
 
-},{"../merge_recursive":51,"minilog":37,"util":38}],68:[function(require,module,exports){
+},{"../merge_recursive":50,"minilog":36,"util":37}],67:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -16899,7 +16890,7 @@ function jsonError(url, body) {
   return error;
 }
 
-},{"../errors":45,"../is_continuation":47,"minilog":37}],69:[function(require,module,exports){
+},{"../errors":44,"../is_continuation":46,"minilog":36}],68:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -16931,7 +16922,7 @@ function handleError(t, e) {
   t.callback(e);
 }
 
-},{"../parse_link_header_value":53,"minilog":37}],70:[function(require,module,exports){
+},{"../parse_link_header_value":52,"minilog":36}],69:[function(require,module,exports){
 'use strict';
 
 var isContinuation = require('../is_continuation');
@@ -16946,7 +16937,7 @@ module.exports = function resetLastStep(t) {
   return true;
 };
 
-},{"../is_continuation":47}],71:[function(require,module,exports){
+},{"../is_continuation":46}],70:[function(require,module,exports){
 'use strict';
 
 var isContinuation = require('../is_continuation');
@@ -16961,7 +16952,7 @@ module.exports = function resetLastStep(t) {
   return true;
 };
 
-},{"../is_continuation":47}],72:[function(require,module,exports){
+},{"../is_continuation":46}],71:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -16994,7 +16985,7 @@ module.exports = function resolveNextUrl(t) {
   return true;
 };
 
-},{"minilog":37,"underscore.string":40,"url":41}],73:[function(require,module,exports){
+},{"minilog":36,"underscore.string":39,"url":40}],72:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -17027,7 +17018,7 @@ module.exports = function resolveUriTemplate(t) {
 
 
 
-},{"minilog":37,"underscore.string":40,"url-template":77,"util":38}],74:[function(require,module,exports){
+},{"minilog":36,"underscore.string":39,"url-template":76,"util":37}],73:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -17062,7 +17053,7 @@ function findNextStep(t, link) {
   }
 }
 
-},{"minilog":37}],75:[function(require,module,exports){
+},{"minilog":36}],74:[function(require,module,exports){
 'use strict';
 
 var minilog = require('minilog')
@@ -17139,7 +17130,7 @@ function isAborted(t) {
   return t.aborted;
 }
 
-},{"./abort_traversal":42,"./is_continuation":47,"./transforms/apply_transforms":54,"./transforms/check_http_status":55,"./transforms/fetch_resource":66,"./transforms/parse":68,"./transforms/reset_continuation":70,"./transforms/reset_last_step":71,"./transforms/resolve_next_url":72,"./transforms/resolve_uri_template":73,"./transforms/switch_to_next_step":74,"minilog":37}],76:[function(require,module,exports){
+},{"./abort_traversal":41,"./is_continuation":46,"./transforms/apply_transforms":53,"./transforms/check_http_status":54,"./transforms/fetch_resource":65,"./transforms/parse":67,"./transforms/reset_continuation":69,"./transforms/reset_last_step":70,"./transforms/resolve_next_url":71,"./transforms/resolve_uri_template":72,"./transforms/switch_to_next_step":73,"minilog":36}],75:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -17220,7 +17211,7 @@ exports.mediaTypes = mediaTypes;
 exports.errors = errors;
 
 }).call(this,require('_process'))
-},{"./lib/builder":44,"./lib/errors":45,"./lib/media_type_registry":49,"./lib/media_types":50,"_process":3,"minilog":37}],77:[function(require,module,exports){
+},{"./lib/builder":43,"./lib/errors":44,"./lib/media_type_registry":48,"./lib/media_types":49,"_process":24,"minilog":36}],76:[function(require,module,exports){
 (function (root, factory) {
     if (typeof exports === 'object') {
         module.exports = factory();
@@ -17414,9 +17405,149 @@ exports.errors = errors;
   return new UrlTemplate();
 }));
 
-},{}],"ec.datamanager.js":[function(require,module,exports){
+},{}],77:[function(require,module,exports){
+var indexOf = require('indexof');
+
+var Object_keys = function (obj) {
+    if (Object.keys) return Object.keys(obj)
+    else {
+        var res = [];
+        for (var key in obj) res.push(key)
+        return res;
+    }
+};
+
+var forEach = function (xs, fn) {
+    if (xs.forEach) return xs.forEach(fn)
+    else for (var i = 0; i < xs.length; i++) {
+        fn(xs[i], i, xs);
+    }
+};
+
+var defineProp = (function() {
+    try {
+        Object.defineProperty({}, '_', {});
+        return function(obj, name, value) {
+            Object.defineProperty(obj, name, {
+                writable: true,
+                enumerable: false,
+                configurable: true,
+                value: value
+            })
+        };
+    } catch(e) {
+        return function(obj, name, value) {
+            obj[name] = value;
+        };
+    }
+}());
+
+var globals = ['Array', 'Boolean', 'Date', 'Error', 'EvalError', 'Function',
+'Infinity', 'JSON', 'Math', 'NaN', 'Number', 'Object', 'RangeError',
+'ReferenceError', 'RegExp', 'String', 'SyntaxError', 'TypeError', 'URIError',
+'decodeURI', 'decodeURIComponent', 'encodeURI', 'encodeURIComponent', 'escape',
+'eval', 'isFinite', 'isNaN', 'parseFloat', 'parseInt', 'undefined', 'unescape'];
+
+function Context() {}
+Context.prototype = {};
+
+var Script = exports.Script = function NodeScript (code) {
+    if (!(this instanceof Script)) return new Script(code);
+    this.code = code;
+};
+
+Script.prototype.runInContext = function (context) {
+    if (!(context instanceof Context)) {
+        throw new TypeError("needs a 'context' argument.");
+    }
+    
+    var iframe = document.createElement('iframe');
+    if (!iframe.style) iframe.style = {};
+    iframe.style.display = 'none';
+    
+    document.body.appendChild(iframe);
+    
+    var win = iframe.contentWindow;
+    var wEval = win.eval, wExecScript = win.execScript;
+
+    if (!wEval && wExecScript) {
+        // win.eval() magically appears when this is called in IE:
+        wExecScript.call(win, 'null');
+        wEval = win.eval;
+    }
+    
+    forEach(Object_keys(context), function (key) {
+        win[key] = context[key];
+    });
+    forEach(globals, function (key) {
+        if (context[key]) {
+            win[key] = context[key];
+        }
+    });
+    
+    var winKeys = Object_keys(win);
+
+    var res = wEval.call(win, this.code);
+    
+    forEach(Object_keys(win), function (key) {
+        // Avoid copying circular objects like `top` and `window` by only
+        // updating existing context properties or new properties in the `win`
+        // that was only introduced after the eval.
+        if (key in context || indexOf(winKeys, key) === -1) {
+            context[key] = win[key];
+        }
+    });
+
+    forEach(globals, function (key) {
+        if (!(key in context)) {
+            defineProp(context, key, win[key]);
+        }
+    });
+    
+    document.body.removeChild(iframe);
+    
+    return res;
+};
+
+Script.prototype.runInThisContext = function () {
+    return eval(this.code); // maybe...
+};
+
+Script.prototype.runInNewContext = function (context) {
+    var ctx = Script.createContext(context);
+    var res = this.runInContext(ctx);
+
+    forEach(Object_keys(ctx), function (key) {
+        context[key] = ctx[key];
+    });
+
+    return res;
+};
+
+forEach(Object_keys(Script.prototype), function (name) {
+    exports[name] = Script[name] = function (code) {
+        var s = Script(code);
+        return s[name].apply(s, [].slice.call(arguments, 1));
+    };
+});
+
+exports.createScript = function (code) {
+    return exports.Script(code);
+};
+
+exports.createContext = Script.createContext = function (context) {
+    var copy = new Context();
+    if(typeof context === 'object') {
+        forEach(Object_keys(context), function (key) {
+            copy[key] = context[key];
+        });
+    }
+    return copy;
+};
+
+},{"indexof":17}],"ec.datamanager.js":[function(require,module,exports){
 'use strict';
 
 module.exports = require('./lib/DataManager');
-},{"./lib/DataManager":6}]},{},[])("ec.datamanager.js")
+},{"./lib/DataManager":2}]},{},[])("ec.datamanager.js")
 });
