@@ -1,4 +1,7 @@
 # Changelog
+## 0.12.7
+- dependency update
+
 ## 0.12.6
 - fix: return undefiend/array when linked asset not defiend
 
