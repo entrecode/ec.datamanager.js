@@ -1,4 +1,7 @@
 # Changelog
+## 0.13.0
+- any/all filter even if array is empty CMS-2881
+
 ## 0.12.7
 - dependency update
 

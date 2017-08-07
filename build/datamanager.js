@@ -2121,11 +2121,11 @@ util.optionsToQueryParameter = function(options) {
           query[key + 'To'] = value.to;
         }
         /* istanbul ignore next */
-        if (value.hasOwnProperty('any') && Array.isArray(value.any) && value.any.length > 0) {
+        if (value.hasOwnProperty('any') && Array.isArray(value.any)) {
           query[key] = value.any.join(',');
         }
         /* istanbul ignore next */
-        if (value.hasOwnProperty('all') && Array.isArray(value.all) && value.all.length > 0) {
+        if (value.hasOwnProperty('all') && Array.isArray(value.all)) {
           query[key] = value.all.join('+');
         }
       }
