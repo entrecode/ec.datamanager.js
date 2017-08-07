@@ -1,0 +1,29 @@
+{
+  "qs": {
+    "title": ""
+  },
+  "req": {},
+  "res": {
+    "count": 0,
+    "total": 0,
+    "_links": {
+      "collection": {
+        "profile": "https://datamanager.entrecode.de/api/schema/58b9a1f5/to-do-item",
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5"
+      },
+      "curies": {
+        "name": "ec.datamanager-sdk-tests-1",
+        "href": "https://datamanager.entrecode.de/api/doc/58b9a1f5/{rel}",
+        "templated": true
+      },
+      "self": {
+        "profile": "https://datamanager.entrecode.de/api/schema/58b9a1f5/to-do-item",
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item?title="
+      },
+      "58b9a1f5:to-do-item/options": {
+        "href": "https://datamanager.entrecode.de/api/58b9a1f5/to-do-item{?_created,_createdFrom,_createdTo,_creator,_fields,_id,_levels,_modified,_modifiedFrom,_modifiedTo,_private,boeld,boelder,boelder~,created,createdFrom,createdTo,description~,id,modified,modifiedFrom,modifiedTo,page,private,size,sort,title,title~}",
+        "templated": true
+      }
+    }
+  }
+}

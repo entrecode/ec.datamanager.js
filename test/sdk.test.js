@@ -1469,6 +1469,19 @@ describe('entry/entries', function() { // this is basically modelList
       expect(entries.length).to.be.equal(1);
     });
   });
+  it('get entries, filter empty multiple', function() {
+    return dm.model('to-do-item').entries({
+      filter: {
+        title: {
+          any: []
+        }
+      }
+    }).then(function(entries) {
+      expect(entries).to.be.ok;
+      expect(entries).to.be.instanceOf(Array);
+      expect(entries.length).to.be.equal(0);
+    });
+  });
   it('get single entry', function() {
     return dm.model('to-do-item').entry('VkGhAPQ2Qe').then(function(entry) {
       expect(entry).to.be.ok;
