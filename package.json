@@ -38,7 +38,7 @@
     "browserify": "14.4.0",
     "chai": "4.1.2",
     "coveralls": "2.13.1",
-    "etag": "1.8.0",
+    "etag": "1.8.1",
     "express": "4.15.4",
     "grunt": "1.0.1",
     "grunt-browserify": "5.1.0",
