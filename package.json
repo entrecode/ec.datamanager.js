@@ -39,7 +39,7 @@
     "chai": "4.1.2",
     "coveralls": "2.13.1",
     "etag": "1.8.1",
-    "express": "4.15.4",
+    "express": "5.0.0-alpha.6",
     "grunt": "1.0.1",
     "grunt-browserify": "5.1.0",
     "grunt-express-server": "0.5.3",
