@@ -57,7 +57,7 @@
     "lodash.isequal": "4.5.0",
     "mocha": "4.0.1",
     "mocha-bamboo-reporter": "1.1.1",
-    "nock": "9.0.22",
+    "nock": "9.0.23",
     "phantomjs-prebuilt": "2.1.15",
     "sinon": "4.0.1",
     "uglify": "0.1.5",
