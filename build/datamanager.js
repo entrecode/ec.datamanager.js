@@ -1065,7 +1065,7 @@ DataManager.DB_BROWSER = 'BROWSER';
 
 module.exports = DataManager;
 
-},{"./Asset":1,"./Entry":3,"./Model":4,"./Tag":5,"./User":6,"./util":7,"es6-promise":12,"halfred":13,"lokijs":22,"shiro-trie":27,"superagent":28,"traverson":74,"traverson-hal":34}],3:[function(require,module,exports){
+},{"./Asset":1,"./Entry":3,"./Model":4,"./Tag":5,"./User":6,"./util":7,"es6-promise":12,"halfred":13,"lokijs":22,"shiro-trie":27,"superagent":29,"traverson":74,"traverson-hal":34}],3:[function(require,module,exports){
 'use strict';
 
 var halfred = require('halfred');
@@ -1945,7 +1945,7 @@ Model.prototype._isReachable = function(dests) {
 
 module.exports = Model;
 
-},{"./Asset":1,"./Entry":3,"./util":7,"halfred":13,"is-reachable":18,"superagent":28,"traverson":74}],5:[function(require,module,exports){
+},{"./Asset":1,"./Entry":3,"./util":7,"halfred":13,"is-reachable":18,"superagent":29,"traverson":74}],5:[function(require,module,exports){
 'use strict';
 
 var halfred = require('halfred');
@@ -5033,11 +5033,9 @@ else {
         var id = result.id;
 
         if (id !== 0) {
-          adapter.catalog.deleteAppKey(id);
-        }
-
-        if (typeof (callback) === 'function') {
-          callback();
+          adapter.catalog.deleteAppKey(id, callback);
+        } else if (typeof (callback) === 'function') {
+          callback({ success: true });
         }
       });
     };
@@ -5347,7 +5345,7 @@ else {
       request.onerror = (function(usercallback) {
         return function(evt) {
           if (typeof(usercallback) === 'function') {
-            usercallback(false);
+            usercallback({ success: false });
           }
           else {
             console.error('LokiCatalog.deleteAppKey raised onerror');
@@ -5621,7 +5619,7 @@ else {
       // if both are numbers (string encoded or not), compare as numbers
       cv1 = Number(prop1);
       cv2 = Number(prop2);
-      
+
       if (cv1 === cv1 && cv2 === cv2) {
         if (cv1 < cv2) return true;
         if (cv1 > cv2) return false;
@@ -5631,11 +5629,11 @@ else {
       if (cv1 === cv1 && cv2 !== cv2) {
         return true;
       }
-      
+
       if (cv2 === cv2 && cv1 !== cv1) {
         return false;
       }
-      
+
       if (prop1 < prop2) return true;
       if (prop1 > prop2) return false;
       if (prop1 == prop2) return equal;
@@ -5693,11 +5691,11 @@ else {
         if (cv1 < cv2) return false;
         return equal;
       }
-      
+
       if (cv1 === cv1 && cv2 !== cv2) {
         return false;
       }
-      
+
       if (cv2 === cv2 && cv1 !== cv1) {
         return true;
       }
@@ -5747,11 +5745,19 @@ else {
      */
     function compoundeval(properties, obj1, obj2) {
       var res = 0;
-      var prop, field;
+      var prop, field, val1, val2, arr;
       for (var i = 0, len = properties.length; i < len; i++) {
         prop = properties[i];
         field = prop[0];
-        res = sortHelper(obj1[field], obj2[field], prop[1]);
+        if (~field.indexOf('.')) {
+          arr = field.split('.');
+          val1 = arr.reduce(function(obj, i) { return obj && obj[i] || undefined; }, obj1);
+          val2 = arr.reduce(function(obj, i) { return obj && obj[i] || undefined; }, obj2);
+        } else {
+          val1 = obj1[field];
+          val2 = obj2[field];
+        }
+        res = sortHelper(val1, val2, prop[1]);
         if (res !== 0) {
           return res;
         }
@@ -6011,14 +6017,14 @@ else {
         break;
       case "shallow":
         // more compatible method for older browsers
-        cloned = data.prototype?Object.create(data.prototype):{};
+        cloned = Object.create(data.constructor.prototype);
         Object.keys(data).map(function (i) {
           cloned[i] = data[i];
         });
         break;
       case "shallow-assign":
         // should be supported by newer environments/browsers
-        cloned = data.prototype?Object.create(data.prototype):{};
+        cloned = Object.create(data.constructor.prototype);
         Object.assign(cloned, data);
         break;
       default:
@@ -6111,16 +6117,17 @@ else {
      * @param {object=} data - optional object passed with the event
      * @memberof LokiEventEmitter
      */
-    LokiEventEmitter.prototype.emit = function (eventName, data) {
+    LokiEventEmitter.prototype.emit = function (eventName) {
       var self = this;
+      var selfArgs = Array.prototype.slice.call(arguments, 1);
       if (eventName && this.events[eventName]) {
         this.events[eventName].forEach(function (listener) {
           if (self.asyncListeners) {
             setTimeout(function () {
-              listener(data);
+              listener.apply(self, selfArgs);
             }, 1);
           } else {
-            listener(data);
+            listener.apply(self, selfArgs);
           }
 
         });
@@ -6228,11 +6235,7 @@ else {
 
       var getENV = function () {
         if (typeof global !== 'undefined' && (global.android || global.NSObject)) {
-           // If no adapter is set use the default nativescript adapter
-           if (!options.adapter) {
-             //var LokiNativescriptAdapter = require('./loki-nativescript-adapter');
-             //options.adapter=new LokiNativescriptAdapter();
-           }
+           // If no adapter assume nativescript which needs adapter to be passed manually
            return 'NATIVESCRIPT'; //nativescript
         }
 
@@ -6268,9 +6271,7 @@ else {
         this.ENV = 'NODEJS';
       }
 
-      //if (typeof (options) !== 'undefined') {
       this.configureOptions(options, true);
-      //}
 
       this.on('init', this.clearChanges);
 
@@ -6428,7 +6429,7 @@ else {
           databaseCopy.collections[idx].ttl = null;
         }
       }
-      
+
       return databaseCopy;
     };
 
@@ -6484,6 +6485,23 @@ else {
       // no such collection
       this.emit('warning', 'collection ' + collectionName + ' not found');
       return null;
+    };
+
+    /**
+     * Renames an existing loki collection
+     * @param {string} oldName - name of collection to rename
+     * @param {string} newName - new name of collection
+     * @returns {Collection} reference to the newly renamed collection
+     * @memberof Loki
+     */
+    Loki.prototype.renameCollection = function (oldName, newName) {
+      var c = this.getCollection(oldName);
+
+      if (c) {
+        c.name = newName;
+      }
+
+      return c;
     };
 
     Loki.prototype.listCollections = function () {
@@ -6542,7 +6560,7 @@ else {
         return null;
       case 'throttledSavePending':
       case 'throttledCallbacks':
-        return undefined;        
+        return undefined;
       default:
         return value;
       }
@@ -6574,8 +6592,8 @@ else {
 
     /**
      * Database level destructured JSON serialization routine to allow alternate serialization methods.
-     * Internally, Loki supports destructuring via loki "serializationMethod' option and 
-     * the optional LokiPartitioningAdapter class. It is also available if you wish to do 
+     * Internally, Loki supports destructuring via loki "serializationMethod' option and
+     * the optional LokiPartitioningAdapter class. It is also available if you wish to do
      * your own structured persistence or data exchange.
      *
      * @param {object=} options - output format options for use externally to loki
@@ -6758,8 +6776,8 @@ else {
 
     /**
      * Database level destructured JSON deserialization routine to minimize memory overhead.
-     * Internally, Loki supports destructuring via loki "serializationMethod' option and 
-     * the optional LokiPartitioningAdapter class. It is also available if you wish to do 
+     * Internally, Loki supports destructuring via loki "serializationMethod' option and
+     * the optional LokiPartitioningAdapter class. It is also available if you wish to do
      * your own structured persistence or data exchange.
      *
      * @param {string|array} destructuredSource - destructured json or array to deserialize from
@@ -6990,7 +7008,7 @@ else {
       for (i; i < len; i += 1) {
         coll = dbObject.collections[i];
 
-        copyColl = this.addCollection(coll.name, { disableChangesApi: coll.disableChangesApi });
+        copyColl = this.addCollection(coll.name, { disableChangesApi: coll.disableChangesApi, disableDeltaChangesApi: coll.disableDeltaChangesApi });
 
         copyColl.adaptiveBinaryIndices = coll.hasOwnProperty('adaptiveBinaryIndices')?(coll.adaptiveBinaryIndices === true): false;
         copyColl.transactional = coll.transactional;
@@ -7045,7 +7063,7 @@ else {
             copyColl.ensureUniqueIndex(copyColl.uniqueNames[j]);
           }
         }
-        
+
         // in case they are loading a database created before we added dynamic views, handle undefined
         if (typeof (coll.DynamicViews) === 'undefined') continue;
 
@@ -7169,7 +7187,7 @@ else {
      */
 
     /**
-     * In in-memory persistence adapter for an in-memory database.  
+     * In in-memory persistence adapter for an in-memory database.
      * This simple 'key/value' adapter is intended for unit testing and diagnostics.
      *
      * @param {object=} options - memory adapter options
@@ -7207,16 +7225,18 @@ else {
             callback(self.hashStore[dbname].value);
           }
           else {
-            callback (new Error("unable to load database, " + dbname + " was not found in memory adapter"));
+            // database doesn't exist, return falsy
+            callback (null);
           }
         }, this.options.asyncTimeout);
       }
       else {
         if (this.hashStore.hasOwnProperty(dbname)) {
+          // database doesn't exist, return falsy
           callback(this.hashStore[dbname].value);
         }
         else {
-          callback (new Error("unable to load database, " + dbname + " was not found in memory adapter"));
+          callback (null);
         }
       }
     };
@@ -7240,7 +7260,7 @@ else {
           self.hashStore[dbname] = {
             savecount: saveCount+1,
             lastsave: new Date(),
-            value: dbstring 
+            value: dbstring
           };
 
           callback();
@@ -7252,7 +7272,7 @@ else {
         this.hashStore[dbname] = {
           savecount: saveCount+1,
           lastsave: new Date(),
-          value: dbstring 
+          value: dbstring
         };
 
         callback();
@@ -7270,7 +7290,7 @@ else {
       if (this.hashStore.hasOwnProperty(dbname)) {
         delete this.hashStore[dbname];
       }
-      
+
       if (typeof callback === "function") {
         callback();
       }
@@ -7280,9 +7300,9 @@ else {
      * An adapter for adapters.  Converts a non reference mode adapter into a reference mode adapter
      * which can perform destructuring and partioning.  Each collection will be stored in its own key/save and
      * only dirty collections will be saved.  If you  turn on paging with default page size of 25megs and save
-     * a 75 meg collection it should use up roughly 3 save slots (key/value pairs sent to inner adapter). 
+     * a 75 meg collection it should use up roughly 3 save slots (key/value pairs sent to inner adapter).
      * A dirty collection that spans three pages will save all three pages again
-     * Paging mode was added mainly because Chrome has issues saving 'too large' of a string within a 
+     * Paging mode was added mainly because Chrome has issues saving 'too large' of a string within a
      * single indexeddb row.  If a single document update causes the collection to be flagged as dirty, all
      * of that collection's pages will be written on next save.
      *
@@ -7344,6 +7364,14 @@ else {
 
       // load the db container (without data)
       this.adapter.loadDatabase(dbname, function(result) {
+        // empty database condition is for inner adapter return null/undefined/falsy
+        if (!result) {
+          // partition 0 not found so new database, no need to try to load other partitions.
+          // return same falsy result to loadDatabase to signify no database exists (yet)
+          callback(result);
+          return;
+        }
+
         if (typeof result !== "string") {
           callback(new Error("LokiPartitioningAdapter received an unexpected response from inner adapter loadDatabase()"));
         }
@@ -7462,7 +7490,7 @@ else {
      * @param {object} dbref - reference to database which we will partition and save.
      * @param {function} callback - adapter callback to return load result to caller
      *
-     * @memberof LokiPartitioningAdapter     
+     * @memberof LokiPartitioningAdapter
      */
     LokiPartitioningAdapter.prototype.exportDatabase = function(dbname, dbref, callback) {
       var self=this;
@@ -7825,15 +7853,28 @@ else {
               self.emit('loaded', 'database ' + self.filename + ' loaded');
             }
           } else {
+            // falsy result means new database
+            if (!dbString) {
+              cFun(null);
+              self.emit('loaded', 'empty database ' + self.filename + ' loaded');
+              return;
+            }
+
+            // instanceof error means load faulted
+            if (dbString instanceof Error) {
+                cFun(dbString);
+                return;
+            }
+
             // if adapter has returned an js object (other than null or error) attempt to load from JSON object
-            if (typeof (dbString) === "object" && dbString !== null && !(dbString instanceof Error)) {
+            if (typeof (dbString) === "object") {
               self.loadJSONObject(dbString, options || {});
               cFun(null); // return null on success
               self.emit('loaded', 'database ' + self.filename + ' loaded');
-            } else {
-              // error from adapter (either null or instance of error), pass on to 'user' callback
-              cFun(dbString);
+              return;
             }
+
+            cFun("unexpected adapter response : " + dbString);
           }
         });
 
@@ -7851,7 +7892,7 @@ else {
      * If you are configured with autosave, you do not need to call this method yourself.
      *
      * @param {object} options - if throttling saves and loads, this controls how we drain save queue before loading
-     * @param {boolean} options.recursiveWait - (default: true) wait recursively until no saves are queued 
+     * @param {boolean} options.recursiveWait - (default: true) wait recursively until no saves are queued
      * @param {bool} options.recursiveWaitLimit - (default: false) limit our recursive waiting to a duration
      * @param {int} options.recursiveWaitLimitDelay - (default: 2000) cutoff in ms to stop recursively re-draining
      * @param {function=} callback - (Optional) user supplied async callback / error handler
@@ -8011,7 +8052,7 @@ else {
           throw err;
         }
       };
-      
+
       // we aren't even using options, so we will support syntax where
       // callback is passed as first and only argument
       if (typeof options === 'function' && !callback) {
@@ -8257,10 +8298,10 @@ else {
           rs = rs.offset(step.value);
           break; // offset makes copy so update reference
         case "map":
-          rs = rs.map(step.value);
+          rs = rs.map(step.value, step.dataOptions);
           break;
         case "eqJoin":
-          rs = rs.eqJoin(step.joinData, step.leftJoinKey, step.rightJoinKey, step.mapFun);
+          rs = rs.eqJoin(step.joinData, step.leftJoinKey, step.rightJoinKey, step.mapFun, step.dataOptions);
           break;
           // following cases break chain by returning array data so make any of these last in transform steps
         case "mapReduce":
@@ -8350,8 +8391,17 @@ else {
 
       var wrappedComparer =
         (function (prop, desc, data) {
+          var val1, val2, arr;
           return function (a, b) {
-            return sortHelper(data[a][prop], data[b][prop], desc);
+            if (~prop.indexOf('.')) {
+              arr = prop.split('.');
+              val1 = arr.reduce(function(obj, i) { return obj && obj[i] || undefined; }, data[a]);
+              val2 = arr.reduce(function(obj, i) { return obj && obj[i] || undefined; }, data[b]);
+            } else {
+              val1 = data[a][prop];
+              val2 = data[b][prop];
+            }
+            return sortHelper(val1, val2, desc);
           };
         })(propname, isdesc, this.collection.data);
 
@@ -8521,7 +8571,7 @@ else {
             queryObjectOp = queryObject[p];
           }
         }
-        // if more than one expression in single query object, 
+        // if more than one expression in single query object,
         // convert implicit $and to explicit $and
         if (filters.length > 1) {
           return this.find({ '$and': filters }, firstOnly);
@@ -8804,6 +8854,12 @@ else {
         options.forceCloneMethod = options.forceCloneMethod || 'shallow';
       }
 
+      // if collection has delta changes active, then force clones and use 'parse-stringify' for effective change tracking of nested objects
+      if (!this.collection.disableDeltaChangesApi) {
+        options.forceClones = true;
+        options.forceCloneMethod = 'parse-stringify';
+      }
+
       // if this has no filters applied, just return collection.data
       if (!this.filterInitialized) {
         if (this.filteredrows.length === 0) {
@@ -8924,14 +8980,18 @@ else {
     /**
      * eqJoin() - Left joining two sets of data. Join keys can be defined or calculated properties
      * eqJoin expects the right join key values to be unique.  Otherwise left data will be joined on the last joinData object with that key
-     * @param {Array} joinData - Data array to join to.
+     * @param {Array|Resultset|Collection} joinData - Data array to join to.
      * @param {(string|function)} leftJoinKey - Property name in this result set to join on or a function to produce a value to join on
      * @param {(string|function)} rightJoinKey - Property name in the joinData to join on or a function to produce a value to join on
      * @param {function=} mapFun - (Optional) A function that receives each matching pair and maps them into output objects - function(left,right){return joinedObject}
+     * @param {object=} dataOptions - options to data() before input to your map function
+     * @param {bool} dataOptions.removeMeta - allows removing meta before calling mapFun
+     * @param {boolean} dataOptions.forceClones - forcing the return of cloned objects to your map object
+     * @param {string} dataOptions.forceCloneMethod - Allows overriding the default or collection specified cloning method.
      * @returns {Resultset} A resultset with data in the format [{left: leftObj, right: rightObj}]
      * @memberof Resultset
      */
-    Resultset.prototype.eqJoin = function (joinData, leftJoinKey, rightJoinKey, mapFun) {
+    Resultset.prototype.eqJoin = function (joinData, leftJoinKey, rightJoinKey, mapFun, dataOptions) {
 
       var leftData = [],
         leftDataLength,
@@ -8944,12 +9004,14 @@ else {
         joinMap = {};
 
       //get the left data
-      leftData = this.data();
+      leftData = this.data(dataOptions);
       leftDataLength = leftData.length;
 
       //get the right data
-      if (joinData instanceof Resultset) {
-        rightData = joinData.data();
+      if (joinData instanceof Collection) {
+        rightData = joinData.chain().data(dataOptions);
+      } else if (joinData instanceof Resultset) {
+        rightData = joinData.data(dataOptions);
       } else if (Array.isArray(joinData)) {
         rightData = joinData;
       } else {
@@ -8988,8 +9050,17 @@ else {
       return this;
     };
 
-    Resultset.prototype.map = function (mapFun) {
-      var data = this.data().map(mapFun);
+    /**
+     * Applies a map function into a new collection for further chaining.
+     * @param {function} mapFun - javascript map function
+     * @param {object=} dataOptions - options to data() before input to your map function
+     * @param {bool} dataOptions.removeMeta - allows removing meta before calling mapFun
+     * @param {boolean} dataOptions.forceClones - forcing the return of cloned objects to your map object
+     * @param {string} dataOptions.forceCloneMethod - Allows overriding the default or collection specified cloning method.
+     * @memberof Resultset
+     */
+    Resultset.prototype.map = function (mapFun, dataOptions) {
+      var data = this.data(dataOptions).map(mapFun);
       //return return a new resultset with no filters
       this.collection = new Collection('mappedData');
       this.collection.insert(data);
@@ -9763,10 +9834,11 @@ else {
      * @param {boolean} [options.adaptiveBinaryIndices=true] - collection indices will be actively rebuilt rather than lazily
      * @param {boolean} [options.asyncListeners=false] - whether listeners are invoked asynchronously
      * @param {boolean} [options.disableChangesApi=true] - set to false to enable Changes API
+     * @param {boolean} [options.disableDeltaChangesApi=true] - set to false to enable Delta Changes API (requires Changes API, forces cloning)
      * @param {boolean} [options.autoupdate=false] - use Object.observe to update objects automatically
      * @param {boolean} [options.clone=false] - specify whether inserts and queries clone to/from user
      * @param {boolean} [options.serializableIndices=true[]] - converts date values on binary indexed properties to epoch time
-     * @param {string} [options.cloneMethod='parse-stringify' - 'parse-stringify', 'jquery-extend-deep', 'shallow', 'shallow-assign'
+     * @param {string} [options.cloneMethod='parse-stringify'] - 'parse-stringify', 'jquery-extend-deep', 'shallow', 'shallow-assign'
      * @param {int} options.ttlInterval - time interval for clearing out 'aged' documents; not set by default.
      * @see {@link Loki#addCollection} for normal creation of collections
      */
@@ -9844,14 +9916,18 @@ else {
       // disable track changes
       this.disableChangesApi = options.hasOwnProperty('disableChangesApi') ? options.disableChangesApi : true;
 
+      // disable delta update object style on changes
+      this.disableDeltaChangesApi = options.hasOwnProperty('disableDeltaChangesApi') ? options.disableDeltaChangesApi : true;
+      if (this.disableChangesApi) { this.disableDeltaChangesApi = true; }
+
       // option to observe objects and update them automatically, ignored if Object.observe is not supported
       this.autoupdate = options.hasOwnProperty('autoupdate') ? options.autoupdate : false;
 
       // by default, if you insert a document into a collection with binary indices, if those indexed properties contain
-      // a DateTime we will convert to epoch time format so that (across serializations) its value position will be the 
+      // a DateTime we will convert to epoch time format so that (across serializations) its value position will be the
       // same 'after' serialization as it was 'before'.
       this.serializableIndices = options.hasOwnProperty('serializableIndices') ? options.serializableIndices : true;
-      
+
       //option to activate a cleaner daemon - clears "aged" documents at set intervals.
       this.ttl = {
         age: null,
@@ -9929,13 +10005,52 @@ else {
        * This method creates a clone of the current status of an object and associates operation and collection name,
        * so the parent db can aggregate and generate a changes object for the entire db
        */
-      function createChange(name, op, obj) {
+      function createChange(name, op, obj, old) {
         self.changes.push({
           name: name,
           operation: op,
-          obj: JSON.parse(JSON.stringify(obj))
+          obj: op == 'U' && !self.disableDeltaChangesApi ? getChangeDelta(obj, old) : JSON.parse(JSON.stringify(obj))
         });
       }
+
+      //Compare changed object (which is a forced clone) with existing object and return the delta
+      function getChangeDelta(obj, old) {
+        if (old) {
+          return getObjectDelta(old, obj);
+        }
+        else {
+          return JSON.parse(JSON.stringify(obj));
+        }
+      }
+
+      this.getChangeDelta = getChangeDelta;
+
+      function getObjectDelta(oldObject, newObject) {
+        var propertyNames = newObject !== null && typeof newObject === 'object' ? Object.keys(newObject) : null;
+        if (propertyNames && propertyNames.length && ['string', 'boolean', 'number'].indexOf(typeof(newObject)) < 0) {
+          var delta = {};
+          for (var i = 0; i < propertyNames.length; i++) {
+            var propertyName = propertyNames[i];
+            if (newObject.hasOwnProperty(propertyName)) {
+              if (!oldObject.hasOwnProperty(propertyName) || self.uniqueNames.indexOf(propertyName) >= 0 || propertyName == '$loki' || propertyName == 'meta') {
+                delta[propertyName] = newObject[propertyName];
+              }
+              else {
+                var propertyDelta = getObjectDelta(oldObject[propertyName], newObject[propertyName]);
+                if (typeof propertyDelta !== "undefined" && propertyDelta != {}) {
+                  delta[propertyName] = propertyDelta;
+                }
+              }
+            }
+          }
+          return Object.keys(delta).length === 0 ? undefined : delta;
+        }
+        else {
+          return oldObject === newObject ? undefined : newObject;
+        }
+      }
+
+      this.getObjectDelta = getObjectDelta;
 
       // clear all the changes
       function flushChanges() {
@@ -9995,8 +10110,8 @@ else {
         createChange(self.name, 'I', obj);
       }
 
-      function createUpdateChange(obj) {
-        createChange(self.name, 'U', obj);
+      function createUpdateChange(obj, old) {
+        createChange(self.name, 'U', obj, old);
       }
 
       function insertMetaWithChange(obj) {
@@ -10004,9 +10119,9 @@ else {
         createInsertChange(obj);
       }
 
-      function updateMetaWithChange(obj) {
+      function updateMetaWithChange(obj, old) {
         updateMeta(obj);
-        createUpdateChange(obj);
+        createUpdateChange(obj, old);
       }
 
 
@@ -10022,6 +10137,7 @@ else {
 
       this.setChangesApi = function (enabled) {
         self.disableChangesApi = !enabled;
+        if (!enabled) { self.disableDeltaChangesApi = false; }
         setHandlers();
       };
       /**
@@ -10031,8 +10147,8 @@ else {
         insertHandler(obj);
       });
 
-      this.on('update', function updateCallback(obj) {
-        updateHandler(obj);
+      this.on('update', function updateCallback(obj, old) {
+        updateHandler(obj, old);
       });
 
       this.on('delete', function deleteCallback(obj) {
@@ -10084,7 +10200,7 @@ else {
      *     }
      *   }
      * ]);
-     * 
+     *
      * var results = users.chain('progeny').data();
      */
     Collection.prototype.addTransform = function (name, transform) {
@@ -10164,6 +10280,12 @@ else {
       };
     };
 
+    /**
+     * Updates or applies collection TTL settings.
+     * @param {int} age - age (in ms) to expire document from collection
+     * @param {int} interval - time (in ms) to clear collection of aged documents.
+     * @memberof Collection
+     */
     Collection.prototype.setTTL = function (age, interval) {
       if (age < 0) {
         clearInterval(this.ttl.daemon);
@@ -10241,13 +10363,21 @@ else {
       this.binaryIndices[property] = index;
 
       var wrappedComparer =
-        (function (p, data) {
+        (function (prop, data) {
+          var val1, val2, arr;
           return function (a, b) {
-            var objAp = data[a][p],
-              objBp = data[b][p];
-            if (objAp !== objBp) {
-              if (ltHelper(objAp, objBp, false)) return -1;
-              if (gtHelper(objAp, objBp, false)) return 1;
+            if (~prop.indexOf('.')) {
+              arr = prop.split('.');
+              val1 = arr.reduce(function(obj, i) { return obj && obj[i] || undefined; }, data[a]);
+              val2 = arr.reduce(function(obj, i) { return obj && obj[i] || undefined; }, data[b]);
+            } else {
+              val1 = data[a][prop];
+              val2 = data[b][prop];
+            }
+
+            if (val1 !== val2) {
+              if (ltHelper(val1, val2, false)) return -1;
+              if (gtHelper(val1, val2, false)) return 1;
             }
             return 0;
           };
@@ -10440,7 +10570,7 @@ else {
      *     age: 50,
      *     address: 'Asgard'
      * });
-     * 
+     *
      * // alternatively, insert array of documents
      * users.insert([{ name: 'Thor', age: 35}, { name: 'Loki', age: 30}]);
      */
@@ -10607,7 +10737,7 @@ else {
         position = arr[1]; // position in data array
 
         // if configured to clone, do so now... otherwise just use same obj reference
-        newInternal = this.cloneObjects ? clone(doc, this.cloneMethod) : doc;
+        newInternal = this.cloneObjects || !this.disableDeltaChangesApi ? clone(doc, this.cloneMethod) : doc;
 
         this.emit('pre-update', doc);
 
@@ -10646,7 +10776,7 @@ else {
         this.commit();
         this.dirty = true; // for autosave scenarios
 
-        this.emit('update', doc, this.cloneObjects ? clone(oldInternal, this.cloneMethod) : null);
+        this.emit('update', doc, this.cloneObjects || !this.disableDeltaChangesApi ? clone(oldInternal, this.cloneMethod) : null);
         return doc;
       } catch (err) {
         this.rollback();
@@ -11009,14 +11139,14 @@ else {
     };
 
     /**
-     * Internal method used for index maintenance and indexed searching.  
+     * Internal method used for index maintenance and indexed searching.
      * Calculates the beginning of an index range for a given value.
      * For index maintainance (adaptive:true), we will return a valid index position to insert to.
      * For querying (adaptive:false/undefined), we will :
      *    return lower bound/index of range of that value (if found)
      *    return next lower index position if not found (hole)
      * If index is empty it is assumed to be handled at higher level, so
-     * this method assumes there is at least 1 document in index. 
+     * this method assumes there is at least 1 document in index.
      *
      * @param {string} prop - name of property which has binary index
      * @param {any} val - value to find within index
@@ -11028,7 +11158,7 @@ else {
       var min = 0;
       var max = index.length - 1;
       var mid = 0;
-      
+
       if (index.length === 0) {
         return -1;
       }
@@ -11098,12 +11228,12 @@ else {
       if (aeqHelper(val, rcd[index[ubound]][prop])) {
         return ubound;
       }
-      
+
        // if not in index and our value is less than the found one
       if (gtHelper(val, rcd[index[ubound]][prop], false)) {
         return ubound+1;
       }
-      
+
       // either hole or first nonmatch
       if (aeqHelper(val, rcd[index[ubound-1]][prop])) {
         return ubound-1;
@@ -11136,7 +11266,7 @@ else {
       if (rcd.length === 0) {
         return [0, -1];
       }
-      
+
       var minVal = rcd[index[min]][prop];
       var maxVal = rcd[index[max]][prop];
 
@@ -11202,18 +11332,18 @@ else {
         if (ltHelper(val[1], minVal, false)) {
           return [0, -1];
         }
-        
+
         lbound = this.calculateRangeStart(prop, val[0]);
         ubound = this.calculateRangeEnd(prop, val[1]);
 
         if (lbound < 0) lbound++;
         if (ubound > max) ubound--;
-        
+
         if (!gtHelper(rcd[index[lbound]][prop], val[0], true)) lbound++;
         if (!ltHelper(rcd[index[ubound]][prop], val[1], true)) ubound--;
-        
+
         if (ubound < lbound) return [0, -1];
-        
+
         return ([lbound, ubound]);
       case '$in':
         var idxset = [],
@@ -11238,7 +11368,7 @@ else {
         case '$aeq':
         case '$dteq':
         case '$gte':
-        case '$lt': 
+        case '$lt':
           lbound = this.calculateRangeStart(prop, val);
           lval = rcd[index[lbound]][prop];
           break;
@@ -11257,8 +11387,8 @@ else {
           break;
         default: break;
       }
-      
-      
+
+
       switch (op) {
       case '$eq':
       case '$aeq':
@@ -11270,7 +11400,7 @@ else {
         if (!aeqHelper(lval, val)) {
           return [0, -1];
         }
-        
+
         return [lbound, ubound];
 
       //case '$dteq':
@@ -11278,7 +11408,7 @@ else {
       //  if (lval > val || lval < val) {
       //    return [0, -1];
       //  }
-        
+
       //  return [lbound, ubound];
 
       case '$gt':
@@ -11511,16 +11641,20 @@ else {
     /**
      * Join two collections on specified properties
      *
-     * @param {array} joinData - array of documents to 'join' to this collection
+     * @param {array|Resultset|Collection} joinData - array of documents to 'join' to this collection
      * @param {string} leftJoinProp - property name in collection
      * @param {string} rightJoinProp - property name in joinData
      * @param {function=} mapFun - (Optional) map function to use
+     * @param {object=} dataOptions - options to data() before input to your map function
+     * @param {bool} dataOptions.removeMeta - allows removing meta before calling mapFun
+     * @param {boolean} dataOptions.forceClones - forcing the return of cloned objects to your map object
+     * @param {string} dataOptions.forceCloneMethod - Allows overriding the default or collection specified cloning method.
      * @returns {Resultset} Result of the mapping operation
      * @memberof Collection
      */
-    Collection.prototype.eqJoin = function (joinData, leftJoinProp, rightJoinProp, mapFun) {
+    Collection.prototype.eqJoin = function (joinData, leftJoinProp, rightJoinProp, mapFun, dataOptions) {
       // logic in Resultset class
-      return new Resultset(this).eqJoin(joinData, leftJoinProp, rightJoinProp, mapFun);
+      return new Resultset(this).eqJoin(joinData, leftJoinProp, rightJoinProp, mapFun, dataOptions);
     };
 
     /* ------ STAGING API -------- */
@@ -12394,20 +12528,24 @@ function _check(trie, array) {
     array.push('*');
   }
   for (i = 0; i < array.length; i++) {
-    if (node.hasOwnProperty('*')) {
+    if (node.hasOwnProperty('*') && (array[i] !== '*' && node.hasOwnProperty(array[i]))) {
+      // if there are multiple paths, we have to go recursive
+      return _check(node['*'], array.slice(i+1)) || _check(node[array[i]], array.slice(i+1));
+    } else if (node.hasOwnProperty('*')) {
       // if we find a star leaf in the trie, we are done (everything below is allowed)
       if (Object.keys(node['*']).length === 0) {
         return true;
       }
       // otherwise we have to go deeper
       node = node['*'];
+    } else if (node.hasOwnProperty(array[i])) {
+      // otherwise we go deeper
+      node = node[array[i]];
     } else {
       // if the wanted permission is not found, we return false
       if (!node.hasOwnProperty(array[i])) {
         return false;
       }
-      // otherwise we go deeper
-      node = node[array[i]];
     }
   }
   // word (array) was found in the trie. all good!
@@ -12599,6 +12737,28 @@ module.exports = {
 };
 
 },{}],28:[function(require,module,exports){
+function Agent() {
+  this._defaults = [];
+}
+
+["use", "on", "once", "set", "query", "type", "accept", "auth", "withCredentials", "sortQuery", "retry", "ok", "redirects",
+ "timeout", "buffer", "serialize", "parse", "ca", "key", "pfx", "cert"].forEach(function(fn) {
+  /** Default setting for all requests from this agent */
+  Agent.prototype[fn] = function(/*varargs*/) {
+    this._defaults.push({fn:fn, arguments:arguments});
+    return this;
+  }
+});
+
+Agent.prototype._setDefaults = function(req) {
+    this._defaults.forEach(function(def) {
+      req[def.fn].apply(req, def.arguments);
+    });
+};
+
+module.exports = Agent;
+
+},{}],29:[function(require,module,exports){
 /**
  * Root reference for iframes.
  */
@@ -12617,7 +12777,7 @@ var Emitter = require('component-emitter');
 var RequestBase = require('./request-base');
 var isObject = require('./is-object');
 var ResponseBase = require('./response-base');
-var shouldRetry = require('./should-retry');
+var Agent = require('./agent-base');
 
 /**
  * Noop.
@@ -12724,9 +12884,9 @@ function pushEncodedKeyValuePair(pairs, key, val) {
  * Expose serialization method.
  */
 
- request.serializeObject = serialize;
+request.serializeObject = serialize;
 
- /**
+/**
   * Parse the given x-www-form-urlencoded `str`.
   *
   * @param {String} str
@@ -12785,12 +12945,12 @@ request.types = {
  *
  */
 
- request.serialize = {
-   'application/x-www-form-urlencoded': serialize,
-   'application/json': JSON.stringify
- };
+request.serialize = {
+  'application/x-www-form-urlencoded': serialize,
+  'application/json': JSON.stringify,
+};
 
- /**
+/**
   * Default parsers.
   *
   *     superagent.parse['application/xml'] = function(str){
@@ -12801,7 +12961,7 @@ request.types = {
 
 request.parse = {
   'application/x-www-form-urlencoded': parseString,
-  'application/json': JSON.parse
+  'application/json': JSON.parse,
 };
 
 /**
@@ -12821,11 +12981,12 @@ function parseHeader(str) {
   var field;
   var val;
 
-  lines.pop(); // trailing CRLF
-
   for (var i = 0, len = lines.length; i < len; ++i) {
     line = lines[i];
     index = line.indexOf(':');
+    if (index === -1) { // could be empty line, just skip it
+      continue;
+    }
     field = line.slice(0, index).toLowerCase();
     val = trim(line.slice(index + 1));
     fields[field] = val;
@@ -12903,7 +13064,7 @@ function Response(req) {
   var status = this.xhr.status;
   // handle IE9 bug: http://stackoverflow.com/questions/10046972/msie-returns-status-code-of-1223-for-ajax-request
   if (status === 1223) {
-      status = 204;
+    status = 204;
   }
   this._setStatusProperties(status);
   this.header = this.headers = parseHeader(this.xhr.getAllResponseHeaders());
@@ -12935,9 +13096,9 @@ ResponseBase(Response.prototype);
  * @api private
  */
 
-Response.prototype._parseBody = function(str){
+Response.prototype._parseBody = function(str) {
   var parse = request.parse[this.type];
-  if(this.req._parser) {
+  if (this.req._parser) {
     return this.req._parser(this, str);
   }
   if (!parse && isJSON(this.type)) {
@@ -13021,16 +13182,16 @@ function Request(method, url) {
     try {
       if (!self._isResponseOK(res)) {
         new_err = new Error(res.statusText || 'Unsuccessful HTTP response');
-        new_err.original = err;
-        new_err.response = res;
-        new_err.status = res.status;
       }
-    } catch(e) {
-      new_err = e; // #985 touching res may cause INVALID_STATE_ERR on old Android
+    } catch(custom_err) {
+      new_err = custom_err; // ok() callback can throw
     }
 
     // #1000 don't catch errors from the callback to avoid double calling it
     if (new_err) {
+      new_err.original = err;
+      new_err.response = res;
+      new_err.status = res.status;
       self.callback(new_err, res);
     } else {
       self.callback(null, res);
@@ -13108,30 +13269,25 @@ Request.prototype.accept = function(type){
  */
 
 Request.prototype.auth = function(user, pass, options){
-  if (typeof pass === 'object' && pass !== null) { // pass is optional and can substitute for options
+  if (1 === arguments.length) pass = '';
+  if (typeof pass === 'object' && pass !== null) { // pass is optional and can be replaced with options
     options = pass;
+    pass = '';
   }
   if (!options) {
     options = {
       type: 'function' === typeof btoa ? 'basic' : 'auto',
+    };
+  }
+
+  var encoder = function(string) {
+    if ('function' === typeof btoa) {
+      return btoa(string);
     }
-  }
+    throw new Error('Cannot use basic auth, btoa is not a function');
+  };
 
-  switch (options.type) {
-    case 'basic':
-      this.set('Authorization', 'Basic ' + btoa(user + ':' + pass));
-    break;
-
-    case 'auto':
-      this.username = user;
-      this.password = pass;
-    break;
-
-    case 'bearer': // usage would be .auth(accessToken, { type: 'bearer' })
-      this.set('Authorization', 'Bearer ' + user);
-    break;
-  }
-  return this;
+  return this._auth(user, pass, options, encoder);
 };
 
 /**
@@ -13199,8 +13355,7 @@ Request.prototype._getFormData = function(){
  */
 
 Request.prototype.callback = function(err, res){
-  // console.log(this._retries, this._maxRetries)
-  if (this._maxRetries && this._retries++ < this._maxRetries && shouldRetry(err, res)) {
+  if (this._shouldRetry(err, res)) {
     return this._retry();
   }
 
@@ -13282,7 +13437,7 @@ Request.prototype.end = function(fn){
 
 Request.prototype._end = function() {
   var self = this;
-  var xhr = this.xhr = request.getXHR();
+  var xhr = (this.xhr = request.getXHR());
   var data = this._formData || this._data;
 
   this._setTimeouts();
@@ -13316,7 +13471,7 @@ Request.prototype._end = function() {
     }
     e.direction = direction;
     self.emit('progress', e);
-  }
+  };
   if (this.hasListeners('progress')) {
     try {
       xhr.onprogress = handleProgress.bind(null, 'download');
@@ -13377,6 +13532,23 @@ Request.prototype._end = function() {
   return this;
 };
 
+request.agent = function() {
+  return new Agent();
+};
+
+["GET", "POST", "OPTIONS", "PATCH", "PUT", "DELETE"].forEach(function(method) {
+  Agent.prototype[method.toLowerCase()] = function(url, fn) {
+    var req = new request.Request(method, url);
+    this._setDefaults(req);
+    if (fn) {
+      req.end(fn);
+    }
+    return req;
+  };
+});
+
+Agent.prototype.del = Agent.prototype['delete'];
+
 /**
  * GET `url` with optional callback `fn(res)`.
  *
@@ -13387,9 +13559,9 @@ Request.prototype._end = function() {
  * @api public
  */
 
-request.get = function(url, data, fn){
+request.get = function(url, data, fn) {
   var req = request('GET', url);
-  if ('function' == typeof data) fn = data, data = null;
+  if ('function' == typeof data) (fn = data), (data = null);
   if (data) req.query(data);
   if (fn) req.end(fn);
   return req;
@@ -13405,9 +13577,9 @@ request.get = function(url, data, fn){
  * @api public
  */
 
-request.head = function(url, data, fn){
+request.head = function(url, data, fn) {
   var req = request('HEAD', url);
-  if ('function' == typeof data) fn = data, data = null;
+  if ('function' == typeof data) (fn = data), (data = null);
   if (data) req.query(data);
   if (fn) req.end(fn);
   return req;
@@ -13423,9 +13595,9 @@ request.head = function(url, data, fn){
  * @api public
  */
 
-request.options = function(url, data, fn){
+request.options = function(url, data, fn) {
   var req = request('OPTIONS', url);
-  if ('function' == typeof data) fn = data, data = null;
+  if ('function' == typeof data) (fn = data), (data = null);
   if (data) req.send(data);
   if (fn) req.end(fn);
   return req;
@@ -13441,13 +13613,13 @@ request.options = function(url, data, fn){
  * @api public
  */
 
-function del(url, data, fn){
+function del(url, data, fn) {
   var req = request('DELETE', url);
-  if ('function' == typeof data) fn = data, data = null;
+  if ('function' == typeof data) (fn = data), (data = null);
   if (data) req.send(data);
   if (fn) req.end(fn);
   return req;
-};
+}
 
 request['del'] = del;
 request['delete'] = del;
@@ -13462,9 +13634,9 @@ request['delete'] = del;
  * @api public
  */
 
-request.patch = function(url, data, fn){
+request.patch = function(url, data, fn) {
   var req = request('PATCH', url);
-  if ('function' == typeof data) fn = data, data = null;
+  if ('function' == typeof data) (fn = data), (data = null);
   if (data) req.send(data);
   if (fn) req.end(fn);
   return req;
@@ -13480,9 +13652,9 @@ request.patch = function(url, data, fn){
  * @api public
  */
 
-request.post = function(url, data, fn){
+request.post = function(url, data, fn) {
   var req = request('POST', url);
-  if ('function' == typeof data) fn = data, data = null;
+  if ('function' == typeof data) (fn = data), (data = null);
   if (data) req.send(data);
   if (fn) req.end(fn);
   return req;
@@ -13498,15 +13670,17 @@ request.post = function(url, data, fn){
  * @api public
  */
 
-request.put = function(url, data, fn){
+request.put = function(url, data, fn) {
   var req = request('PUT', url);
-  if ('function' == typeof data) fn = data, data = null;
+  if ('function' == typeof data) (fn = data), (data = null);
   if (data) req.send(data);
   if (fn) req.end(fn);
   return req;
 };
 
-},{"./is-object":29,"./request-base":30,"./response-base":31,"./should-retry":32,"component-emitter":10}],29:[function(require,module,exports){
+},{"./agent-base":28,"./is-object":30,"./request-base":31,"./response-base":32,"component-emitter":10}],30:[function(require,module,exports){
+'use strict';
+
 /**
  * Check if `obj` is an object.
  *
@@ -13521,7 +13695,9 @@ function isObject(obj) {
 
 module.exports = isObject;
 
-},{}],30:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
+'use strict';
+
 /**
  * Module of mixed-in functions shared between node and client code
  */
@@ -13665,17 +13841,58 @@ RequestBase.prototype.timeout = function timeout(options){
  * Failed requests will be retried 'count' times if timeout or err.code >= 500.
  *
  * @param {Number} count
+ * @param {Function} [fn]
  * @return {Request} for chaining
  * @api public
  */
 
-RequestBase.prototype.retry = function retry(count){
+RequestBase.prototype.retry = function retry(count, fn){
   // Default to 1 if no count passed or true
   if (arguments.length === 0 || count === true) count = 1;
   if (count <= 0) count = 0;
   this._maxRetries = count;
   this._retries = 0;
+  this._retryCallback = fn;
   return this;
+};
+
+var ERROR_CODES = [
+  'ECONNRESET',
+  'ETIMEDOUT',
+  'EADDRINFO',
+  'ESOCKETTIMEDOUT'
+];
+
+/**
+ * Determine if a request should be retried.
+ * (Borrowed from segmentio/superagent-retry)
+ *
+ * @param {Error} err
+ * @param {Response} [res]
+ * @returns {Boolean}
+ */
+RequestBase.prototype._shouldRetry = function(err, res) {
+  if (!this._maxRetries || this._retries++ >= this._maxRetries) {
+    return false;
+  }
+  if (this._retryCallback) {
+    try {
+      var override = this._retryCallback(err, res);
+      if (override === true) return true;
+      if (override === false) return false;
+      // undefined falls back to defaults
+    } catch(e) {
+      console.error(e);
+    }
+  }
+  if (res && res.status && res.status >= 500 && res.status != 501) return true;
+  if (err) {
+    if (err.code && ~ERROR_CODES.indexOf(err.code)) return true;
+    // Superagent timeout
+    if (err.timeout && err.code == 'ECONNABORTED') return true;
+    if (err.crossDomain) return true;
+  }
+  return false;
 };
 
 /**
@@ -13686,6 +13903,7 @@ RequestBase.prototype.retry = function retry(count){
  */
 
 RequestBase.prototype._retry = function() {
+
   this.clearTimeout();
 
   // node
@@ -13714,14 +13932,15 @@ RequestBase.prototype.then = function then(resolve, reject) {
     if (this._endCalled) {
       console.warn("Warning: superagent request was sent twice, because both .end() and .then() were called. Never call .end() if you use promises");
     }
-    this._fullfilledPromise = new Promise(function(innerResolve, innerReject){
-      self.end(function(err, res){
-        if (err) innerReject(err); else innerResolve(res);
+    this._fullfilledPromise = new Promise(function(innerResolve, innerReject) {
+      self.end(function(err, res) {
+        if (err) innerReject(err);
+        else innerResolve(res);
       });
     });
   }
   return this._fullfilledPromise.then(resolve, reject);
-}
+};
 
 RequestBase.prototype.catch = function(cb) {
   return this.then(undefined, cb);
@@ -13734,7 +13953,7 @@ RequestBase.prototype.catch = function(cb) {
 RequestBase.prototype.use = function use(fn) {
   fn(this);
   return this;
-}
+};
 
 RequestBase.prototype.ok = function(cb) {
   if ('function' !== typeof cb) throw Error("Callback required");
@@ -13753,7 +13972,6 @@ RequestBase.prototype._isResponseOK = function(res) {
 
   return res.status >= 200 && res.status < 300;
 };
-
 
 /**
  * Get request header `field`.
@@ -13853,9 +14071,8 @@ RequestBase.prototype.unset = function(field){
  * @api public
  */
 RequestBase.prototype.field = function(name, val) {
-
   // name should be either a string or an object.
-  if (null === name ||  undefined === name) {
+  if (null === name || undefined === name) {
     throw new Error('.field(name, val) name can not be empty');
   }
 
@@ -13906,6 +14123,24 @@ RequestBase.prototype.abort = function(){
   return this;
 };
 
+RequestBase.prototype._auth = function(user, pass, options, base64Encoder) {
+  switch (options.type) {
+    case 'basic':
+      this.set('Authorization', 'Basic ' + base64Encoder(user + ':' + pass));
+      break;
+
+    case 'auto':
+      this.username = user;
+      this.password = pass;
+      break;
+
+    case 'bearer': // usage would be .auth(accessToken, { type: 'bearer' })
+      this.set('Authorization', 'Bearer ' + user);
+      break;
+  }
+  return this;
+};
+
 /**
  * Enable transmission of cookies with x-domain requests.
  *
@@ -13917,9 +14152,9 @@ RequestBase.prototype.abort = function(){
  * @api public
  */
 
-RequestBase.prototype.withCredentials = function(on){
+RequestBase.prototype.withCredentials = function(on) {
   // This is browser-only functionality. Node side is no-op.
-  if(on==undefined) on = true;
+  if (on == undefined) on = true;
   this._withCredentials = on;
   return this;
 };
@@ -13938,6 +14173,21 @@ RequestBase.prototype.redirects = function(n){
 };
 
 /**
+ * Maximum size of buffered response body, in bytes. Counts uncompressed size.
+ * Default 200MB.
+ *
+ * @param {Number} n
+ * @return {Request} for chaining
+ */
+RequestBase.prototype.maxResponseSize = function(n){
+  if ('number' !== typeof n) {
+    throw TypeError("Invalid argument");
+  }
+  this._maxResponseSize = n;
+  return this;
+};
+
+/**
  * Convert to a plain javascript object (not JSON string) of scalar properties.
  * Note as this method is designed to return a useful non-this value,
  * it cannot be chained.
@@ -13946,15 +14196,14 @@ RequestBase.prototype.redirects = function(n){
  * @api public
  */
 
-RequestBase.prototype.toJSON = function(){
+RequestBase.prototype.toJSON = function() {
   return {
     method: this.method,
     url: this.url,
     data: this._data,
-    headers: this._header
+    headers: this._header,
   };
 };
-
 
 /**
  * Send `data` as the request body, defaulting the `.type()` to "json" when
@@ -14042,7 +14291,6 @@ RequestBase.prototype.send = function(data){
   if (!type) this.type('json');
   return this;
 };
-
 
 /**
  * Sort `querystring` by the sort function
@@ -14141,9 +14389,10 @@ RequestBase.prototype._setTimeouts = function() {
       self._timeoutError('Response timeout of ', self._responseTimeout, 'ETIMEDOUT');
     }, this._responseTimeout);
   }
-}
+};
 
-},{"./is-object":29}],31:[function(require,module,exports){
+},{"./is-object":30}],32:[function(require,module,exports){
+'use strict';
 
 /**
  * Module dependencies.
@@ -14190,8 +14439,8 @@ function mixin(obj) {
  * @api public
  */
 
-ResponseBase.prototype.get = function(field){
-    return this.header[field.toLowerCase()];
+ResponseBase.prototype.get = function(field) {
+  return this.header[field.toLowerCase()];
 };
 
 /**
@@ -14278,32 +14527,8 @@ ResponseBase.prototype._setStatusProperties = function(status){
     this.notFound = 404 == status;
 };
 
-},{"./utils":33}],32:[function(require,module,exports){
-var ERROR_CODES = [
-  'ECONNRESET',
-  'ETIMEDOUT',
-  'EADDRINFO',
-  'ESOCKETTIMEDOUT'
-];
-
-/**
- * Determine if a request should be retried.
- * (Borrowed from segmentio/superagent-retry)
- *
- * @param {Error} err
- * @param {Response} [res]
- * @returns {Boolean}
- */
-module.exports = function shouldRetry(err, res) {
-  if (err && err.code && ~ERROR_CODES.indexOf(err.code)) return true;
-  if (res && res.status && res.status >= 500) return true;
-  // Superagent timeout
-  if (err && 'timeout' in err && err.code == 'ECONNABORTED') return true;
-  if (err && 'crossDomain' in err) return true;
-  return false;
-};
-
-},{}],33:[function(require,module,exports){
+},{"./utils":33}],33:[function(require,module,exports){
+'use strict';
 
 /**
  * Return the mime type for the given `str`.
@@ -14362,16 +14587,19 @@ exports.parseLinks = function(str){
  * @api private
  */
 
-exports.cleanHeader = function(header, shouldStripCookie){
+exports.cleanHeader = function(header, changesOrigin){
   delete header['content-type'];
   delete header['content-length'];
   delete header['transfer-encoding'];
   delete header['host'];
-  if (shouldStripCookie) {
+  // secuirty
+  if (changesOrigin) {
+    delete header['authorization'];
     delete header['cookie'];
   }
   return header;
 };
+
 },{}],34:[function(require,module,exports){
 'use strict';
 
@@ -14924,7 +15152,7 @@ function handleResponse(callback) {
 
 module.exports = new Request();
 
-},{"superagent":28}],38:[function(require,module,exports){
+},{"superagent":29}],38:[function(require,module,exports){
 'use strict';
 
 /*
