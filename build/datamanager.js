@@ -1,4 +1,4 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.DataManager = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.DataManager = f()}})(function(){var define,module,exports;return (function(){function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s}return e})()({1:[function(require,module,exports){
 'use strict';
 
 var halfred = require('halfred');
@@ -2527,7 +2527,7 @@ module.exports = function (arr, next, cb) {
  * @copyright Copyright (c) 2014 Yehuda Katz, Tom Dale, Stefan Penner and contributors (Conversion to ES6 API by Jake Archibald)
  * @license   Licensed under MIT license
  *            See https://raw.githubusercontent.com/stefanpenner/es6-promise/master/LICENSE
- * @version   4.1.1
+ * @version   v4.2.4+314e4831
  */
 
 (function (global, factory) {
@@ -2545,7 +2545,9 @@ function isFunction(x) {
   return typeof x === 'function';
 }
 
-var _isArray = undefined;
+
+
+var _isArray = void 0;
 if (Array.isArray) {
   _isArray = Array.isArray;
 } else {
@@ -2557,8 +2559,8 @@ if (Array.isArray) {
 var isArray = _isArray;
 
 var len = 0;
-var vertxNext = undefined;
-var customSchedulerFn = undefined;
+var vertxNext = void 0;
+var customSchedulerFn = void 0;
 
 var asap = function asap(callback, arg) {
   queue[len] = callback;
@@ -2587,7 +2589,7 @@ function setAsap(asapFn) {
 var browserWindow = typeof window !== 'undefined' ? window : undefined;
 var browserGlobal = browserWindow || {};
 var BrowserMutationObserver = browserGlobal.MutationObserver || browserGlobal.WebKitMutationObserver;
-var isNode = typeof self === 'undefined' && typeof process !== 'undefined' && ({}).toString.call(process) === '[object process]';
+var isNode = typeof self === 'undefined' && typeof process !== 'undefined' && {}.toString.call(process) === '[object process]';
 
 // test for web worker but not in IE10
 var isWorker = typeof Uint8ClampedArray !== 'undefined' && typeof importScripts !== 'undefined' && typeof MessageChannel !== 'undefined';
@@ -2658,8 +2660,7 @@ function flush() {
 
 function attemptVertx() {
   try {
-    var r = require;
-    var vertx = r('vertx');
+    var vertx = Function('return this')().require('vertx');
     vertxNext = vertx.runOnLoop || vertx.runOnContext;
     return useVertxTimer();
   } catch (e) {
@@ -2667,7 +2668,7 @@ function attemptVertx() {
   }
 }
 
-var scheduleFlush = undefined;
+var scheduleFlush = void 0;
 // Decide what async method to use to triggering processing of queued callbacks:
 if (isNode) {
   scheduleFlush = useNextTick();
@@ -2682,8 +2683,6 @@ if (isNode) {
 }
 
 function then(onFulfillment, onRejection) {
-  var _arguments = arguments;
-
   var parent = this;
 
   var child = new this.constructor(noop);
@@ -2694,13 +2693,12 @@ function then(onFulfillment, onRejection) {
 
   var _state = parent._state;
 
+
   if (_state) {
-    (function () {
-      var callback = _arguments[_state - 1];
-      asap(function () {
-        return invokeCallback(_state, child, callback, parent._result);
-      });
-    })();
+    var callback = arguments[_state - 1];
+    asap(function () {
+      return invokeCallback(_state, child, callback, parent._result);
+    });
   } else {
     subscribe(parent, child, onFulfillment, onRejection);
   }
@@ -2752,7 +2750,7 @@ function resolve$1(object) {
   return promise;
 }
 
-var PROMISE_ID = Math.random().toString(36).substring(16);
+var PROMISE_ID = Math.random().toString(36).substring(2);
 
 function noop() {}
 
@@ -2760,7 +2758,7 @@ var PENDING = void 0;
 var FULFILLED = 1;
 var REJECTED = 2;
 
-var GET_THEN_ERROR = new ErrorObject();
+var TRY_CATCH_ERROR = { error: null };
 
 function selfFulfillment() {
   return new TypeError("You cannot resolve a promise with itself");
@@ -2774,8 +2772,8 @@ function getThen(promise) {
   try {
     return promise.then;
   } catch (error) {
-    GET_THEN_ERROR.error = error;
-    return GET_THEN_ERROR;
+    TRY_CATCH_ERROR.error = error;
+    return TRY_CATCH_ERROR;
   }
 }
 
@@ -2834,9 +2832,9 @@ function handleMaybeThenable(promise, maybeThenable, then$$1) {
   if (maybeThenable.constructor === promise.constructor && then$$1 === then && maybeThenable.constructor.resolve === resolve$1) {
     handleOwnThenable(promise, maybeThenable);
   } else {
-    if (then$$1 === GET_THEN_ERROR) {
-      reject(promise, GET_THEN_ERROR.error);
-      GET_THEN_ERROR.error = null;
+    if (then$$1 === TRY_CATCH_ERROR) {
+      reject(promise, TRY_CATCH_ERROR.error);
+      TRY_CATCH_ERROR.error = null;
     } else if (then$$1 === undefined) {
       fulfill(promise, maybeThenable);
     } else if (isFunction(then$$1)) {
@@ -2892,6 +2890,7 @@ function subscribe(parent, child, onFulfillment, onRejection) {
   var _subscribers = parent._subscribers;
   var length = _subscribers.length;
 
+
   parent._onerror = null;
 
   _subscribers[length] = child;
@@ -2911,8 +2910,8 @@ function publish(promise) {
     return;
   }
 
-  var child = undefined,
-      callback = undefined,
+  var child = void 0,
+      callback = void 0,
       detail = promise._result;
 
   for (var i = 0; i < subscribers.length; i += 3) {
@@ -2929,12 +2928,6 @@ function publish(promise) {
   promise._subscribers.length = 0;
 }
 
-function ErrorObject() {
-  this.error = null;
-}
-
-var TRY_CATCH_ERROR = new ErrorObject();
-
 function tryCatch(callback, detail) {
   try {
     return callback(detail);
@@ -2946,10 +2939,10 @@ function tryCatch(callback, detail) {
 
 function invokeCallback(settled, promise, callback, detail) {
   var hasCallback = isFunction(callback),
-      value = undefined,
-      error = undefined,
-      succeeded = undefined,
-      failed = undefined;
+      value = void 0,
+      error = void 0,
+      succeeded = void 0,
+      failed = void 0;
 
   if (hasCallback) {
     value = tryCatch(callback, detail);
@@ -2974,14 +2967,14 @@ function invokeCallback(settled, promise, callback, detail) {
   if (promise._state !== PENDING) {
     // noop
   } else if (hasCallback && succeeded) {
-      resolve(promise, value);
-    } else if (failed) {
-      reject(promise, error);
-    } else if (settled === FULFILLED) {
-      fulfill(promise, value);
-    } else if (settled === REJECTED) {
-      reject(promise, value);
-    }
+    resolve(promise, value);
+  } else if (failed) {
+    reject(promise, error);
+  } else if (settled === FULFILLED) {
+    fulfill(promise, value);
+  } else if (settled === REJECTED) {
+    reject(promise, value);
+  }
 }
 
 function initializePromise(promise, resolver) {
@@ -3008,97 +3001,103 @@ function makePromise(promise) {
   promise._subscribers = [];
 }
 
-function Enumerator$1(Constructor, input) {
-  this._instanceConstructor = Constructor;
-  this.promise = new Constructor(noop);
-
-  if (!this.promise[PROMISE_ID]) {
-    makePromise(this.promise);
-  }
-
-  if (isArray(input)) {
-    this.length = input.length;
-    this._remaining = input.length;
-
-    this._result = new Array(this.length);
-
-    if (this.length === 0) {
-      fulfill(this.promise, this._result);
-    } else {
-      this.length = this.length || 0;
-      this._enumerate(input);
-      if (this._remaining === 0) {
-        fulfill(this.promise, this._result);
-      }
-    }
-  } else {
-    reject(this.promise, validationError());
-  }
-}
-
 function validationError() {
   return new Error('Array Methods must be provided an Array');
 }
 
-Enumerator$1.prototype._enumerate = function (input) {
-  for (var i = 0; this._state === PENDING && i < input.length; i++) {
-    this._eachEntry(input[i], i);
+var Enumerator = function () {
+  function Enumerator(Constructor, input) {
+    this._instanceConstructor = Constructor;
+    this.promise = new Constructor(noop);
+
+    if (!this.promise[PROMISE_ID]) {
+      makePromise(this.promise);
+    }
+
+    if (isArray(input)) {
+      this.length = input.length;
+      this._remaining = input.length;
+
+      this._result = new Array(this.length);
+
+      if (this.length === 0) {
+        fulfill(this.promise, this._result);
+      } else {
+        this.length = this.length || 0;
+        this._enumerate(input);
+        if (this._remaining === 0) {
+          fulfill(this.promise, this._result);
+        }
+      }
+    } else {
+      reject(this.promise, validationError());
+    }
   }
-};
 
-Enumerator$1.prototype._eachEntry = function (entry, i) {
-  var c = this._instanceConstructor;
-  var resolve$$1 = c.resolve;
+  Enumerator.prototype._enumerate = function _enumerate(input) {
+    for (var i = 0; this._state === PENDING && i < input.length; i++) {
+      this._eachEntry(input[i], i);
+    }
+  };
 
-  if (resolve$$1 === resolve$1) {
-    var _then = getThen(entry);
+  Enumerator.prototype._eachEntry = function _eachEntry(entry, i) {
+    var c = this._instanceConstructor;
+    var resolve$$1 = c.resolve;
 
-    if (_then === then && entry._state !== PENDING) {
-      this._settledAt(entry._state, i, entry._result);
-    } else if (typeof _then !== 'function') {
+
+    if (resolve$$1 === resolve$1) {
+      var _then = getThen(entry);
+
+      if (_then === then && entry._state !== PENDING) {
+        this._settledAt(entry._state, i, entry._result);
+      } else if (typeof _then !== 'function') {
+        this._remaining--;
+        this._result[i] = entry;
+      } else if (c === Promise$1) {
+        var promise = new c(noop);
+        handleMaybeThenable(promise, entry, _then);
+        this._willSettleAt(promise, i);
+      } else {
+        this._willSettleAt(new c(function (resolve$$1) {
+          return resolve$$1(entry);
+        }), i);
+      }
+    } else {
+      this._willSettleAt(resolve$$1(entry), i);
+    }
+  };
+
+  Enumerator.prototype._settledAt = function _settledAt(state, i, value) {
+    var promise = this.promise;
+
+
+    if (promise._state === PENDING) {
       this._remaining--;
-      this._result[i] = entry;
-    } else if (c === Promise$2) {
-      var promise = new c(noop);
-      handleMaybeThenable(promise, entry, _then);
-      this._willSettleAt(promise, i);
-    } else {
-      this._willSettleAt(new c(function (resolve$$1) {
-        return resolve$$1(entry);
-      }), i);
+
+      if (state === REJECTED) {
+        reject(promise, value);
+      } else {
+        this._result[i] = value;
+      }
     }
-  } else {
-    this._willSettleAt(resolve$$1(entry), i);
-  }
-};
 
-Enumerator$1.prototype._settledAt = function (state, i, value) {
-  var promise = this.promise;
-
-  if (promise._state === PENDING) {
-    this._remaining--;
-
-    if (state === REJECTED) {
-      reject(promise, value);
-    } else {
-      this._result[i] = value;
+    if (this._remaining === 0) {
+      fulfill(promise, this._result);
     }
-  }
+  };
 
-  if (this._remaining === 0) {
-    fulfill(promise, this._result);
-  }
-};
+  Enumerator.prototype._willSettleAt = function _willSettleAt(promise, i) {
+    var enumerator = this;
 
-Enumerator$1.prototype._willSettleAt = function (promise, i) {
-  var enumerator = this;
+    subscribe(promise, undefined, function (value) {
+      return enumerator._settledAt(FULFILLED, i, value);
+    }, function (reason) {
+      return enumerator._settledAt(REJECTED, i, reason);
+    });
+  };
 
-  subscribe(promise, undefined, function (value) {
-    return enumerator._settledAt(FULFILLED, i, value);
-  }, function (reason) {
-    return enumerator._settledAt(REJECTED, i, reason);
-  });
-};
+  return Enumerator;
+}();
 
 /**
   `Promise.all` accepts an array of promises, and returns a new promise which
@@ -3147,8 +3146,8 @@ Enumerator$1.prototype._willSettleAt = function (promise, i) {
   fulfilled, or rejected if any of them become rejected.
   @static
 */
-function all$1(entries) {
-  return new Enumerator$1(this, entries).promise;
+function all(entries) {
+  return new Enumerator(this, entries).promise;
 }
 
 /**
@@ -3216,7 +3215,7 @@ function all$1(entries) {
   @return {Promise} a promise which settles in the same way as the first passed
   promise to settle.
 */
-function race$1(entries) {
+function race(entries) {
   /*jshint validthis:true */
   var Constructor = this;
 
@@ -3383,300 +3382,323 @@ function needsNew() {
   ```
 
   @class Promise
-  @param {function} resolver
+  @param {Function} resolver
   Useful for tooling.
   @constructor
 */
-function Promise$2(resolver) {
-  this[PROMISE_ID] = nextId();
-  this._result = this._state = undefined;
-  this._subscribers = [];
 
-  if (noop !== resolver) {
-    typeof resolver !== 'function' && needsResolver();
-    this instanceof Promise$2 ? initializePromise(this, resolver) : needsNew();
+var Promise$1 = function () {
+  function Promise(resolver) {
+    this[PROMISE_ID] = nextId();
+    this._result = this._state = undefined;
+    this._subscribers = [];
+
+    if (noop !== resolver) {
+      typeof resolver !== 'function' && needsResolver();
+      this instanceof Promise ? initializePromise(this, resolver) : needsNew();
+    }
   }
-}
-
-Promise$2.all = all$1;
-Promise$2.race = race$1;
-Promise$2.resolve = resolve$1;
-Promise$2.reject = reject$1;
-Promise$2._setScheduler = setScheduler;
-Promise$2._setAsap = setAsap;
-Promise$2._asap = asap;
-
-Promise$2.prototype = {
-  constructor: Promise$2,
 
   /**
-    The primary way of interacting with a promise is through its `then` method,
-    which registers callbacks to receive either a promise's eventual value or the
-    reason why the promise cannot be fulfilled.
-  
-    ```js
-    findUser().then(function(user){
-      // user is available
-    }, function(reason){
-      // user is unavailable, and you are given the reason why
-    });
-    ```
-  
-    Chaining
-    --------
-  
-    The return value of `then` is itself a promise.  This second, 'downstream'
-    promise is resolved with the return value of the first promise's fulfillment
-    or rejection handler, or rejected if the handler throws an exception.
-  
-    ```js
-    findUser().then(function (user) {
-      return user.name;
-    }, function (reason) {
-      return 'default name';
-    }).then(function (userName) {
-      // If `findUser` fulfilled, `userName` will be the user's name, otherwise it
-      // will be `'default name'`
-    });
-  
-    findUser().then(function (user) {
-      throw new Error('Found user, but still unhappy');
-    }, function (reason) {
-      throw new Error('`findUser` rejected and we're unhappy');
-    }).then(function (value) {
-      // never reached
-    }, function (reason) {
-      // if `findUser` fulfilled, `reason` will be 'Found user, but still unhappy'.
-      // If `findUser` rejected, `reason` will be '`findUser` rejected and we're unhappy'.
-    });
-    ```
-    If the downstream promise does not specify a rejection handler, rejection reasons will be propagated further downstream.
-  
-    ```js
-    findUser().then(function (user) {
-      throw new PedagogicalException('Upstream error');
-    }).then(function (value) {
-      // never reached
-    }).then(function (value) {
-      // never reached
-    }, function (reason) {
-      // The `PedgagocialException` is propagated all the way down to here
-    });
-    ```
-  
-    Assimilation
-    ------------
-  
-    Sometimes the value you want to propagate to a downstream promise can only be
-    retrieved asynchronously. This can be achieved by returning a promise in the
-    fulfillment or rejection handler. The downstream promise will then be pending
-    until the returned promise is settled. This is called *assimilation*.
-  
-    ```js
-    findUser().then(function (user) {
-      return findCommentsByAuthor(user);
-    }).then(function (comments) {
-      // The user's comments are now available
-    });
-    ```
-  
-    If the assimliated promise rejects, then the downstream promise will also reject.
-  
-    ```js
-    findUser().then(function (user) {
-      return findCommentsByAuthor(user);
-    }).then(function (comments) {
-      // If `findCommentsByAuthor` fulfills, we'll have the value here
-    }, function (reason) {
-      // If `findCommentsByAuthor` rejects, we'll have the reason here
-    });
-    ```
-  
-    Simple Example
-    --------------
-  
-    Synchronous Example
-  
-    ```javascript
-    let result;
-  
-    try {
-      result = findResult();
-      // success
-    } catch(reason) {
+  The primary way of interacting with a promise is through its `then` method,
+  which registers callbacks to receive either a promise's eventual value or the
+  reason why the promise cannot be fulfilled.
+   ```js
+  findUser().then(function(user){
+    // user is available
+  }, function(reason){
+    // user is unavailable, and you are given the reason why
+  });
+  ```
+   Chaining
+  --------
+   The return value of `then` is itself a promise.  This second, 'downstream'
+  promise is resolved with the return value of the first promise's fulfillment
+  or rejection handler, or rejected if the handler throws an exception.
+   ```js
+  findUser().then(function (user) {
+    return user.name;
+  }, function (reason) {
+    return 'default name';
+  }).then(function (userName) {
+    // If `findUser` fulfilled, `userName` will be the user's name, otherwise it
+    // will be `'default name'`
+  });
+   findUser().then(function (user) {
+    throw new Error('Found user, but still unhappy');
+  }, function (reason) {
+    throw new Error('`findUser` rejected and we're unhappy');
+  }).then(function (value) {
+    // never reached
+  }, function (reason) {
+    // if `findUser` fulfilled, `reason` will be 'Found user, but still unhappy'.
+    // If `findUser` rejected, `reason` will be '`findUser` rejected and we're unhappy'.
+  });
+  ```
+  If the downstream promise does not specify a rejection handler, rejection reasons will be propagated further downstream.
+   ```js
+  findUser().then(function (user) {
+    throw new PedagogicalException('Upstream error');
+  }).then(function (value) {
+    // never reached
+  }).then(function (value) {
+    // never reached
+  }, function (reason) {
+    // The `PedgagocialException` is propagated all the way down to here
+  });
+  ```
+   Assimilation
+  ------------
+   Sometimes the value you want to propagate to a downstream promise can only be
+  retrieved asynchronously. This can be achieved by returning a promise in the
+  fulfillment or rejection handler. The downstream promise will then be pending
+  until the returned promise is settled. This is called *assimilation*.
+   ```js
+  findUser().then(function (user) {
+    return findCommentsByAuthor(user);
+  }).then(function (comments) {
+    // The user's comments are now available
+  });
+  ```
+   If the assimliated promise rejects, then the downstream promise will also reject.
+   ```js
+  findUser().then(function (user) {
+    return findCommentsByAuthor(user);
+  }).then(function (comments) {
+    // If `findCommentsByAuthor` fulfills, we'll have the value here
+  }, function (reason) {
+    // If `findCommentsByAuthor` rejects, we'll have the reason here
+  });
+  ```
+   Simple Example
+  --------------
+   Synchronous Example
+   ```javascript
+  let result;
+   try {
+    result = findResult();
+    // success
+  } catch(reason) {
+    // failure
+  }
+  ```
+   Errback Example
+   ```js
+  findResult(function(result, err){
+    if (err) {
       // failure
-    }
-    ```
-  
-    Errback Example
-  
-    ```js
-    findResult(function(result, err){
-      if (err) {
-        // failure
-      } else {
-        // success
-      }
-    });
-    ```
-  
-    Promise Example;
-  
-    ```javascript
-    findResult().then(function(result){
+    } else {
       // success
-    }, function(reason){
+    }
+  });
+  ```
+   Promise Example;
+   ```javascript
+  findResult().then(function(result){
+    // success
+  }, function(reason){
+    // failure
+  });
+  ```
+   Advanced Example
+  --------------
+   Synchronous Example
+   ```javascript
+  let author, books;
+   try {
+    author = findAuthor();
+    books  = findBooksByAuthor(author);
+    // success
+  } catch(reason) {
+    // failure
+  }
+  ```
+   Errback Example
+   ```js
+   function foundBooks(books) {
+   }
+   function failure(reason) {
+   }
+   findAuthor(function(author, err){
+    if (err) {
+      failure(err);
       // failure
-    });
-    ```
-  
-    Advanced Example
-    --------------
-  
-    Synchronous Example
-  
-    ```javascript
-    let author, books;
-  
-    try {
-      author = findAuthor();
-      books  = findBooksByAuthor(author);
-      // success
-    } catch(reason) {
-      // failure
-    }
-    ```
-  
-    Errback Example
-  
-    ```js
-  
-    function foundBooks(books) {
-  
-    }
-  
-    function failure(reason) {
-  
-    }
-  
-    findAuthor(function(author, err){
-      if (err) {
-        failure(err);
-        // failure
-      } else {
-        try {
-          findBoooksByAuthor(author, function(books, err) {
-            if (err) {
-              failure(err);
-            } else {
-              try {
-                foundBooks(books);
-              } catch(reason) {
-                failure(reason);
-              }
+    } else {
+      try {
+        findBoooksByAuthor(author, function(books, err) {
+          if (err) {
+            failure(err);
+          } else {
+            try {
+              foundBooks(books);
+            } catch(reason) {
+              failure(reason);
             }
-          });
-        } catch(error) {
-          failure(err);
-        }
-        // success
+          }
+        });
+      } catch(error) {
+        failure(err);
       }
-    });
-    ```
-  
-    Promise Example;
-  
-    ```javascript
-    findAuthor().
-      then(findBooksByAuthor).
-      then(function(books){
-        // found books
-    }).catch(function(reason){
-      // something went wrong
-    });
-    ```
-  
-    @method then
-    @param {Function} onFulfilled
-    @param {Function} onRejected
-    Useful for tooling.
-    @return {Promise}
+      // success
+    }
+  });
+  ```
+   Promise Example;
+   ```javascript
+  findAuthor().
+    then(findBooksByAuthor).
+    then(function(books){
+      // found books
+  }).catch(function(reason){
+    // something went wrong
+  });
+  ```
+   @method then
+  @param {Function} onFulfilled
+  @param {Function} onRejected
+  Useful for tooling.
+  @return {Promise}
   */
-  then: then,
 
   /**
-    `catch` is simply sugar for `then(undefined, onRejection)` which makes it the same
-    as the catch block of a try/catch statement.
+  `catch` is simply sugar for `then(undefined, onRejection)` which makes it the same
+  as the catch block of a try/catch statement.
+  ```js
+  function findAuthor(){
+  throw new Error('couldn't find that author');
+  }
+  // synchronous
+  try {
+  findAuthor();
+  } catch(reason) {
+  // something went wrong
+  }
+  // async with promises
+  findAuthor().catch(function(reason){
+  // something went wrong
+  });
+  ```
+  @method catch
+  @param {Function} onRejection
+  Useful for tooling.
+  @return {Promise}
+  */
+
+
+  Promise.prototype.catch = function _catch(onRejection) {
+    return this.then(null, onRejection);
+  };
+
+  /**
+    `finally` will be invoked regardless of the promise's fate just as native
+    try/catch/finally behaves
+  
+    Synchronous example:
   
     ```js
-    function findAuthor(){
-      throw new Error('couldn't find that author');
+    findAuthor() {
+      if (Math.random() > 0.5) {
+        throw new Error();
+      }
+      return new Author();
     }
   
-    // synchronous
     try {
-      findAuthor();
-    } catch(reason) {
-      // something went wrong
+      return findAuthor(); // succeed or fail
+    } catch(error) {
+      return findOtherAuther();
+    } finally {
+      // always runs
+      // doesn't affect the return value
     }
+    ```
   
-    // async with promises
+    Asynchronous example:
+  
+    ```js
     findAuthor().catch(function(reason){
-      // something went wrong
+      return findOtherAuther();
+    }).finally(function(){
+      // author was either found, or not
     });
     ```
   
-    @method catch
-    @param {Function} onRejection
-    Useful for tooling.
+    @method finally
+    @param {Function} callback
     @return {Promise}
   */
-  'catch': function _catch(onRejection) {
-    return this.then(null, onRejection);
-  }
-};
+
+
+  Promise.prototype.finally = function _finally(callback) {
+    var promise = this;
+    var constructor = promise.constructor;
+
+    return promise.then(function (value) {
+      return constructor.resolve(callback()).then(function () {
+        return value;
+      });
+    }, function (reason) {
+      return constructor.resolve(callback()).then(function () {
+        throw reason;
+      });
+    });
+  };
+
+  return Promise;
+}();
+
+Promise$1.prototype.then = then;
+Promise$1.all = all;
+Promise$1.race = race;
+Promise$1.resolve = resolve$1;
+Promise$1.reject = reject$1;
+Promise$1._setScheduler = setScheduler;
+Promise$1._setAsap = setAsap;
+Promise$1._asap = asap;
 
 /*global self*/
-function polyfill$1() {
-    var local = undefined;
+function polyfill() {
+  var local = void 0;
 
-    if (typeof global !== 'undefined') {
-        local = global;
-    } else if (typeof self !== 'undefined') {
-        local = self;
-    } else {
-        try {
-            local = Function('return this')();
-        } catch (e) {
-            throw new Error('polyfill failed because global object is unavailable in this environment');
-        }
+  if (typeof global !== 'undefined') {
+    local = global;
+  } else if (typeof self !== 'undefined') {
+    local = self;
+  } else {
+    try {
+      local = Function('return this')();
+    } catch (e) {
+      throw new Error('polyfill failed because global object is unavailable in this environment');
+    }
+  }
+
+  var P = local.Promise;
+
+  if (P) {
+    var promiseToString = null;
+    try {
+      promiseToString = Object.prototype.toString.call(P.resolve());
+    } catch (e) {
+      // silently ignored
     }
 
-    var P = local.Promise;
-
-    if (P) {
-        var promiseToString = null;
-        try {
-            promiseToString = Object.prototype.toString.call(P.resolve());
-        } catch (e) {
-            // silently ignored
-        }
-
-        if (promiseToString === '[object Promise]' && !P.cast) {
-            return;
-        }
+    if (promiseToString === '[object Promise]' && !P.cast) {
+      return;
     }
+  }
 
-    local.Promise = Promise$2;
+  local.Promise = Promise$1;
 }
 
 // Strange compat..
-Promise$2.polyfill = polyfill$1;
-Promise$2.Promise = Promise$2;
+Promise$1.polyfill = polyfill;
+Promise$1.Promise = Promise$1;
 
-return Promise$2;
+return Promise$1;
 
 })));
+
+
 
 
 
@@ -5514,8 +5536,8 @@ else {
 
         // iterate all steps in the transform array
         for (idx = 0; idx < transform.length; idx++) {
-          // clone transform so our scan and replace can operate directly on cloned transform
-          clonedStep = JSON.parse(JSON.stringify(transform[idx]));
+          // clone transform so our scan/replace can operate directly on cloned transform
+          clonedStep = clone(transform[idx], "shallow-recurse-objects");
           resolvedTransform.push(Utils.resolveTransformObject(clonedStep, params));
         }
 
@@ -5850,6 +5872,7 @@ else {
         return aeqHelper(a, b);
       },
 
+      // loki comparisons: return identical unindexed results as indexed comparisons
       $gt: function (a, b) {
         return gtHelper(a, b, false);
       },
@@ -5866,10 +5889,32 @@ else {
         return ltHelper(a, b, true);
       },
 
+      // lightweight javascript comparisons
+      $jgt: function (a, b) {
+        return a > b;
+      },
+
+      $jgte: function (a, b) {
+        return a >= b;
+      },
+
+      $jlt: function (a, b) {
+        return a < b;
+      },
+
+      $jlte: function (a, b) {
+        return a <= b;
+      },
+
       // ex : coll.find({'orderCount': {$between: [10, 50]}});
       $between: function (a, vals) {
         if (a === undefined || a === null) return false;
         return (gtHelper(a, vals[0], true) && ltHelper(a, vals[1], true));
+      },
+
+      $jbetween: function (a, vals) {
+        if (a === undefined || a === null) return false;
+        return (a >= vals[0] && a <= vals[1]);
       },
 
       $in: function (a, b) {
@@ -6026,6 +6071,17 @@ else {
         // should be supported by newer environments/browsers
         cloned = Object.create(data.constructor.prototype);
         Object.assign(cloned, data);
+        break;
+      case "shallow-recurse-objects":
+        // shallow clone top level properties
+        cloned = clone(data, "shallow");
+        var keys = Object.keys(data);
+        // for each of the top level properties which are object literals, recursively shallow copy
+        keys.forEach(function(key) {
+          if (typeof data[key] === "object" && data[key].constructor.name === "Object")  {
+            cloned[key] = clone(data[key], "shallow-recurse-objects");
+          }
+        });
         break;
       default:
         break;
@@ -6441,15 +6497,39 @@ else {
      * @param {array=} [options.exact=[]] - array of property names to define exact constraints for
      * @param {array=} [options.indices=[]] - array property names to define binary indexes for
      * @param {boolean} [options.asyncListeners=false] - whether listeners are called asynchronously
+     * @param {boolean} [options.disableMeta=false] - set to true to disable meta property on documents
      * @param {boolean} [options.disableChangesApi=true] - set to false to enable Changes Api
+     * @param {boolean} [options.disableDeltaChangesApi=true] - set to false to enable Delta Changes API (requires Changes API, forces cloning)
      * @param {boolean} [options.autoupdate=false] - use Object.observe to update objects automatically
      * @param {boolean} [options.clone=false] - specify whether inserts and queries clone to/from user
      * @param {string} [options.cloneMethod='parse-stringify'] - 'parse-stringify', 'jquery-extend-deep', 'shallow, 'shallow-assign'
-     * @param {int} options.ttlInterval - time interval for clearing out 'aged' documents; not set by default.
+     * @param {int=} options.ttl - age of document (in ms.) before document is considered aged/stale.
+     * @param {int=} options.ttlInterval - time interval for clearing out 'aged' documents; not set by default.
      * @returns {Collection} a reference to the collection which was just added
      * @memberof Loki
      */
     Loki.prototype.addCollection = function (name, options) {
+      var i,
+        len = this.collections.length;
+
+      if (options && options.disableMeta === true) {
+        if (options.disableChangesApi === false) {
+          throw new Error("disableMeta option cannot be passed as true when disableChangesApi is passed as false");
+        }
+        if (options.disableDeltaChangesApi === false) {
+          throw new Error("disableMeta option cannot be passed as true when disableDeltaChangesApi is passed as false");
+        }
+        if (typeof options.ttl === "number" && options.ttl > 0) {
+          throw new Error("disableMeta option cannot be passed as true when ttl is enabled");
+        }
+      }
+
+      for (i = 0; i < len; i += 1) {
+        if (this.collections[i].name === name) {
+          return this.collections[i];
+        }
+      }
+
       var collection = new Collection(name, options);
       this.collections.push(collection);
 
@@ -6504,6 +6584,11 @@ else {
       return c;
     };
 
+    /**
+     * Returns a list of collections in the database.
+     * @returns {object[]} array of objects containing 'name', 'type', and 'count' properties.
+     * @memberof Loki
+     */
     Loki.prototype.listCollections = function () {
 
       var i = this.collections.length,
@@ -6975,12 +7060,6 @@ else {
 
       this.name = dbObject.name;
 
-      // restore database version
-      //this.databaseVersion = 1.0;
-      //if (dbObject.hasOwnProperty('databaseVersion')) {
-      //  this.databaseVersion = dbObject.databaseVersion;
-      //}
-
       // restore save throttled boolean only if not defined in options
       if (dbObject.hasOwnProperty('throttledSaves') && options && !options.hasOwnProperty('throttledSaves')) {
         this.throttledSaves = dbObject.throttledSaves;
@@ -7008,7 +7087,7 @@ else {
       for (i; i < len; i += 1) {
         coll = dbObject.collections[i];
 
-        copyColl = this.addCollection(coll.name, { disableChangesApi: coll.disableChangesApi, disableDeltaChangesApi: coll.disableDeltaChangesApi });
+        copyColl = this.addCollection(coll.name, { disableChangesApi: coll.disableChangesApi, disableDeltaChangesApi: coll.disableDeltaChangesApi, disableMeta: coll.disableMeta });
 
         copyColl.adaptiveBinaryIndices = coll.hasOwnProperty('adaptiveBinaryIndices')?(coll.adaptiveBinaryIndices === true): false;
         copyColl.transactional = coll.transactional;
@@ -7970,8 +8049,10 @@ else {
         }
         // otherwise just pass the serialized database to adapter
         else {
+          // persistenceAdapter might be asynchronous, so we must clear `dirty` immediately
+          // or autosave won't work if an update occurs between here and the callback
+          self.autosaveClearFlags();
           this.persistenceAdapter.saveDatabase(this.filename, self.serialize(), function saveDatabasecallback(err) {
-            self.autosaveClearFlags();
             cFun(err);
           });
         }
@@ -8188,6 +8269,8 @@ else {
      * @param {int} qty - The number of documents to return.
      * @returns {Resultset} Returns a copy of the resultset, limited by qty, for subsequent chain ops.
      * @memberof Resultset
+     * // find the two oldest users
+     * var result = users.chain().simplesort("age", true).limit(2).data();
      */
     Resultset.prototype.limit = function (qty) {
       // if this has no filters applied, we need to populate filteredrows first
@@ -8207,6 +8290,8 @@ else {
      * @param {int} pos - Number of documents to skip; all preceding documents are filtered out.
      * @returns {Resultset} Returns a copy of the resultset, containing docs starting at 'pos' for subsequent chain ops.
      * @memberof Resultset
+     * // find everyone but the two oldest users
+     * var result = users.chain().simplesort("age", true).offset(2).data();
      */
     Resultset.prototype.offset = function (pos) {
       // if this has no filters applied, we need to populate filteredrows first
@@ -8250,6 +8335,21 @@ else {
      * @param parameters {object=} - (Optional) object property hash of parameters, if the transform requires them.
      * @returns {Resultset} either (this) resultset or a clone of of this resultset (depending on steps)
      * @memberof Resultset
+     * @example
+     * users.addTransform('CountryFilter', [
+     *   {
+     *     type: 'find',
+     *     value: {
+     *       'country': { $eq: '[%lktxp]Country' }
+     *     }
+     *   },
+     *   {
+     *     type: 'simplesort',
+     *     property: 'age',
+     *     options: { desc: false}
+     *   }
+     * ]);
+     * var results = users.chain().transform("CountryFilter", { Country: 'fr' }).data();
      */
     Resultset.prototype.transform = function (transform, parameters) {
       var idx,
@@ -8283,7 +8383,7 @@ else {
           rs.where(step.value);
           break;
         case "simplesort":
-          rs.simplesort(step.property, step.desc);
+          rs.simplesort(step.property, step.desc || step.options);
           break;
         case "compoundsort":
           rs.compoundsort(step.value);
@@ -8358,25 +8458,46 @@ else {
      *    Sorting based on the same lt/gt helper functions used for binary indices.
      *
      * @param {string} propname - name of property to sort by.
-     * @param {bool=} isdesc - (Optional) If true, the property will be sorted in descending order
+     * @param {object|bool=} options - boolean to specify if isdescending, or options object
+     * @param {boolean} [options.desc=false] - whether to sort descending
+     * @param {boolean} [options.disableIndexIntersect=false] - whether we should explicity not use array intersection.
+     * @param {boolean} [options.forceIndexIntersect=false] - force array intersection (if binary index exists).
+     * @param {boolean} [options.useJavascriptSorting=false] - whether results are sorted via basic javascript sort.
      * @returns {Resultset} Reference to this resultset, sorted, for future chain operations.
      * @memberof Resultset
+     * @example
+     * var results = users.chain().simplesort('age').data();
      */
-    Resultset.prototype.simplesort = function (propname, isdesc) {
-      if (typeof (isdesc) === 'undefined') {
-        isdesc = false;
+    Resultset.prototype.simplesort = function (propname, options) {
+      var eff, 
+        dc = this.collection.data.length, 
+        frl = this.filteredrows.length,
+        hasBinaryIndex = this.collection.binaryIndices.hasOwnProperty(propname);
+
+      if (typeof (options) === 'undefined' || options === false) {
+        options = { desc: false };
+      }
+      if (options === true) {
+        options = { desc: true };
       }
 
-      // if this has no filters applied, just we need to populate filteredrows first
-      if (!this.filterInitialized && this.filteredrows.length === 0) {
-        // if we have a binary index and no other filters applied, we can use that instead of sorting (again)
+      // if nothing in filtered rows array...
+      if (frl === 0) {
+        // if the filter is initialized to be empty resultset, do nothing
+        if (this.filterInitialized) {
+          return this;
+        }
+        
+        // otherwise no filters applied implies all documents, so we need to populate filteredrows first
+        
+        // if we have a binary index, we can just use that instead of sorting (again)
         if (this.collection.binaryIndices.hasOwnProperty(propname)) {
           // make sure index is up-to-date
           this.collection.ensureIndex(propname);
           // copy index values into filteredrows
           this.filteredrows = this.collection.binaryIndices[propname].values.slice(0);
 
-          if (isdesc) {
+          if (options.desc) {
             this.filteredrows.reverse();
           }
 
@@ -8385,10 +8506,56 @@ else {
         }
         // otherwise initialize array for sort below
         else {
+          // build full document index (to be sorted subsequently)
           this.filteredrows = this.collection.prepareFullDocIndex();
         }
       }
+      // otherwise we had results to begin with, see if we qualify for index intercept optimization
+      else {
 
+        // If already filtered, but we want to leverage binary index on sort.
+        // This will use custom array intection algorithm.
+        if (!options.disableIndexIntersect && hasBinaryIndex) {
+
+          // calculate filter efficiency
+          eff = dc/frl;
+
+          // anything more than ratio of 10:1 (total documents/current results) should use old sort code path
+          // So we will only use array intersection if you have more than 10% of total docs in your current resultset.
+          if (eff <= 10 || options.forceIndexIntersect) {
+            var idx, fr=this.filteredrows;
+            var io = {};
+            // set up hashobject for simple 'inclusion test' with existing (filtered) results
+            for(idx=0; idx<frl; idx++) {
+              io[fr[idx]] = true;
+            }
+            // grab full sorted binary index array
+            var pv = this.collection.binaryIndices[propname].values;
+
+            // filter by existing results
+            this.filteredrows = pv.filter(function(n) { return io[n]; });
+
+            if (options.desc) {
+              this.filteredrows.reverse();
+            }
+
+            return this;
+          }
+        }
+      }
+
+      // at this point, we will not be able to leverage binary index so we will have to do an array sort
+      
+      // if we have opted to use simplified javascript comparison function...
+      if (options.useJavascriptSorting) {
+        return this.sort(function(obj1, obj2) {
+          if (obj1[propname] === obj2[propname]) return 0;
+          if (obj1[propname] > obj2[propname]) return 1;
+          if (obj1[propname] < obj2[propname]) return -1;
+        });
+      }
+
+      // otherwise use loki sort which will return same results if column is indexed or not
       var wrappedComparer =
         (function (prop, desc, data) {
           var val1, val2, arr;
@@ -8403,7 +8570,7 @@ else {
             }
             return sortHelper(val1, val2, desc);
           };
-        })(propname, isdesc, this.collection.data);
+        })(propname, options.desc, this.collection.data);
 
       this.filteredrows.sort(wrappedComparer);
 
@@ -8536,6 +8703,8 @@ else {
      * @param {boolean=} firstOnly - (Optional) Used by collection.findOne()
      * @returns {Resultset} this resultset for further chain ops.
      * @memberof Resultset
+     * @example
+     * var over30 = users.chain().find({ age: { $gte: 30 } }).data();
      */
     Resultset.prototype.find = function (query, firstOnly) {
       if (this.collection.data.length === 0) {
@@ -8767,6 +8936,8 @@ else {
      * @param {function} fun - A javascript function used for filtering current results by.
      * @returns {Resultset} this resultset for further chain ops.
      * @memberof Resultset
+     * @example
+     * var over30 = users.chain().where(function(obj) { return obj.age >= 30; }.data();
      */
     Resultset.prototype.where = function (fun) {
       var viewFunction,
@@ -8817,6 +8988,8 @@ else {
      *
      * @returns {number} The number of documents in the resultset.
      * @memberof Resultset
+     * @example
+     * var over30Count = users.chain().find({ age: { $gte: 30 } }).count();
      */
     Resultset.prototype.count = function () {
       if (this.filterInitialized) {
@@ -8837,6 +9010,8 @@ else {
      *
      * @returns {array} Array of documents in the resultset
      * @memberof Resultset
+     * @example
+     * var resutls = users.chain().find({ age: 34 }).data();
      */
     Resultset.prototype.data = function (options) {
       var result = [],
@@ -8915,6 +9090,10 @@ else {
      * @param {function} updateFunction - User supplied updateFunction(obj) will be executed for each document object.
      * @returns {Resultset} this resultset for further chain ops.
      * @memberof Resultset
+     * @example
+     * users.chain().find({ country: 'de' }).update(function(user) {
+     *   user.phoneFormat = "+49 AAAA BBBBBB";
+     * });
      */
     Resultset.prototype.update = function (updateFunction) {
 
@@ -8946,6 +9125,9 @@ else {
      *
      * @returns {Resultset} this (empty) resultset for further chain ops.
      * @memberof Resultset
+     * @example
+     * // remove users inactive since 1/1/2001
+     * users.chain().find({ lastActive: { $lte: new Date("1/1/2001").getTime() } }).remove();
      */
     Resultset.prototype.remove = function () {
 
@@ -8968,6 +9150,19 @@ else {
      * @param {function} reduceFunction - this function accepts many (array of map outputs) and returns single value
      * @returns {value} The output of your reduceFunction
      * @memberof Resultset
+     * @example
+     * var db = new loki("order.db");
+     * var orders = db.addCollection("orders");
+     * orders.insert([{ qty: 4, unitCost: 100.00 }, { qty: 10, unitCost: 999.99 }, { qty: 2, unitCost: 49.99 }]);
+     *
+     * function mapfun (obj) { return obj.qty*obj.unitCost };
+     * function reducefun(array) {
+     *   var grandTotal=0;
+     *   array.forEach(function(orderTotal) { grandTotal += orderTotal; });
+     *   return grandTotal;
+     * }
+     * var grandOrderTotal = orders.chain().mapReduce(mapfun, reducefun);
+     * console.log(grandOrderTotal);
      */
     Resultset.prototype.mapReduce = function (mapFunction, reduceFunction) {
       try {
@@ -8990,6 +9185,40 @@ else {
      * @param {string} dataOptions.forceCloneMethod - Allows overriding the default or collection specified cloning method.
      * @returns {Resultset} A resultset with data in the format [{left: leftObj, right: rightObj}]
      * @memberof Resultset
+     * @example
+     * var db = new loki('sandbox.db');
+     *
+     * var products = db.addCollection('products');
+     * var orders = db.addCollection('orders');
+     *
+     * products.insert({ productId: "100234", name: "flywheel energy storage", unitCost: 19999.99 });
+     * products.insert({ productId: "140491", name: "300F super capacitor", unitCost: 129.99 });
+     * products.insert({ productId: "271941", name: "fuel cell", unitCost: 3999.99 });
+     * products.insert({ productId: "174592", name: "390V 3AH lithium bank", unitCost: 4999.99 });
+     *
+     * orders.insert({ orderDate : new Date("12/1/2017").getTime(), prodId: "174592", qty: 2, customerId: 2 });
+     * orders.insert({ orderDate : new Date("4/15/2016").getTime(), prodId: "271941", qty: 1, customerId: 1 });
+     * orders.insert({ orderDate : new Date("3/12/2017").getTime(), prodId: "140491", qty: 4, customerId: 4 });
+     * orders.insert({ orderDate : new Date("7/31/2017").getTime(), prodId: "100234", qty: 7, customerId: 3 });
+     * orders.insert({ orderDate : new Date("8/3/2016").getTime(), prodId: "174592", qty: 3, customerId: 5 });
+     *
+     * var mapfun = function(left, right) {
+     *   return {
+     *     orderId: left.$loki,
+     *     orderDate: new Date(left.orderDate) + '',
+     *     customerId: left.customerId,
+     *     qty: left.qty,
+     *     productId: left.prodId,
+     *     prodName: right.name,
+     *     prodCost: right.unitCost,
+     *     orderTotal: +((right.unitCost * left.qty).toFixed(2))
+     *   };
+     * };
+     *
+     * // join orders with relevant product info via eqJoin
+     * var orderSummary = orders.chain().eqJoin(products, "prodId", "productId", mapfun).data();
+     * 
+     * console.log(orderSummary);     
      */
     Resultset.prototype.eqJoin = function (joinData, leftJoinKey, rightJoinKey, mapFun, dataOptions) {
 
@@ -9058,6 +9287,14 @@ else {
      * @param {boolean} dataOptions.forceClones - forcing the return of cloned objects to your map object
      * @param {string} dataOptions.forceCloneMethod - Allows overriding the default or collection specified cloning method.
      * @memberof Resultset
+     * @example
+     * var orders.chain().find({ productId: 32 }).map(function(obj) {
+     *   return {
+     *     orderId: $loki,
+     *     productId: productId,
+     *     quantity: qty
+     *   };
+     * });
      */
     Resultset.prototype.map = function (mapFun, dataOptions) {
       var data = this.data(dataOptions).map(mapFun);
@@ -9208,6 +9445,25 @@ else {
      * @param {object=} parameters - optional parameters (if optional transform requires them)
      * @returns {Resultset} A copy of the internal resultset for branched queries.
      * @memberof DynamicView
+     * @example
+     * var db = new loki('test');
+     * var coll = db.addCollection('mydocs');
+     * var dv = coll.addDynamicView('myview');
+     * var tx = [
+     *   {
+     *     type: 'offset',
+     *     value: '[%lktxp]pageStart'
+     *   },
+     *   {
+     *     type: 'limit',
+     *     value: '[%lktxp]pageSize'
+     *   }
+     * ];
+     * coll.addTransform('viewPaging', tx);
+     * 
+     * // add some records
+     * 
+     * var results = dv.branchResultset('viewPaging', { pageStart: 10, pageSize: 10 }).data();     
      */
     DynamicView.prototype.branchResultset = function (transform, parameters) {
       var rs = this.resultset.branch();
@@ -9299,13 +9555,17 @@ else {
      * dv.applySimpleSort("name");
      *
      * @param {string} propname - Name of property by which to sort.
-     * @param {boolean=} isdesc - (Optional) If true, the sort will be in descending order.
+     * @param {object|boolean=} options - boolean for sort descending or options object
+     * @param {boolean} [options.desc=false] - whether we should sort descending.
+     * @param {boolean} [options.disableIndexIntersect=false] - whether we should explicity not use array intersection.
+     * @param {boolean} [options.forceIndexIntersect=false] - force array intersection (if binary index exists).
+     * @param {boolean} [options.useJavascriptSorting=false] - whether results are sorted via basic javascript sort.
      * @returns {DynamicView} this DynamicView object, for further chain ops.
      * @memberof DynamicView
      */
-    DynamicView.prototype.applySimpleSort = function (propname, isdesc) {
+    DynamicView.prototype.applySimpleSort = function (propname, options) {
       this.sortCriteria = [
-        [propname, isdesc || false]
+        [propname, options || false]
       ];
       this.sortFunction = null;
 
@@ -9833,13 +10093,15 @@ else {
      * @param {array=} [options.indices=[]] - array property names to define binary indexes for
      * @param {boolean} [options.adaptiveBinaryIndices=true] - collection indices will be actively rebuilt rather than lazily
      * @param {boolean} [options.asyncListeners=false] - whether listeners are invoked asynchronously
+     * @param {boolean} [options.disableMeta=false] - set to true to disable meta property on documents
      * @param {boolean} [options.disableChangesApi=true] - set to false to enable Changes API
      * @param {boolean} [options.disableDeltaChangesApi=true] - set to false to enable Delta Changes API (requires Changes API, forces cloning)
      * @param {boolean} [options.autoupdate=false] - use Object.observe to update objects automatically
      * @param {boolean} [options.clone=false] - specify whether inserts and queries clone to/from user
      * @param {boolean} [options.serializableIndices=true[]] - converts date values on binary indexed properties to epoch time
      * @param {string} [options.cloneMethod='parse-stringify'] - 'parse-stringify', 'jquery-extend-deep', 'shallow', 'shallow-assign'
-     * @param {int} options.ttlInterval - time interval for clearing out 'aged' documents; not set by default.
+     * @param {int=} options.ttl - age of document (in ms.) before document is considered aged/stale.
+     * @param {int=} options.ttlInterval - time interval for clearing out 'aged' documents; not set by default.
      * @see {@link Loki#addCollection} for normal creation of collections
      */
     function Collection(name, options) {
@@ -9912,6 +10174,9 @@ else {
 
       // option to make event listeners async, default is sync
       this.asyncListeners = options.hasOwnProperty('asyncListeners') ? options.asyncListeners : false;
+
+      // if set to true we will not maintain a meta property for a document
+      this.disableMeta = options.hasOwnProperty('disableMeta') ? options.disableMeta : false;
 
       // disable track changes
       this.disableChangesApi = options.hasOwnProperty('disableChangesApi') ? options.disableChangesApi : true;
@@ -10069,7 +10334,7 @@ else {
       function insertMeta(obj) {
         var len, idx;
 
-        if (!obj) {
+        if (self.disableMeta || !obj) {
           return;
         }
 
@@ -10099,7 +10364,7 @@ else {
       }
 
       function updateMeta(obj) {
-        if (!obj) {
+        if (self.disableMeta || !obj) {
           return;
         }
         obj.meta.updated = (new Date()).getTime();
@@ -10389,12 +10654,154 @@ else {
       this.dirty = true; // for autosave scenarios
     };
 
-    Collection.prototype.getSequencedIndexValues = function (property) {
+    /**
+     * Perform checks to determine validity/consistency of all binary indices
+     * @param {object=} options - optional configuration object
+     * @param {boolean} [options.randomSampling=false] - whether (faster) random sampling should be used
+     * @param {number} [options.randomSamplingFactor=0.10] - percentage of total rows to randomly sample
+     * @param {boolean} [options.repair=false] - whether to fix problems if they are encountered
+     * @returns {string[]} array of index names where problems were found.
+     * @memberof Collection
+     * // check all indices on a collection, returns array of invalid index names
+     * var result = coll.checkAllIndexes({ repair: true, randomSampling: true, randomSamplingFactor: 0.15 });
+     * if (result.length > 0) {
+     *   results.forEach(function(name) { 
+     *     console.log('problem encountered with index : ' + name); 
+     *   });
+     * }     
+     */
+    Collection.prototype.checkAllIndexes = function (options) {
+      var key, bIndices = this.binaryIndices;
+      var results = [], result;
+
+      for (key in bIndices) {
+        if (hasOwnProperty.call(bIndices, key)) {
+          result = this.checkIndex(key, options);
+          if (!result) {
+            results.push(key);
+          }
+        }
+      }
+
+      return results;
+    };
+
+    /**
+     * Perform checks to determine validity/consistency of a binary index
+     * @param {string} property - name of the binary-indexed property to check
+     * @param {object=} options - optional configuration object
+     * @param {boolean} [options.randomSampling=false] - whether (faster) random sampling should be used
+     * @param {number} [options.randomSamplingFactor=0.10] - percentage of total rows to randomly sample
+     * @param {boolean} [options.repair=false] - whether to fix problems if they are encountered
+     * @returns {boolean} whether the index was found to be valid (before optional correcting).
+     * @memberof Collection
+     * @example
+     * // full test
+     * var valid = coll.checkIndex('name');
+     * // full test with repair (if issues found)
+     * valid = coll.checkIndex('name', { repair: true });
+     * // random sampling (default is 10% of total document count)
+     * valid = coll.checkIndex('name', { randomSampling: true });
+     * // random sampling (sample 20% of total document count)
+     * valid = coll.checkIndex('name', { randomSampling: true, randomSamplingFactor: 0.20 });
+     * // random sampling (implied boolean)
+     * valid = coll.checkIndex('name', { randomSamplingFactor: 0.20 });
+     * // random sampling with repair (if issues found)
+     * valid = coll.checkIndex('name', { repair: true, randomSampling: true });
+     */
+    Collection.prototype.checkIndex = function (property, options) {
+      options = options || {};
+      // if 'randomSamplingFactor' specified but not 'randomSampling', assume true
+      if (options.randomSamplingFactor && options.randomSampling !== false) {
+        options.randomSampling = true;
+      }
+      options.randomSamplingFactor = options.randomSamplingFactor || 0.1;
+      if (options.randomSamplingFactor < 0 || options.randomSamplingFactor > 1) {
+        options.randomSamplingFactor = 0.1;
+      }
+
+      var valid=true, idx, iter, pos, len, biv;
+
+      // make sure we are passed a valid binary index name
+      if (!this.binaryIndices.hasOwnProperty(property)) {
+        throw new Error("called checkIndex on property without an index: " + property);
+      }
+
+      // if lazy indexing, rebuild only if flagged as dirty
+      if (!this.adaptiveBinaryIndices) {
+        this.ensureIndex(property);
+      }
+
+      biv = this.binaryIndices[property].values;
+      len = biv.length;
+
+      // if the index has an incorrect number of values
+      if (len !== this.data.length) {
+        if (options.repair) {
+          this.ensureIndex(property, true);
+        }
+        return false;
+      }
+
+      if (len === 0) {
+        return true;
+      }
+
+      if (len === 1) {
+        valid = (biv[0] === 0);
+      }
+
+      if (options.randomSampling) {
+        // validate first and last
+        if (!LokiOps.$lte(this.data[biv[0]][property], this.data[biv[1]][property])) {
+          valid=false;
+        }
+        if (!LokiOps.$lte(this.data[biv[len-2]][property], this.data[biv[len-1]][property])) {
+          valid=false;
+        }
+
+        // if first and last positions are sorted correctly with their nearest neighbor,
+        // continue onto random sampling phase...
+        if (valid) {
+          // # random samplings = total count * sampling factor
+          iter = Math.floor((len-1) * options.randomSamplingFactor);
+
+          // for each random sampling, validate that the binary index is sequenced properly
+          // with next higher value.
+          for(idx=0; idx<len-1; idx++) {
+            // calculate random position
+            pos = Math.floor(Math.random() * (len-1));
+            if (!LokiOps.$lte(this.data[biv[pos]][property], this.data[biv[pos+1]][property])) {
+              valid=false;
+              break;
+            }
+          }
+        }
+      }
+      else {
+        // validate that the binary index is sequenced properly
+        for(idx=0; idx<len-1; idx++) {
+          if (!LokiOps.$lte(this.data[biv[idx]][property], this.data[biv[idx+1]][property])) {
+            valid=false;
+            break;
+          }
+        }
+      }
+
+      // if incorrectly sequenced and we are to fix problems, rebuild index
+      if (!valid && options.repair) {
+        this.ensureIndex(property, true);
+      }
+
+      return valid;
+    };
+
+    Collection.prototype.getBinaryIndexValues = function (property) {
       var idx, idxvals = this.binaryIndices[property].values;
-      var result = "";
+      var result = [];
 
       for (idx = 0; idx < idxvals.length; idx++) {
-        result += " [" + idx + "] " + this.data[idxvals[idx]][property];
+        result.push(this.data[idxvals[idx]][property]);
       }
 
       return result;
@@ -10419,6 +10826,8 @@ else {
 
     /**
      * Ensure all binary indices
+     * @param {boolean} force - whether to force rebuild of existing lazy binary indices
+     * @memberof Collection
      */
     Collection.prototype.ensureAllIndexes = function (force) {
       var key, bIndices = this.binaryIndices;
@@ -10429,6 +10838,9 @@ else {
       }
     };
 
+    /**
+     * Internal method used to flag all lazy index as dirty
+     */
     Collection.prototype.flagBinaryIndexesDirty = function () {
       var key, bIndices = this.binaryIndices;
       for (key in bIndices) {
@@ -10438,6 +10850,9 @@ else {
       }
     };
 
+    /**
+     * Internal method used to flag a lazy index as dirty
+     */
     Collection.prototype.flagBinaryIndexDirty = function (index) {
       if (this.binaryIndices[index])
         this.binaryIndices[index].dirty = true;
@@ -10624,7 +11039,7 @@ else {
       // if configured to clone, do so now... otherwise just use same obj reference
       var obj = this.cloneObjects ? clone(doc, this.cloneMethod) : doc;
 
-      if (typeof obj.meta === 'undefined') {
+      if (!this.disableMeta && typeof obj.meta === 'undefined') {
         obj.meta = {
           revision: 0,
           created: 0
@@ -10653,7 +11068,7 @@ else {
     /**
      * Empties the collection.
      * @param {object=} options - configure clear behavior
-     * @param {bool=} options.removeIndices - (default: false)
+     * @param {bool=} [options.removeIndices=false] - whether to remove indices in addition to data
      * @memberof Collection
      */
     Collection.prototype.clear = function (options) {
@@ -10711,9 +11126,25 @@ else {
       if (Array.isArray(doc)) {
         var k = 0,
           len = doc.length;
+
+        // if not cloning, disable adaptive binary indices for the duration of the batch update,
+        // followed by lazy rebuild and re-enabling adaptive indices after batch update.
+        var adaptiveBatchOverride = !this.cloneObjects &&
+          this.adaptiveBinaryIndices && Object.keys(this.binaryIndices).length > 0;
+
+        if (adaptiveBatchOverride) {
+          this.adaptiveBinaryIndices = false;
+        }
+
         for (k; k < len; k += 1) {
           this.update(doc[k]);
         }
+
+        if (adaptiveBatchOverride) {
+          this.ensureAllIndexes();
+          this.adaptiveBinaryIndices = true;
+        }
+
         return;
       }
 
@@ -10813,7 +11244,10 @@ else {
         }
 
         obj.$loki = this.maxId;
-        obj.meta.version = 0;
+
+        if (!this.disableMeta) {
+          obj.meta.version = 0;
+        }
 
         var key, constrUnique = this.constraints.unique;
         for (key in constrUnique) {
@@ -11504,7 +11938,7 @@ else {
      * Chain method, used for beginning a series of chained find() and/or view() operations
      * on a collection.
      *
-     * @param {array=} transform - Ordered array of transform step objects similar to chain
+     * @param {string|array=} transform - named transform or array of transform steps
      * @param {object=} parameters - Object containing properties representing parameters to substitute
      * @returns {Resultset} (this) resultset, or data array if any map or join functions where called
      * @memberof Collection
@@ -12528,14 +12962,13 @@ function _check(trie, array) {
     array.push('*');
   }
   for (i = 0; i < array.length; i++) {
-    if (node.hasOwnProperty('*') && (array[i] !== '*' && node.hasOwnProperty(array[i]))) {
+    if (node.hasOwnProperty('*') && Object.keys(node['*']).length === 0) {
+      // if we find a star leaf in the trie, we are done (everything below is allowed)
+      return true;
+    } else if (node.hasOwnProperty('*') && (array[i] !== '*' && node.hasOwnProperty(array[i]))) {
       // if there are multiple paths, we have to go recursive
       return _check(node['*'], array.slice(i+1)) || _check(node[array[i]], array.slice(i+1));
     } else if (node.hasOwnProperty('*')) {
-      // if we find a star leaf in the trie, we are done (everything below is allowed)
-      if (Object.keys(node['*']).length === 0) {
-        return true;
-      }
       // otherwise we have to go deeper
       node = node['*'];
     } else if (node.hasOwnProperty(array[i])) {
@@ -12560,11 +12993,11 @@ function _permissions(trie, array) {
     // for recursion safety, we make sure we have really valid values
     return [];
   }
-  array = [].concat(array);
-  // if we have a star permission, we can just return that
-  if (trie.hasOwnProperty('*')) {
+  // if we have a star permission with nothing further down the trie we can just return that
+  if (trie.hasOwnProperty('*') && Object.keys(trie['*']).length === 0) {
     return ['*'];
   }
+  array = [].concat(array);
   // take first element from array
   current = array.shift();
   // the requested part
@@ -12599,11 +13032,16 @@ function _permissions(trie, array) {
     }
     return u;
   }
+  results = [];
   if (trie.hasOwnProperty(current)) {
     // we have to go deeper!
-    return _permissions(trie[current], array);
+    results = results.concat(_permissions(trie[current], array));
   }
-  return [];
+  if (trie.hasOwnProperty('*')) {
+    // if we have a star permission we need to go deeper
+    results = results.concat(_permissions(trie['*'], array));
+  }
+  return results;
 }
 
 function _expand(permission) {
@@ -12677,7 +13115,12 @@ ShiroTrie.prototype.add = function () {
   var arg;
   for (arg in args) {
     if (args.hasOwnProperty(arg) && typeof(args[arg]) === 'string') {
-      this.data = _add(this.data, args[arg].split(':'));
+      var array = args[arg].split(':');
+      // remove star leaf, because it is added in _add with empty subtree
+      if (array[array.length - 1] === '*') { 
+        array.splice(array.length-1, 1);
+      }
+      this.data = _add(this.data, array);
     }
   }
   return this;
@@ -13004,7 +13447,9 @@ function parseHeader(str) {
  */
 
 function isJSON(mime) {
-  return /[\/+]json\b/.test(mime);
+  // should match /json or +json
+  // but not /json-seq
+  return /[\/+]json($|[^-\w])/.test(mime);
 }
 
 /**

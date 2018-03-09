@@ -1,6 +1,8 @@
 [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Coverage][coveralls-image]][coveralls-url] [![Dependency Status][daviddm-image]][daviddm-url] [![Greenkeeper badge][green-image]][green-url]
 # ec.datamanager.js
 
+> DEPRECATED: This module is deprecated in favor of [ec.sdk](https://github.com/entrecode/ec.sdk).
+
 JavaScript SDK for [ec.datamanager](https://doc.entrecode.de/en/latest/data_manager/). By entrecode.
 
 Simply use the generated APIs of the ec.datamanager with JavaScript. Supports usage in frontend (web) and backend (Node.js).
@@ -15,7 +17,6 @@ The SDK is fully promise-based. Since version `0.6.0` the SDK is fully [HAL](htt
 * [Documentation](#documentation)
 * [Tests and Coverage](#tests-and-coverage)
 * [Build](#build)
-* [Changelog](#changelog)
 
 ## Installation
 
