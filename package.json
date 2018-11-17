@@ -70,7 +70,7 @@
     "locale": "^0.1.0",
     "lokijs": "^1.5.3",
     "shiro-trie": "^0.4.5",
-    "superagent": "^3.8.2",
+    "superagent": "^4.0.0",
     "traverson": "^6.0.3",
     "traverson-hal": "^6.0.0"
   }
