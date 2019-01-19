@@ -59,7 +59,7 @@
     "mocha-bamboo-reporter": "^1.1.1",
     "nock": "^10.0.0",
     "phantomjs-prebuilt": "^2.1.16",
-    "sinon": "^6.0.0",
+    "sinon": "^7.2.3",
     "uglify": "^0.1.5",
     "walk": "^2.3.9"
   },
